@@ -10,7 +10,7 @@ using OneMotor::thread::Othread;
 
 int main()
 {
-    Othread thread([]()
+    Othread thread([]
     {
         constexpr PID_Params params{.Kp = 10.0, .Ki = 1.0, .Kd = 0.5};
         PIDController pid(params);
@@ -20,5 +20,6 @@ int main()
     DeltaT deltat{};
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
     printf("%f", deltat.getDeltaMS());
+    thread.join();
     return 0;
 }

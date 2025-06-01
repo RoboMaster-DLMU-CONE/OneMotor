@@ -13,17 +13,18 @@ namespace OneMotor::thread
     {
     public:
         using ThreadFunc = std::function<void()>;
-        explicit Othread(ThreadFunc func) noexcept;
+        explicit Othread(const ThreadFunc& func) noexcept;
+        Othread() noexcept;
         ~Othread();
         Othread(const Othread&) = delete;
         Othread(Othread&&) = delete;
         Othread& operator=(const Othread&) = delete;
         Othread& operator=(Othread&&) = delete;
 
-        bool start(ThreadFunc func) noexcept;
+        bool start(const ThreadFunc& func) noexcept;
         bool join() noexcept;
         bool detach() noexcept;
-        bool joinable() noexcept;
+        [[nodiscard]] bool joinable() const noexcept;
 
     private:
         ThreadFunc thread_func{nullptr};

@@ -3,7 +3,12 @@
 
 namespace OneMotor::thread
 {
-    Othread::Othread(ThreadFunc func)
+    Othread::Othread(const ThreadFunc& func) noexcept
+    {
+        start(func);
+    }
+
+    Othread::Othread() noexcept =default;
 
     Othread::~Othread()
     {
@@ -19,7 +24,7 @@ namespace OneMotor::thread
         }
     }
 
-    bool Othread::start(ThreadFunc func) noexcept
+    bool Othread::start(const ThreadFunc& func) noexcept
     {
         if (started || !func)
         {
@@ -31,6 +36,7 @@ namespace OneMotor::thread
         }
         try
         {
+            this->thread_func = func;
             native_handle = std::thread(thread_func);
         }
         catch (...)
@@ -43,6 +49,11 @@ namespace OneMotor::thread
         detached = false;
         return true;
     }
+    bool Othread::joinable() const noexcept
+    {
+        return native_handle.joinable();
+    }
+
 
     bool Othread::join() noexcept
     {
