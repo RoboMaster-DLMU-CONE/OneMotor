@@ -2,13 +2,15 @@
 #define CANDRIVER_HPP
 
 #include <string>
+#include <functional>
+#include <set>
 
 #ifdef ONE_MOTOR_LINUX
 #include <hycan/Interface/Interface.hpp>
 #endif
 #include "CanFrame.hpp"
 
-using std::string;
+using std::string, std::set, std::function;
 using HyCAN::Interface;
 
 namespace OneMotor::Can
@@ -16,6 +18,7 @@ namespace OneMotor::Can
     class CanDriver
     {
     public:
+        using CallbackFunc = function<void(can_frame&&)>;
         explicit CanDriver(const string& interface_name);
         ~CanDriver();
         CanDriver(const CanDriver&) = delete;
@@ -25,6 +28,7 @@ namespace OneMotor::Can
         bool open();
         bool close();
         bool send(const CanFrame& frame);
+        void registerCallback(const set<size_t>& can_ids, const CallbackFunc& func);
 
     private:
         string interface_name;

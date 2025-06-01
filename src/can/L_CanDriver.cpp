@@ -25,4 +25,9 @@ namespace OneMotor::Can
         interface.send(frame);
         return true;
     }
+
+    void CanDriver::registerCallback(const set<size_t>& can_ids, const CallbackFunc& func)
+    {
+        interface.tryRegisterCallback(can_ids, func);
+    }
 }
