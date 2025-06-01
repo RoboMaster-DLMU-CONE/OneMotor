@@ -6,13 +6,13 @@ set(CMAKE_CXX_STANDARD 20)
 
 option(BUILD_OM_EXAMPLE "Build OneMotor Examples" ON)
 
-if(ZEPHYR_TOOLCHAIN_VARIANT)
+if (ZEPHYR_TOOLCHAIN_VARIANT)
     message(STATUS "Configure OneMotor for Zephyr building system")
 else ()
     message(STATUS "Configure OneMotor for Linux building system.")
     find_package(hycan REQUIRED)
     find_package(xtr REQUIRED)
-endif()
+endif ()
 
 add_library(${PROJECT_NAME})
 
@@ -20,12 +20,12 @@ file(GLOB_RECURSE LINUX_SOURCES CONFIGURE_DEPENDS "src/L_*.cpp")
 file(GLOB_RECURSE ZEPHYR_SOURCES CONFIGURE_DEPENDS "src/Z_*.cpp")
 file(GLOB_RECURSE NORMAL_SOURCES CONFIGURE_DEPENDS "src/N_*.cpp")
 
-if(ZEPHYR_TOOLCHAIN_VARIANT)
-target_sources(${PROJECT_NAME} PRIVATE ${ZEPHYR_SOURCES} ${NORMAL_SOURCES})
+if (ZEPHYR_TOOLCHAIN_VARIANT)
+    target_sources(${PROJECT_NAME} PRIVATE ${ZEPHYR_SOURCES} ${NORMAL_SOURCES})
 else ()
-target_sources(${PROJECT_NAME} PRIVATE ${LINUX_SOURCES} ${NORMAL_SOURCES})
-target_link_libraries(${PROJECT_NAME} PRIVATE hycan::hycan xtr::xtr)
-target_compile_definitions(${PROJECT_NAME} PUBLIC ONE_MOTOR_LINUX)
+    target_sources(${PROJECT_NAME} PRIVATE ${LINUX_SOURCES} ${NORMAL_SOURCES})
+    target_link_libraries(${PROJECT_NAME} PUBLIC hycan::hycan xtr::xtr)
+    target_compile_definitions(${PROJECT_NAME} PUBLIC ONE_MOTOR_LINUX)
 endif ()
 
 target_include_directories(${PROJECT_NAME} PUBLIC include)

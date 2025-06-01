@@ -3,10 +3,13 @@
 #include <one-motor/util/DeltaT.hpp>
 #include <one-motor/thread/Othread.hpp>
 
+#include "one-motor/can/CanDriver.hpp"
+
 using OneMotor::Util::DeltaT;
 using OneMotor::Control::PID_Params;
 using OneMotor::Control::PIDController;
 using OneMotor::thread::Othread;
+using OneMotor::Can::CanDriver;
 
 int main()
 {
@@ -16,6 +19,7 @@ int main()
         PIDController pid(params);
         pid.compute(1, 0.1);
     });
+    CanDriver can_driver("can0");
 
     DeltaT deltat{};
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
