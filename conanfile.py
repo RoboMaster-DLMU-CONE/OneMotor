@@ -36,7 +36,7 @@ class OneMotorConan(ConanFile):
 
     def requirements(self):
         self.requires("xtr/2.1.2", transitive_headers=True)
-        self.requires("hycan/0.5.1")
+        self.requires("hycan/0.5.2")
 
     def generate(self):
         deps = CMakeDeps(self)

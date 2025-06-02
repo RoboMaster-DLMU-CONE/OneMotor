@@ -1,8 +1,12 @@
+#include <utility>
+
 #include "one-motor/can/CanDriver.hpp"
+#include "one-motor/can/CanFrame.hpp"
 
 namespace OneMotor::Can
 {
-    CanDriver::CanDriver(const string& interface_name): interface_name(interface_name), interface(this->interface_name)
+    CanDriver::CanDriver(string interface_name): interface_name(std::move(interface_name)),
+                                                 interface(this->interface_name)
     {
     }
 
@@ -28,6 +32,6 @@ namespace OneMotor::Can
 
     void CanDriver::registerCallback(const set<size_t>& can_ids, const CallbackFunc& func)
     {
-        interface.tryRegisterCallback(can_ids, func);
+        interface.tryRegisterCallback<CanFrame>(can_ids, func);
     }
 }

@@ -14,10 +14,10 @@ namespace OneMotor::Can
     {
         explicit operator can_frame() const;
         explicit CanFrame(const can_frame&);
-        uint32_t id;
-        uint8_t dlc;
-        uint8_t flags;
-        uint8_t data[ONE_MOTOR_CAN_MAX_DLEN];
+        uint32_t id{};
+        uint8_t dlc{};
+        uint8_t flags{};
+        uint8_t data[ONE_MOTOR_CAN_MAX_DLEN]{};
     };
 }
 

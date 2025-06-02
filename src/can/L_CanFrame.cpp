@@ -11,7 +11,7 @@ namespace OneMotor::Can
         return frame;
     }
 
-    CanFrame::CanFrame(const can_frame& frame): flags(0)
+    CanFrame::CanFrame(const can_frame& frame)
     {
         id = frame.can_id;
         dlc = frame.len;
