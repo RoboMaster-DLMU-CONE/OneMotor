@@ -6,7 +6,7 @@
 #include <set>
 
 #ifdef ONE_MOTOR_LINUX
-#include <hycan/Interface/Interface.hpp>
+#include <HyCAN/Interface/Interface.hpp>
 #endif
 
 using std::string, std::set, std::function;

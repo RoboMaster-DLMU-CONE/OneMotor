@@ -1,17 +1,16 @@
-cmake_minimum_required(VERSION 3.27)
+cmake_minimum_required(VERSION 3.20)
 project(one-motor VERSION 0.1.0)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 
 option(BUILD_OM_EXAMPLE "Build OneMotor Examples" ON)
 
 if (ZEPHYR_TOOLCHAIN_VARIANT)
-    message(STATUS "Configure OneMotor for Zephyr building system")
+    message(STATUS "Configuring OneMotor for Zephyr building system")
 else ()
-    message(STATUS "Configure OneMotor for Linux building system.")
-    find_package(hycan REQUIRED)
-    find_package(xtr REQUIRED)
+    message(STATUS "Configuring OneMotor for Linux building system.")
+    include(OneMotorFindHyCAN)
 endif ()
 
 add_library(${PROJECT_NAME})
@@ -24,7 +23,7 @@ if (ZEPHYR_TOOLCHAIN_VARIANT)
     target_sources(${PROJECT_NAME} PRIVATE ${ZEPHYR_SOURCES} ${NORMAL_SOURCES})
 else ()
     target_sources(${PROJECT_NAME} PRIVATE ${LINUX_SOURCES} ${NORMAL_SOURCES})
-    target_link_libraries(${PROJECT_NAME} PUBLIC hycan::hycan xtr::xtr)
+    target_link_libraries(${PROJECT_NAME} PUBLIC HyCAN::HyCAN)
     target_compile_definitions(${PROJECT_NAME} PUBLIC ONE_MOTOR_LINUX)
 endif ()
 

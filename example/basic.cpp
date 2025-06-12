@@ -25,5 +25,6 @@ int main()
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
     printf("%f", deltat.getDeltaMS());
     thread.join();
+    std::this_thread::sleep_for(std::chrono::seconds(5));
     return 0;
 }
