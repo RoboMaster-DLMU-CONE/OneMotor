@@ -4,13 +4,12 @@
 #include <string>
 #include <functional>
 #include <set>
+#include <expected>
 
 #ifdef ONE_MOTOR_LINUX
 #include <HyCAN/Interface/Interface.hpp>
 #endif
 
-using std::string, std::set, std::function;
-using HyCAN::Interface;
 
 namespace OneMotor::Can
 {
@@ -19,22 +18,23 @@ namespace OneMotor::Can
     class CanDriver
     {
     public:
-        using CallbackFunc = function<void(CanFrame&&)>;
-        explicit CanDriver(string interface_name);
+        using CallbackFunc = std::function<void(CanFrame&&)>;
+        using Result = std::expected<void, std::string>;
+        explicit CanDriver(std::string interface_name);
         ~CanDriver();
         CanDriver(const CanDriver&) = delete;
         CanDriver(const CanDriver&&) = delete;
         CanDriver& operator=(const CanDriver&) = delete;
         CanDriver& operator=(CanDriver&&) = delete;
-        bool open();
-        bool close();
-        bool send(const CanFrame& frame);
-        void registerCallback(const set<size_t>& can_ids, const CallbackFunc& func);
+        Result open();
+        Result close();
+        Result send(const CanFrame& frame);
+        Result registerCallback(const std::set<size_t>& can_ids, const CallbackFunc& func);
 
     private:
-        string interface_name;
+        std::string interface_name;
 #ifdef ONE_MOTOR_LINUX
-        Interface interface;
+        HyCAN::Interface interface;
 #endif
     };
 }

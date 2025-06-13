@@ -5,33 +5,30 @@
 
 namespace OneMotor::Can
 {
-    CanDriver::CanDriver(string interface_name): interface_name(std::move(interface_name)),
-                                                 interface(this->interface_name)
+    CanDriver::CanDriver(std::string interface_name): interface_name(std::move(interface_name)),
+                                                      interface(this->interface_name)
     {
     }
 
     CanDriver::~CanDriver() = default;
 
-    bool CanDriver::open()
+    CanDriver::Result CanDriver::open()
     {
-        interface.up();
-        return true;
+        return interface.up();
     }
 
-    bool CanDriver::close()
+    CanDriver::Result CanDriver::close()
     {
-        interface.down();
-        return true;
+        return interface.down();
     }
 
-    bool CanDriver::send(const CanFrame& frame)
+    CanDriver::Result CanDriver::send(const CanFrame& frame)
     {
-        interface.send(frame);
-        return true;
+        return interface.send(frame);
     }
 
-    void CanDriver::registerCallback(const set<size_t>& can_ids, const CallbackFunc& func)
+    CanDriver::Result CanDriver::registerCallback(const std::set<size_t>& can_ids, const CallbackFunc& func)
     {
-        interface.tryRegisterCallback<CanFrame>(can_ids, func);
+        return interface.tryRegisterCallback<CanFrame>(can_ids, func);
     }
 }
