@@ -5,6 +5,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 set(CMAKE_CXX_STANDARD 23)
 
 option(BUILD_OM_EXAMPLE "Build OneMotor Examples" ON)
+set(OM_CAN_MAX_DJI_MOTOR 4)
 
 if (ZEPHYR_TOOLCHAIN_VARIANT)
     message(STATUS "Configuring OneMotor for Zephyr building system")
@@ -24,7 +25,10 @@ if (ZEPHYR_TOOLCHAIN_VARIANT)
 else ()
     target_sources(${PROJECT_NAME} PRIVATE ${LINUX_SOURCES} ${NORMAL_SOURCES})
     target_link_libraries(${PROJECT_NAME} PUBLIC HyCAN::HyCAN)
-    target_compile_definitions(${PROJECT_NAME} PUBLIC ONE_MOTOR_LINUX)
+    target_compile_definitions(${PROJECT_NAME} PUBLIC
+            ONE_MOTOR_LINUX
+            OM_CAN_MAX_DJI_MOTOR=${OM_CAN_MAX_DJI_MOTOR}
+    )
 endif ()
 
 target_include_directories(${PROJECT_NAME} PUBLIC include)
