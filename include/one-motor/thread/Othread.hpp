@@ -25,6 +25,7 @@ namespace OneMotor::thread
         bool join() noexcept;
         bool detach() noexcept;
         [[nodiscard]] bool joinable() const noexcept;
+        static void sleep_for(uint64_t ns) noexcept;
 
     private:
         ThreadFunc thread_func{nullptr};

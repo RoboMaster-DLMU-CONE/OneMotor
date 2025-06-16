@@ -5,15 +5,16 @@
 
 namespace OneMotor::Motor::DJI
 {
+    template <uint8_t id>
     class M3508
     {
     public:
-        explicit M3508(Can::CanDriver& driver, uint8_t id);
+        explicit M3508(Can::CanDriver& driver);
         ~M3508();
 
     private:
         Can::CanDriver& driver_;
-        uint16_t canId_{};
+        static constexpr uint16_t canId_ = id + 0x200;
     };
 }
 

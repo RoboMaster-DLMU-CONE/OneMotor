@@ -8,7 +8,7 @@ namespace OneMotor::thread
         start(func);
     }
 
-    Othread::Othread() noexcept =default;
+    Othread::Othread() noexcept = default;
 
     Othread::~Othread()
     {
@@ -49,9 +49,15 @@ namespace OneMotor::thread
         detached = false;
         return true;
     }
+
     bool Othread::joinable() const noexcept
     {
         return native_handle.joinable();
+    }
+
+    void Othread::sleep_for(const uint64_t ns) noexcept
+    {
+        std::this_thread::sleep_for(std::chrono::nanoseconds(ns));
     }
 
 

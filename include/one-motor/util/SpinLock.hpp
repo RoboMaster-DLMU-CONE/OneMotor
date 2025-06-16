@@ -1,5 +1,5 @@
-#ifndef SPINLOCK_HPP
-#define SPINLOCK_HPP
+#ifndef ONE_MOTOR_SPINLOCK_HPP
+#define ONE_MOTOR_SPINLOCK_HPP
 
 #ifdef ONE_MOTOR_LINUX
 #include <atomic>
@@ -21,4 +21,4 @@ namespace OneMotor::Util
     };
 }
 
-#endif //SPINLOCK_HPP
+#endif //ONE_MOTOR_SPINLOCK_HPP
