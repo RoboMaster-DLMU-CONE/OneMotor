@@ -5,13 +5,15 @@
 #include <string>
 #include <linux/can.h>
 
+#include "one-motor/can/CanDriver.hpp"
+
 namespace OneMotor::Motor::DJI
 {
     struct M3508RawStatusFrame
     {
-        explicit operator can_frame() const;
+        explicit operator Can::CanFrame() const;
 
-        explicit M3508RawStatusFrame(can_frame frame);
+        explicit M3508RawStatusFrame(Can::CanFrame frame);
 
         [[nodiscard]] std::string format() const;
 
@@ -20,18 +22,6 @@ namespace OneMotor::Motor::DJI
         int16_t rpm;
         int16_t current; //mA
         uint8_t temperature;
-    };
-
-    struct M3508RawControl
-    {
-        explicit operator can_frame() const;
-
-        explicit M3508RawControl(can_frame frame);
-
-        explicit M3508RawControl(std::array<int16_t, 4> ampere, uint16_t canId);
-
-        uint16_t canId;
-        std::array<int16_t, 4> ampere{};
     };
 
     struct M3508Status

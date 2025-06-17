@@ -5,6 +5,7 @@
 #include <functional>
 #include <set>
 #include <expected>
+#include "CanFrame.hpp"
 
 #ifdef ONE_MOTOR_LINUX
 #include <HyCAN/Interface/Interface.hpp>
@@ -13,8 +14,6 @@
 
 namespace OneMotor::Can
 {
-    class CanFrame;
-
     class CanDriver
     {
     public:
