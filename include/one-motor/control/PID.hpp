@@ -77,14 +77,14 @@ namespace OneMotor::Control
         Util::DeltaT<ValueType> deltaT{};
 
     public:
-        ValueType MaxOutputVal;
-        ValueType DeadbandVal;
-        ValueType IntegralLimitVal;
-        ValueType Kp;
-        ValueType Ki;
-        ValueType Kd;
-        ValueType D_RC;
-        ValueType O_RC;
+        mutable ValueType MaxOutputVal;
+        mutable ValueType DeadbandVal;
+        mutable ValueType IntegralLimitVal;
+        mutable ValueType Kp;
+        mutable ValueType Ki;
+        mutable ValueType Kd;
+        mutable ValueType D_RC;
+        mutable ValueType O_RC;
 
         explicit PIDController(const PID_Params<ValueType>& params) :
             MaxOutputVal(params.MaxOutput), DeadbandVal(params.Deadband), IntegralLimitVal(params.IntegralLimit),

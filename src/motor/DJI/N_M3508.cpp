@@ -6,6 +6,8 @@
 constexpr float ECD_TO_ANGLE_DJI = 0.043945f;
 constexpr float RPM_2_ANGLE_PER_SEC = 6.0f;
 
+using Result = std::expected<void, std::string>;
+
 void trMsgToStatus(const OneMotor::Motor::DJI::M3508RawStatusFrame& frame,
                    OneMotor::Motor::DJI::M3508Status& status)
 {
@@ -38,6 +40,13 @@ namespace OneMotor::Motor::DJI
         {
             Util::om_panic(std::move(result.error()));
         }
+        if (const auto result = driver.registerCallback({canId_}, [this](Can::CanFrame&& frame)
+        {
+            this->disabled_func_(std::move(frame));
+        }); !result)
+        {
+            Util::om_panic(std::move(result.error()));
+        }
         manager.pushOutput<id>(driver_, 0, 0);
     }
 
@@ -60,6 +69,30 @@ namespace OneMotor::Motor::DJI
         return status;
     }
 
+    template <uint8_t id>
+    Result M3508_Base<id>::disable() noexcept
+    {
+        return driver_.registerCallback({canId_}, [this](Can::CanFrame&& frame)
+        {
+            this->disabled_func_(std::move(frame));
+        });
+    }
+
+    template <uint8_t id>
+    Result M3508_Base<id>::enable() noexcept
+    {
+        return driver_.registerCallback({canId_}, [this](Can::CanFrame&& frame)
+        {
+            this->enabled_func_(std::move(frame));
+        });
+    }
+
+    template <uint8_t id>
+    Result M3508_Base<id>::shutdown() noexcept
+    {
+        return driver_.registerCallback({canId_}, shutdown_func_);
+    }
+
 
     template <uint8_t id>
     M3508<id, MotorMode::Angular>::M3508(Can::CanDriver& driver,
@@ -72,6 +105,15 @@ namespace OneMotor::Motor::DJI
     void M3508<id, MotorMode::Angular>::setRef(const float ref) noexcept
     {
         ang_ref_.store(ref, std::memory_order_release);
+    }
+
+    template <uint8_t id>
+    void M3508<id, MotorMode::Angular>::editAngPID(
+        const std::function<void(const Control::PIDController<Control::Positional, float>*)>& func)
+    {
+        this->status_lock_.lock();
+        func(ang_pid_.get());
+        this->status_lock_.unlock();
     }
 
     template <uint8_t id>
@@ -118,6 +160,24 @@ namespace OneMotor::Motor::DJI
     }
 
     template <uint8_t id>
+    void M3508<id, MotorMode::Position>::editPosPID(
+        const std::function<void(const Control::PIDController<Control::Positional, float>*)>& func)
+    {
+        this->status_lock_.lock();
+        func(ang_pid_.get());
+        this->status_lock_.unlock();
+    }
+
+    template <uint8_t id>
+    void M3508<id, MotorMode::Position>::editAngPID(
+        const std::function<void(const Control::PIDController<Control::Positional, float>*)>& func)
+    {
+        this->status_lock_.lock();
+        func(ang_pid_.get());
+        this->status_lock_.unlock();
+    }
+
+    template <uint8_t id>
     void M3508<id, MotorMode::Position>::disabled_func_(Can::CanFrame&& frame)
     {
         const auto msg = static_cast<M3508RawStatusFrame>(frame);
@@ -144,6 +204,14 @@ namespace OneMotor::Motor::DJI
         this->status_lock_.unlock();
     }
 
+    template class M3508_Base<1>;
+    template class M3508_Base<2>;
+    template class M3508_Base<3>;
+    template class M3508_Base<4>;
+    template class M3508_Base<5>;
+    template class M3508_Base<6>;
+    template class M3508_Base<7>;
+    template class M3508_Base<8>;
 
     template class M3508<1, MotorMode::Angular>;
     template class M3508<2, MotorMode::Angular>;

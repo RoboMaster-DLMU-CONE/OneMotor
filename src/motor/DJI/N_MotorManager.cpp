@@ -1,6 +1,8 @@
 #include "one-motor/can/CanFrame.hpp"
 #include "one-motor/motor/DJI/MotorManager.hpp"
 
+using Result = std::expected<void, std::string>;
+
 namespace OneMotor::Motor::DJI
 {
     MotorManager::~MotorManager()
