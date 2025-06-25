@@ -66,15 +66,6 @@ namespace OneMotor::Control
         static constexpr bool HasOutputFilter = (std::is_same_v<Features, WithOutputFilter> || ...);
         static constexpr bool HasOutputLimit = (std::is_same_v<Features, WithOutputLimit> || ...);
 
-        const ValueType MaxOutputVal;
-        const ValueType DeadbandVal;
-        const ValueType IntegralLimitVal;
-        const ValueType Kp;
-        const ValueType Ki;
-        const ValueType Kd;
-        const ValueType D_RC;
-        const ValueType O_RC;
-
         // 状态变量
         ValueType ITerm{};
         ValueType prev_error{};
@@ -86,6 +77,15 @@ namespace OneMotor::Control
         Util::DeltaT<ValueType> deltaT{};
 
     public:
+        ValueType MaxOutputVal;
+        ValueType DeadbandVal;
+        ValueType IntegralLimitVal;
+        ValueType Kp;
+        ValueType Ki;
+        ValueType Kd;
+        ValueType D_RC;
+        ValueType O_RC;
+
         explicit PIDController(const PID_Params<ValueType>& params) :
             MaxOutputVal(params.MaxOutput), DeadbandVal(params.Deadband), IntegralLimitVal(params.IntegralLimit),
             Kp(params.Kp), Ki(params.Ki), Kd(params.Kd),

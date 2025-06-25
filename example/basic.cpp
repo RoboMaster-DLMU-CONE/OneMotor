@@ -16,12 +16,14 @@ using OneMotor::Control::PIDController;
 using OneMotor::thread::Othread;
 using OneMotor::Can::CanDriver;
 using OneMotor::Motor::DJI::M3508;
+using enum OneMotor::Motor::DJI::MotorMode;
+
 
 int main()
 {
-    Othread thread([]
+    constexpr PID_Params<float> params{.Kp = 10.0, .Ki = 1.0, .Kd = 0.5};
+    Othread thread([&params]
     {
-        constexpr PID_Params params{.Kp = 10.0, .Ki = 1.0, .Kd = 0.5};
         PIDController pid(params);
         pid.compute(1, 0.1);
     });
@@ -36,10 +38,7 @@ int main()
     thread.join();
 
     std::cout << "m3508" << std::endl;
-    M3508<1> m3508_1(can_driver);
-    M3508<2> m3508_2(can_driver);
-    M3508<3> m3508_3(can_driver);
-    M3508<4> m3508_4(can_driver);
+    M3508<1, Angular> m3508_1(can_driver, params);
     std::this_thread::sleep_for(std::chrono::seconds(3));
     _ = can_driver.close();
     return 0;
