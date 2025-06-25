@@ -31,72 +31,8 @@ void trMsgToStatus(const OneMotor::Motor::DJI::M3508RawStatusFrame& frame,
 namespace OneMotor::Motor::DJI
 {
     template <uint8_t id>
-    M3508_Base<id>::M3508_Base(Can::CanDriver& driver): driver_(driver), status_()
-
-    {
-        static_assert(id >= 1 && id <= 8, "M3508 Only support 1 <= id <= 8.");
-        MotorManager& manager = MotorManager::getInstance();
-        if (auto result = manager.registerMotor(driver_, canId_); !result)
-        {
-            Util::om_panic(std::move(result.error()));
-        }
-        if (const auto result = driver.registerCallback({canId_}, [this](Can::CanFrame&& frame)
-        {
-            this->disabled_func_(std::move(frame));
-        }); !result)
-        {
-            Util::om_panic(std::move(result.error()));
-        }
-        manager.pushOutput<id>(driver_, 0, 0);
-    }
-
-    template <uint8_t id>
-    M3508_Base<id>::~M3508_Base()
-    {
-        MotorManager& manager = MotorManager::getInstance();
-        if (auto result = manager.deregisterMotor(driver_, canId_); !result)
-        {
-            Util::om_panic(std::move(result.error()));
-        }
-    }
-
-    template <uint8_t id>
-    M3508Status M3508_Base<id>::getStatus() noexcept
-    {
-        status_lock_.lock();
-        const auto status = status_;
-        status_lock_.unlock();
-        return status;
-    }
-
-    template <uint8_t id>
-    Result M3508_Base<id>::disable() noexcept
-    {
-        return driver_.registerCallback({canId_}, [this](Can::CanFrame&& frame)
-        {
-            this->disabled_func_(std::move(frame));
-        });
-    }
-
-    template <uint8_t id>
-    Result M3508_Base<id>::enable() noexcept
-    {
-        return driver_.registerCallback({canId_}, [this](Can::CanFrame&& frame)
-        {
-            this->enabled_func_(std::move(frame));
-        });
-    }
-
-    template <uint8_t id>
-    Result M3508_Base<id>::shutdown() noexcept
-    {
-        return driver_.registerCallback({canId_}, shutdown_func_);
-    }
-
-
-    template <uint8_t id>
     M3508<id, MotorMode::Angular>::M3508(Can::CanDriver& driver,
-                                         const Control::PID_Params<float>& ang_params): M3508_Base<id>(driver)
+                                         const Control::PID_Params<float>& ang_params): M3508Base<id>(driver)
     {
         ang_pid_ = std::make_unique<Control::PIDController<Control::Positional, float>>(ang_params);
     }
@@ -141,7 +77,7 @@ namespace OneMotor::Motor::DJI
 
     template <uint8_t id>
     M3508<id, MotorMode::Position>::M3508(Can::CanDriver& driver, const Control::PID_Params<float>& pos_params,
-                                          const Control::PID_Params<float>& ang_params) : M3508_Base<id>(driver)
+                                          const Control::PID_Params<float>& ang_params) : M3508Base<id>(driver)
     {
         pos_pid_ = std::make_unique<Control::PIDController<Control::Positional, float>>(pos_params);
         ang_pid_ = std::make_unique<Control::PIDController<Control::Positional, float>>(ang_params);
@@ -203,15 +139,6 @@ namespace OneMotor::Motor::DJI
         MotorManager::getInstance().pushOutput<id>(this->driver_, lo_byte, hi_byte);
         this->status_lock_.unlock();
     }
-
-    template class M3508_Base<1>;
-    template class M3508_Base<2>;
-    template class M3508_Base<3>;
-    template class M3508_Base<4>;
-    template class M3508_Base<5>;
-    template class M3508_Base<6>;
-    template class M3508_Base<7>;
-    template class M3508_Base<8>;
 
     template class M3508<1, MotorMode::Angular>;
     template class M3508<2, MotorMode::Angular>;

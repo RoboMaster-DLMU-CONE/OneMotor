@@ -1,6 +1,8 @@
 #ifndef M3508_HPP
 #define M3508_HPP
-#include "M3508Frames.hpp"
+
+#include "M3508Base.hpp"
+
 #include "one-motor/can/CanDriver.hpp"
 #include "one-motor/control/PID.hpp"
 #include "one-motor/util/SpinLock.hpp"
@@ -13,38 +15,12 @@ namespace OneMotor::Motor::DJI
         Angular,
     };
 
-    template <uint8_t id>
-    class M3508_Base
-    {
-        using Result = std::expected<void, std::string>;
-
-    public:
-        virtual ~M3508_Base();
-        M3508Status getStatus() noexcept;
-        Result disable() noexcept;
-        Result enable() noexcept;
-        Result shutdown() noexcept;
-
-    protected:
-        explicit M3508_Base(Can::CanDriver& driver);
-        virtual void disabled_func_(Can::CanFrame&& frame) = 0;
-        virtual void enabled_func_(Can::CanFrame&& frame) = 0;
-
-        static void shutdown_func_([[maybe_unused]] Can::CanFrame&& frame)
-        {
-        };
-
-        Can::CanDriver& driver_;
-        Util::SpinLock status_lock_;
-        M3508Status status_;
-        static constexpr uint16_t canId_ = id + 0x200;
-    };
 
     template <uint8_t id, MotorMode mode>
     class M3508;
 
     template <uint8_t id>
-    class M3508<id, MotorMode::Angular>final : public M3508_Base<id>
+    class M3508<id, MotorMode::Angular>final : public M3508Base<id>
     {
     public:
         explicit M3508(Can::CanDriver& driver, const Control::PID_Params<float>& ang_params);
@@ -59,7 +35,7 @@ namespace OneMotor::Motor::DJI
     };
 
     template <uint8_t id>
-    class M3508<id, MotorMode::Position>final : public M3508_Base<id>
+    class M3508<id, MotorMode::Position>final : public M3508Base<id>
     {
     public:
         explicit M3508(Can::CanDriver& driver,
