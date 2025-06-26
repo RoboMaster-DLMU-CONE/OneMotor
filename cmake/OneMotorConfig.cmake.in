@@ -4,7 +4,9 @@ set(CMAKE_CXX_STANDARD @PROJECT_CXX_STANDARD@)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include(CMakeFindDependencyMacro)
+find_dependency(HyCAN REQUIRED)
 
 if(NOT TARGET OneMotor::OneMotor)
   include("${CMAKE_CURRENT_LIST_DIR}/OneMotorTargets.cmake")
+  check_required_components(OneMotor)
 endif()
