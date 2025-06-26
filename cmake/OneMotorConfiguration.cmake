@@ -1,0 +1,1 @@
+set(OM_CAN_MAX_DJI_MOTOR 4)

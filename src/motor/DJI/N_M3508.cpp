@@ -1,4 +1,8 @@
 #include "one-motor/motor/DJI/M3508.hpp"
+#include "one-motor/motor/DJI/M3508.hpp"
+#include "one-motor/motor/DJI/M3508.hpp"
+#include "one-motor/motor/DJI/M3508.hpp"
+#include "one-motor/motor/DJI/M3508.hpp"
 #include "one-motor/motor/DJI/M3508Frames.hpp"
 #include "one-motor/motor/DJI/MotorManager.hpp"
 #include "one-motor/util/Panic.hpp"
@@ -11,21 +15,25 @@ using Result = std::expected<void, std::string>;
 void trMsgToStatus(const OneMotor::Motor::DJI::M3508RawStatusFrame& frame,
                    OneMotor::Motor::DJI::M3508Status& status)
 {
-    status.ecd = frame.ecd;
-    status.real_current = frame.current;
-    status.temperature = frame.temperature;
-    status.angle_single_round = ECD_TO_ANGLE_DJI * static_cast<float>(frame.ecd);
-    status.angular = RPM_2_ANGLE_PER_SEC * static_cast<float>(frame.rpm);
+    auto& [last_ecd, ecd, angle_single_round, angular, real_current, temperature, total_angle, total_round,
+        output_current] = status;
 
-    if (frame.ecd - status.last_ecd > 4096)
+    ecd = frame.ecd;
+    real_current = frame.current;
+    temperature = frame.temperature;
+    angle_single_round = ECD_TO_ANGLE_DJI * static_cast<float>(ecd);
+    angular = RPM_2_ANGLE_PER_SEC * static_cast<float>(frame.rpm);
+
+    if (ecd - last_ecd > 4096)
     {
-        status.total_round--;
+        total_round--;
     }
-    else if (frame.ecd - status.last_ecd < -4096)
+    else if (ecd - last_ecd < -4096)
     {
-        status.total_round++;
+        total_round++;
     }
-    status.total_angle = static_cast<float>(status.total_round) * 360 + status.angle_single_round;
+    total_angle = static_cast<float>(total_round) * 360 + angle_single_round;
+    last_ecd = ecd;
 }
 
 namespace OneMotor::Motor::DJI
@@ -35,6 +43,13 @@ namespace OneMotor::Motor::DJI
                                          const Control::PID_Params<float>& ang_params): M3508Base<id>(driver)
     {
         ang_pid_ = std::make_unique<Control::PIDController<Control::Positional, float>>(ang_params);
+        if (const auto result = driver.registerCallback({this->canId_}, [this](Can::CanFrame&& frame)
+        {
+            this->disabled_func_(std::move(frame));
+        }); !result)
+        {
+            Util::om_panic(std::move(result.error()));
+        }
     }
 
     template <uint8_t id>
@@ -45,7 +60,7 @@ namespace OneMotor::Motor::DJI
 
     template <uint8_t id>
     void M3508<id, MotorMode::Angular>::editAngPID(
-        const std::function<void(const Control::PIDController<Control::Positional, float>*)>& func)
+        const std::function<void(Control::PIDController<Control::Positional, float>*)>& func)
     {
         this->status_lock_.lock();
         func(ang_pid_.get());
@@ -69,10 +84,11 @@ namespace OneMotor::Motor::DJI
         trMsgToStatus(msg, this->status_);
         auto ang_result = ang_pid_->compute(ang_ref_.load(std::memory_order_acquire), this->status_.angular);
         const auto output_current = static_cast<int16_t>(ang_result);
+        this->status_.output_current = output_current;
+        this->status_lock_.unlock();
         const uint8_t hi_byte = output_current >> 8;
         const uint8_t lo_byte = output_current & 0xFF;
         MotorManager::getInstance().pushOutput<id>(this->driver_, lo_byte, hi_byte);
-        this->status_lock_.unlock();
     }
 
     template <uint8_t id>
@@ -97,7 +113,7 @@ namespace OneMotor::Motor::DJI
 
     template <uint8_t id>
     void M3508<id, MotorMode::Position>::editPosPID(
-        const std::function<void(const Control::PIDController<Control::Positional, float>*)>& func)
+        const std::function<void(Control::PIDController<Control::Positional, float>*)>& func)
     {
         this->status_lock_.lock();
         func(ang_pid_.get());
@@ -106,7 +122,7 @@ namespace OneMotor::Motor::DJI
 
     template <uint8_t id>
     void M3508<id, MotorMode::Position>::editAngPID(
-        const std::function<void(const Control::PIDController<Control::Positional, float>*)>& func)
+        const std::function<void(Control::PIDController<Control::Positional, float>*)>& func)
     {
         this->status_lock_.lock();
         func(ang_pid_.get());

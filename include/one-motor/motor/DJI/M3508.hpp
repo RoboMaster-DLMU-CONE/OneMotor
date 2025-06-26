@@ -25,7 +25,7 @@ namespace OneMotor::Motor::DJI
     public:
         explicit M3508(Can::CanDriver& driver, const Control::PID_Params<float>& ang_params);
         void setRef(float ref) noexcept;
-        void editAngPID(const std::function<void(const Control::PIDController<Control::Positional, float>*)>& func);
+        void editAngPID(const std::function<void(Control::PIDController<Control::Positional, float>*)>& func);
 
     private:
         void disabled_func_(Can::CanFrame&& frame) override;
@@ -44,8 +44,8 @@ namespace OneMotor::Motor::DJI
         void setAngRef(float ang_ref) noexcept;
         void setPosRef(float pos_ref) noexcept;
 
-        void editPosPID(const std::function<void(const Control::PIDController<Control::Positional, float>*)>& func);
-        void editAngPID(const std::function<void(const Control::PIDController<Control::Positional, float>*)>& func);
+        void editPosPID(const std::function<void(Control::PIDController<Control::Positional, float>*)>& func);
+        void editAngPID(const std::function<void(Control::PIDController<Control::Positional, float>*)>& func);
 
     private:
         void disabled_func_(Can::CanFrame&& frame) override;
