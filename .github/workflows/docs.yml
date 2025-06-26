@@ -1,0 +1,58 @@
+name: Documentation
+
+on: [ push, pull_request ]
+
+env:
+  DOXYGEN_VERSION: 1.9.6
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: |
+          wget --no-verbose "https://github.com/doxygen/doxygen/releases/download/Release_1_13_2/doxygen-1.13.2.linux.bin.tar.gz"
+          tar xf doxygen-1.13.2.linux.bin.tar.gz
+          echo "${PWD}/doxygen-1.13.2/bin" >> $GITHUB_PATH
+          sudo apt-get update
+          sudo apt-get install -y graphviz
+
+      - name: Build
+        run: |
+          cd doc
+          doxygen
+
+          mkdir deploy
+          mv html/* deploy/
+
+      - name: Setup pages
+        if: github.event_name != 'pull_request'
+        uses: actions/configure-pages@v4
+
+      - name: Upload pages artifact
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: doc/deploy
+
+      - name: Upload artifacts
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          path: doc/deploy
+
+  deploy:
+    runs-on: ubuntu-22.04
+    needs: build
+    if: github.event_name != 'pull_request'
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
