@@ -1,8 +1,19 @@
+/**
+ * @file CanFrame.hpp
+ * @brief 定义了与平台无关的CAN帧结构体。
+ * @author MoonFeather
+ * @date 2025-06-26
+ */
 #ifndef CANFRAME_HPP
 #define CANFRAME_HPP
 #include <cstddef>
 #include <cstdint>
 #include <type_traits>
+
+/**
+ * @def ONE_MOTOR_CAN_MAX_DLEN
+ * @brief 定义CAN帧数据的最大长度。
+ */
 #define ONE_MOTOR_CAN_MAX_DLEN 8
 
 #ifdef ONE_MOTOR_LINUX
@@ -12,15 +23,23 @@
 
 namespace OneMotor::Can
 {
+    /**
+     * @brief 一个与平台无关的CAN帧结构体。
+     * @details
+     * 这个结构体的设计旨在与Linux SocketCAN的 `can_frame` 结构体在内存布局上兼容，
+     * 以便在Linux系统上可以直接进行类型转换。
+     * 未来也会兼容Zephyr系统的`can_frame`结构体。
+     * 通过 `static_assert` 在编译时保证其兼容性。
+     */
     struct CanFrame
     {
         CanFrame() = default;
-        uint32_t id{};
-        uint8_t dlc{};
-        uint8_t __pad{};
-        uint8_t __res0{};
-        uint8_t len8_dlc{};
-        uint8_t data[ONE_MOTOR_CAN_MAX_DLEN]alignas(8){};
+        uint32_t id{}; ///< CAN ID (标准帧或扩展帧)
+        uint8_t dlc{}; ///< 数据长度码 (0-8)
+        uint8_t __pad{}; ///< 填充字节，用于对齐
+        uint8_t __res0{}; ///< 保留字节
+        uint8_t len8_dlc{}; ///< CAN FD中真实的数据长度 (兼容普通CAN)
+        uint8_t data[ONE_MOTOR_CAN_MAX_DLEN]alignas(8){}; ///< CAN数据负载，8字节对齐
     };
 #ifdef ONE_MOTOR_LINUX
     static_assert(sizeof(CanFrame) == sizeof(can_frame),

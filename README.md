@@ -28,7 +28,7 @@ OneMotor是大连民族大学C·One战队研发的C++电机驱动库，致力于
 
 ## Todo
 
-- [ ] 用reinterpret_cast优化CanFrame转换开销
+- [x] 用reinterpret_cast优化CanFrame转换开销
 - [ ] 达妙电机
 
 ## Credit
