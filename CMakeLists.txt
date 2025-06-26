@@ -36,3 +36,5 @@ target_include_directories(${PROJECT_NAME} PUBLIC include)
 if (BUILD_OM_EXAMPLE)
     include(OneMotorExamples)
 endif ()
+
+include(OneMotorGenerateDoc)
