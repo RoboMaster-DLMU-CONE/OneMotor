@@ -40,10 +40,6 @@ int main()
 
     std::cout << "m3508" << std::endl;
     M3508<1, Angular> m3508_1(can_driver, params);
-    m3508_1.editAngPID([](const PIDController<Positional, float>* pid)
-    {
-        pid->Kp = 1.0;
-    });
     M3508<2, Position> m3508_2(can_driver, params, params);
     _ = m3508_1.enable();
     std::this_thread::sleep_for(std::chrono::seconds(3));

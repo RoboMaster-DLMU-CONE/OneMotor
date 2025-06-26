@@ -4,19 +4,18 @@
 
 #include "one-motor/thread/Othread.hpp"
 
-#include <print>
 #include <iostream>
 #include <string>
 
 using OneMotor::Control::PID_Params;
-using OneMotor::Control::PIDController;
+using OneMotor::Motor::DJI::PIDController;
 using OneMotor::Control::Positional;
 using OneMotor::Can::CanDriver;
 using OneMotor::Motor::DJI::M3508;
 using enum OneMotor::Motor::DJI::MotorMode;
 
 
-int main()
+[[noreturn]] int main()
 {
     constexpr PID_Params<float> params{
         .Kp = 5.0,
@@ -50,7 +49,7 @@ int main()
             float kp;
             std::cout << "Enter new Kp value: ";
             std::cin >> kp;
-            m1.editAngPID([=](PIDController<Positional, float>* pid)
+            m1.editAngPID([=](PIDController* pid)
             {
                 pid->Kp = kp;
                 pid->reset();
@@ -61,7 +60,7 @@ int main()
             float kd;
             std::cout << "Enter new Kd value: ";
             std::cin >> kd;
-            m1.editAngPID([=](PIDController<Positional, float>* pid)
+            m1.editAngPID([=](PIDController* pid)
             {
                 pid->Kd = kd;
                 pid->reset();
@@ -72,7 +71,7 @@ int main()
             float ki;
             std::cout << "Enter new Ki value: ";
             std::cin >> ki;
-            m1.editAngPID([=](PIDController<Positional, float>* pid)
+            m1.editAngPID([=](PIDController* pid)
             {
                 pid->Ki = ki;
                 pid->reset();

@@ -1,12 +1,15 @@
 #ifndef M3508BASE_HPP
 #define M3508BASE_HPP
 #include <expected>
-
 #include "M3508Frames.hpp"
+#include "one-motor/control/PID.hpp"
 #include "one-motor/util/SpinLock.hpp"
 
 namespace OneMotor::Motor::DJI
 {
+    using PIDController = Control::PIDController<
+        Control::Positional, float, Control::WithDeadband, Control::WithIntegralLimit, Control::WithIntegralLimit>;
+
     template <uint8_t id>
     class M3508Base
     {

@@ -4,9 +4,7 @@
 #include <chrono>
 #include "one-motor/control/PID.hpp"
 
-// 為求清晰，使用類型別名
 using PID_Params = OneMotor::Control::PID_Params<float>;
-// 啟用所有功能以進行全面的延遲測試
 using PIDController = OneMotor::Control::PIDController<
     OneMotor::Control::Positional,
     float,

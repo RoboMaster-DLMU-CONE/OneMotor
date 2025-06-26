@@ -1,8 +1,4 @@
 #include "one-motor/motor/DJI/M3508.hpp"
-#include "one-motor/motor/DJI/M3508.hpp"
-#include "one-motor/motor/DJI/M3508.hpp"
-#include "one-motor/motor/DJI/M3508.hpp"
-#include "one-motor/motor/DJI/M3508.hpp"
 #include "one-motor/motor/DJI/M3508Frames.hpp"
 #include "one-motor/motor/DJI/MotorManager.hpp"
 #include "one-motor/util/Panic.hpp"
@@ -42,7 +38,7 @@ namespace OneMotor::Motor::DJI
     M3508<id, MotorMode::Angular>::M3508(Can::CanDriver& driver,
                                          const Control::PID_Params<float>& ang_params): M3508Base<id>(driver)
     {
-        ang_pid_ = std::make_unique<Control::PIDController<Control::Positional, float>>(ang_params);
+        ang_pid_ = std::make_unique<PIDController>(ang_params);
         if (const auto result = driver.registerCallback({this->canId_}, [this](Can::CanFrame&& frame)
         {
             this->disabled_func_(std::move(frame));
@@ -60,7 +56,7 @@ namespace OneMotor::Motor::DJI
 
     template <uint8_t id>
     void M3508<id, MotorMode::Angular>::editAngPID(
-        const std::function<void(Control::PIDController<Control::Positional, float>*)>& func)
+        const std::function<void(PIDController*)>& func)
     {
         this->status_lock_.lock();
         func(ang_pid_.get());
@@ -95,8 +91,8 @@ namespace OneMotor::Motor::DJI
     M3508<id, MotorMode::Position>::M3508(Can::CanDriver& driver, const Control::PID_Params<float>& pos_params,
                                           const Control::PID_Params<float>& ang_params) : M3508Base<id>(driver)
     {
-        pos_pid_ = std::make_unique<Control::PIDController<Control::Positional, float>>(pos_params);
-        ang_pid_ = std::make_unique<Control::PIDController<Control::Positional, float>>(ang_params);
+        pos_pid_ = std::make_unique<PIDController>(pos_params);
+        ang_pid_ = std::make_unique<PIDController>(ang_params);
     }
 
     template <uint8_t id>
@@ -113,7 +109,7 @@ namespace OneMotor::Motor::DJI
 
     template <uint8_t id>
     void M3508<id, MotorMode::Position>::editPosPID(
-        const std::function<void(Control::PIDController<Control::Positional, float>*)>& func)
+        const std::function<void(PIDController*)>& func)
     {
         this->status_lock_.lock();
         func(ang_pid_.get());
@@ -122,7 +118,7 @@ namespace OneMotor::Motor::DJI
 
     template <uint8_t id>
     void M3508<id, MotorMode::Position>::editAngPID(
-        const std::function<void(Control::PIDController<Control::Positional, float>*)>& func)
+        const std::function<void(PIDController*)>& func)
     {
         this->status_lock_.lock();
         func(ang_pid_.get());
