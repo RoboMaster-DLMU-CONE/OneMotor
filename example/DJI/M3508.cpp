@@ -5,8 +5,12 @@
 #include "one-motor/thread/Othread.hpp"
 
 #include <print>
+#include <iostream>
+#include <string>
 
 using OneMotor::Control::PID_Params;
+using OneMotor::Control::PIDController;
+using OneMotor::Control::Positional;
 using OneMotor::Can::CanDriver;
 using OneMotor::Motor::DJI::M3508;
 using enum OneMotor::Motor::DJI::MotorMode;
@@ -15,9 +19,9 @@ using enum OneMotor::Motor::DJI::MotorMode;
 int main()
 {
     constexpr PID_Params<float> params{
-        .Kp = 10.0,
-        .Ki = 0.1,
-        .Kd = 0.0,
+        .Kp = 5.0,
+        .Ki = 0.2,
+        .Kd = 0.1,
         .MaxOutput = 10000,
         .Deadband = 10,
         .IntegralLimit = 1000,
@@ -25,16 +29,60 @@ int main()
     CanDriver driver("can0");
     auto _ = driver.open();
     M3508<1, Angular> m1(driver, params);
-    m1.setRef(100);
+    m1.setRef(2000);
     _ = m1.enable();
-    uint8_t x = 0;
-    while (x < 10)
-    {
-        auto status = m1.getStatus();
-        std::println("{}", status);
 
-        OneMotor::thread::Othread::sleep_for(500 * 1000 * 1000);
-        x++;
+    while (true)
+    {
+        std::string param_to_change;
+        std::cout << "Enter parameter to change (ref, kp, kd, ki): ";
+        std::cin >> param_to_change;
+
+        if (param_to_change == "ref")
+        {
+            float ref;
+            std::cout << "Enter new ref value: ";
+            std::cin >> ref;
+            m1.setRef(ref);
+        }
+        else if (param_to_change == "kp")
+        {
+            float kp;
+            std::cout << "Enter new Kp value: ";
+            std::cin >> kp;
+            m1.editAngPID([=](PIDController<Positional, float>* pid)
+            {
+                pid->Kp = kp;
+                pid->reset();
+            });
+        }
+        else if (param_to_change == "kd")
+        {
+            float kd;
+            std::cout << "Enter new Kd value: ";
+            std::cin >> kd;
+            m1.editAngPID([=](PIDController<Positional, float>* pid)
+            {
+                pid->Kd = kd;
+                pid->reset();
+            });
+        }
+        else if (param_to_change == "ki")
+        {
+            float ki;
+            std::cout << "Enter new Ki value: ";
+            std::cin >> ki;
+            m1.editAngPID([=](PIDController<Positional, float>* pid)
+            {
+                pid->Ki = ki;
+                pid->reset();
+            });
+        }
+        else
+        {
+            std::cout << "Invalid parameter." << std::endl;
+        }
     }
+
     _ = driver.close();
 }
