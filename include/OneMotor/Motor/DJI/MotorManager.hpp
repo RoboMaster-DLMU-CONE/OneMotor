@@ -8,19 +8,13 @@
 #define MOTORMANAGER_HPP
 
 #include <unordered_map>
-#include <one-motor/can/CanDriver.hpp>
+#include <OneMotor/Can/CanDriver.hpp>
 
-#include "one-motor/thread/Othread.hpp"
-#include "one-motor/util/SpinLock.hpp"
+#include "OneMotor/Thread/Othread.hpp"
+#include "OneMotor/Util/SpinLock.hpp"
 
 namespace OneMotor::Motor::DJI
 {
-    /**
-     * @def OM_CAN_MAX_DJI_MOTOR
-     * @brief 定义了单个CAN驱动实例下，可以管理的最大DJI电机数量。
-     */
-#define OM_CAN_MAX_DJI_MOTOR 8
-
     /**
      * @class MotorManager
      * @brief DJI电机管理器单例类。

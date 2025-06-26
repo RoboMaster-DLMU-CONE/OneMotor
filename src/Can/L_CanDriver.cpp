@@ -1,7 +1,7 @@
 #include <utility>
 
-#include "one-motor/can/CanDriver.hpp"
-#include "one-motor/can/CanFrame.hpp"
+#include "OneMotor/Can/CanDriver.hpp"
+#include "OneMotor/Can/CanFrame.hpp"
 
 namespace OneMotor::Can
 {

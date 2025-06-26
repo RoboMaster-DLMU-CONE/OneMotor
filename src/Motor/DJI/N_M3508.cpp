@@ -1,7 +1,7 @@
-#include "one-motor/motor/DJI/M3508.hpp"
-#include "one-motor/motor/DJI/M3508Frames.hpp"
-#include "one-motor/motor/DJI/MotorManager.hpp"
-#include "one-motor/util/Panic.hpp"
+#include "OneMotor/Motor/DJI/M3508.hpp"
+#include "OneMotor/Motor/DJI/M3508Frames.hpp"
+#include "OneMotor/Motor/DJI/MotorManager.hpp"
+#include "OneMotor/Util/Panic.hpp"
 
 constexpr float ECD_TO_ANGLE_DJI = 0.043945f;
 constexpr float RPM_2_ANGLE_PER_SEC = 6.0f;

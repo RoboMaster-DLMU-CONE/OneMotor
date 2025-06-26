@@ -9,7 +9,7 @@
 #define M3508FRAMES_HPP
 #include <string>
 
-#include "one-motor/can/CanDriver.hpp"
+#include "OneMotor/Can/CanDriver.hpp"
 
 namespace OneMotor::Motor::DJI
 {

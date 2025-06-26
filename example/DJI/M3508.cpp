@@ -1,8 +1,8 @@
-#include <one-motor/can/CanDriver.hpp>
-#include <one-motor/control/PID.hpp>
-#include <one-motor/motor/DJI/M3508.hpp>
+#include <OneMotor/Can/CanDriver.hpp>
+#include <OneMotor/Control/PID.hpp>
+#include <OneMotor/Motor/DJI/M3508.hpp>
 
-#include "one-motor/thread/Othread.hpp"
+#include "OneMotor/Thread/Othread.hpp"
 
 #include <iostream>
 #include <string>

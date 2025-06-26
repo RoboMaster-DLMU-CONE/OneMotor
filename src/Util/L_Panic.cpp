@@ -1,6 +1,6 @@
 #include <stdexcept>
 
-#include "one-motor/util/Panic.hpp"
+#include "OneMotor/Util/Panic.hpp"
 
 namespace OneMotor::Util
 {

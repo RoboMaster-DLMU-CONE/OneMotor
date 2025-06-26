@@ -1,5 +1,5 @@
-#include "one-motor/can/CanFrame.hpp"
-#include "one-motor/motor/DJI/MotorManager.hpp"
+#include "OneMotor/Can/CanFrame.hpp"
+#include "OneMotor/Motor/DJI/MotorManager.hpp"
 
 using Result = std::expected<void, std::string>;
 

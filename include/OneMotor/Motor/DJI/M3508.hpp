@@ -9,9 +9,9 @@
 
 #include "M3508Base.hpp"
 
-#include "one-motor/can/CanDriver.hpp"
-#include "one-motor/control/PID.hpp"
-#include "one-motor/util/SpinLock.hpp"
+#include "OneMotor/Can/CanDriver.hpp"
+#include "OneMotor/Control/PID.hpp"
+#include "OneMotor/Util/SpinLock.hpp"
 
 namespace OneMotor::Motor::DJI
 {

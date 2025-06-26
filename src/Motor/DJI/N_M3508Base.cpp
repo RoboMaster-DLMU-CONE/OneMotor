@@ -1,6 +1,6 @@
-#include "one-motor/motor/DJI/M3508Base.hpp"
-#include "one-motor/motor/DJI/MotorManager.hpp"
-#include "one-motor/util/Panic.hpp"
+#include "OneMotor/Motor/DJI/M3508Base.hpp"
+#include "OneMotor/Motor/DJI/MotorManager.hpp"
+#include "OneMotor/Util/Panic.hpp"
 
 using Result = std::expected<void, std::string>;
 

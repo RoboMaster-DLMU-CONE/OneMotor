@@ -1,4 +1,4 @@
-#include <one-motor/util/DeltaT.hpp>
+#include <OneMotor/Util/DeltaT.hpp>
 
 namespace OneMotor::Util
 {

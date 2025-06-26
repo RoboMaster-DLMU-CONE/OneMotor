@@ -1,4 +1,4 @@
-#include "one-motor/util/SpinLock.hpp"
+#include "OneMotor/Util/SpinLock.hpp"
 
 namespace OneMotor::Util
 {

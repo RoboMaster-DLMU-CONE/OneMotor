@@ -8,8 +8,8 @@
 #define M3508BASE_HPP
 #include <expected>
 #include "M3508Frames.hpp"
-#include "one-motor/control/PID.hpp"
-#include "one-motor/util/SpinLock.hpp"
+#include "OneMotor/Control/PID.hpp"
+#include "OneMotor/Util/SpinLock.hpp"
 
 namespace OneMotor::Motor::DJI
 {

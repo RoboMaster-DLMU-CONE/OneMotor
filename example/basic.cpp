@@ -1,13 +1,13 @@
 #include <iostream>
 #include <thread>
-#include <one-motor/control/PID.hpp>
-#include <one-motor/util/DeltaT.hpp>
-#include <one-motor/thread/Othread.hpp>
+#include <OneMotor/Control/PID.hpp>
+#include <OneMotor/Util/DeltaT.hpp>
+#include <OneMotor/Thread/Othread.hpp>
 
-#include "one-motor/can/CanDriver.hpp"
-#include "one-motor/can/CanFrame.hpp"
-#include "one-motor/motor/DJI/M3508.hpp"
-#include "one-motor/util/SpinLock.hpp"
+#include "OneMotor/Can/CanDriver.hpp"
+#include "OneMotor/Can/CanFrame.hpp"
+#include "OneMotor/Motor/DJI/M3508.hpp"
+#include "OneMotor/Util/SpinLock.hpp"
 
 using OneMotor::Util::DeltaT;
 using OneMotor::Util::SpinLock;

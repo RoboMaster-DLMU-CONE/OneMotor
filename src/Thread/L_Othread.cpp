@@ -1,4 +1,4 @@
-#include "one-motor/thread/Othread.hpp"
+#include "OneMotor/Thread/Othread.hpp"
 
 
 namespace OneMotor::thread

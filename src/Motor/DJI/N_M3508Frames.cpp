@@ -1,7 +1,7 @@
 #include <format>
 
-#include "one-motor/can/CanFrame.hpp"
-#include "one-motor/motor/DJI/M3508Frames.hpp"
+#include "OneMotor/Can/CanFrame.hpp"
+#include "OneMotor/Motor/DJI/M3508Frames.hpp"
 
 namespace OneMotor::Motor::DJI
 {

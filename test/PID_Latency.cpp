@@ -2,7 +2,7 @@
 #include <vector>
 #include <numeric>
 #include <chrono>
-#include "one-motor/control/PID.hpp"
+#include "OneMotor/Control/PID.hpp"
 
 using PID_Params = OneMotor::Control::PID_Params<float>;
 using PIDController = OneMotor::Control::PIDController<

@@ -8,8 +8,8 @@
 #define PID_HPP
 #include <type_traits>
 
-#include "one-motor/util/Arithmetic.hpp"
-#include "one-motor/util/DeltaT.hpp"
+#include "OneMotor/Util/Arithmetic.hpp"
+#include "OneMotor/Util/DeltaT.hpp"
 
 namespace OneMotor::Control
 {

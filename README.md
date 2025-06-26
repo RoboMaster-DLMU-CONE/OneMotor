@@ -13,9 +13,11 @@ OneMotor是大连民族大学C·One战队研发的C++电机驱动库，致力于
 
 ## 文档
 
+更多内容请前往 [Github Page](https://robomaster-dlmu-cone.github.io/OneMotor/)
+
 ## 支持电机
 
-- [ ] DJI M3508/M2006
+- [x] DJI M3508/M2006
 - [ ] DJI GM6020
 - [ ] DM-J4310
 - [ ] 宇树电机
