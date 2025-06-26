@@ -16,13 +16,6 @@ namespace OneMotor::Motor::DJI
         {
             Util::om_panic(std::move(result.error()));
         }
-        if (const auto result = driver.registerCallback({canId_}, [this](Can::CanFrame&& frame)
-        {
-            this->disabled_func_(std::move(frame));
-        }); !result)
-        {
-            Util::om_panic(std::move(result.error()));
-        }
         manager.pushOutput<id>(driver_, 0, 0);
     }
 

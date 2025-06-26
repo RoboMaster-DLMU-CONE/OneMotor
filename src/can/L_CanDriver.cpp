@@ -24,11 +24,15 @@ namespace OneMotor::Can
 
     CanDriver::Result CanDriver::send(const CanFrame& frame)
     {
-        return interface.send(frame);
+        return interface.send(reinterpret_cast<const can_frame&>(frame));
     }
 
     CanDriver::Result CanDriver::registerCallback(const std::set<size_t>& can_ids, const CallbackFunc& func)
     {
-        return interface.tryRegisterCallback<CanFrame>(can_ids, func);
+        return interface.tryRegisterCallback<can_frame>(can_ids, [func](can_frame&& frame)
+                                                        {
+                                                            func(std::move(reinterpret_cast<CanFrame&>(frame)));
+                                                        }
+        );
     }
 }

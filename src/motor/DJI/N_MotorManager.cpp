@@ -55,18 +55,13 @@ namespace OneMotor::Motor::DJI
     template <uint8_t id>
     void MotorManager::pushOutput(Can::CanDriver& driver, const uint8_t lo_value, const uint8_t hi_value) noexcept
     {
+        constexpr uint8_t base_index = (id - 1) * 2;
         auto& lock = driver_motor_outputs[&driver].second;
         lock.lock();
-        if constexpr (id < 4)
-        {
-            driver_motor_outputs[&driver].first[id * 2 - 1] = lo_value;
-            driver_motor_outputs[&driver].first[id * 2] = hi_value;
-        }
-        else
-        {
-            driver_motor_outputs[&driver].first[id * 2 + 6] = lo_value;
-            driver_motor_outputs[&driver].first[id * 2 + 7] = hi_value;
-        }
+        auto& output_buffer = driver_motor_outputs[&driver].first;
+
+        output_buffer[base_index] = hi_value;
+        output_buffer[base_index + 1] = lo_value;
         lock.unlock();
     }
 
@@ -91,7 +86,7 @@ namespace OneMotor::Motor::DJI
                     lock.unlock();
                     _ = driver->send(frame);
                 }
-                thread::Othread::sleep_for(200000);
+                thread::Othread::sleep_for(300000);
             }
         });
     }
