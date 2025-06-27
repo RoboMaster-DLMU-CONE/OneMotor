@@ -27,7 +27,7 @@ namespace OneMotor::Motor::DM
         }
     }
 
-    J4310::Result J4310::enable() const
+    J4310::Result J4310::enable()
     {
         Can::CanFrame frame{};
         frame.id = canId_ + 0x100;
@@ -37,7 +37,7 @@ namespace OneMotor::Motor::DM
         return driver_.send(frame);
     }
 
-    J4310::Result J4310::disable() const
+    J4310::Result J4310::disable()
     {
         Can::CanFrame frame{};
         frame.id = canId_ + 0x100;
@@ -47,7 +47,7 @@ namespace OneMotor::Motor::DM
         return driver_.send(frame);
     }
 
-    J4310::Result J4310::setZeroPosition() const
+    J4310::Result J4310::setZeroPosition()
     {
         Can::CanFrame frame{};
         frame.id = canId_ + 0x100;
@@ -57,7 +57,7 @@ namespace OneMotor::Motor::DM
         return driver_.send(frame);
     }
 
-    J4310::Result J4310::cleanError() const
+    J4310::Result J4310::cleanError()
     {
         Can::CanFrame frame{};
         frame.id = canId_ + 0x100;
@@ -68,7 +68,7 @@ namespace OneMotor::Motor::DM
     }
 
     J4310::Result J4310::MITControl(const float position, const float velocity, const float torque, const float kp,
-                                    const float kd) const
+                                    const float kd)
     {
         Can::CanFrame frame{};
         frame.dlc = 8;
@@ -90,7 +90,7 @@ namespace OneMotor::Motor::DM
         return driver_.send(frame);
     }
 
-    J4310::Result J4310::PosVelControl(const float position, const float velocity) const
+    J4310::Result J4310::posVelControl(const float position, const float velocity)
     {
         Can::CanFrame frame{};
         frame.dlc = 8;
@@ -100,7 +100,7 @@ namespace OneMotor::Motor::DM
         return driver_.send(frame);
     }
 
-    J4310::Result J4310::VelControl(const float velocity) const
+    J4310::Result J4310::velControl(const float velocity)
     {
         Can::CanFrame frame{};
         frame.dlc = 8;

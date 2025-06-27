@@ -15,7 +15,7 @@ int main()
     _ = j4310.setZeroPosition();
     OneMotor::thread::Othread::sleep_for(2 * 1000 * 1000 * 1000);
 
-    _ = j4310.PosVelControl(3.14, 3.14);
+    _ = j4310.posVelControl(3.14, 3.14);
 
     if (auto result = j4310.getStatus(); result.has_value()) std::cout << result.value().format() << std::endl;
     else std::cerr << result.error() << std::endl;

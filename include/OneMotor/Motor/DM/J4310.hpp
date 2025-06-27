@@ -13,13 +13,13 @@ namespace OneMotor::Motor::DM
     public:
         J4310() = delete;
         explicit J4310(Can::CanDriver& driver, uint16_t canId, uint16_t masterId);
-        [[nodiscard]] Result enable() const;
-        [[nodiscard]] Result disable() const;
-        [[nodiscard]] Result setZeroPosition() const;
-        [[nodiscard]] Result cleanError() const;
-        Result MITControl(float position, float velocity, float torque, float kp, float kd) const;
-        Result PosVelControl(float position, float velocity) const;
-        Result VelControl(float velocity) const;
+        Result enable();
+        Result disable();
+        Result setZeroPosition();
+        Result cleanError();
+        Result MITControl(float position, float velocity, float torque, float kp, float kd);
+        Result posVelControl(float position, float velocity);
+        Result velControl(float velocity);
         std::expected<J4310Status, std::string> getStatus();
 
     private:
