@@ -1,7 +1,7 @@
 /**
  * @file MotorManager.hpp
  * @brief 定义了DJI电机管理器，用于统一发送电机控制指令。
- * @author M.F.
+ * @author MoonFeather
  * @date 2025-06-26
  */
 #ifndef MOTORMANAGER_HPP

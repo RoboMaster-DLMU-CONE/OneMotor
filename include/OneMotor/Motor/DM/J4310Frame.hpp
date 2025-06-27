@@ -1,6 +1,6 @@
 /**
  * @file J4310Frame.hpp
- * @author MF (you@domain.com)
+ * @author MoonFeather
  * @brief J4310 电机 CAN 帧定义
  * @version 0.1
  * @date 2025-06-27

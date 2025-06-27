@@ -1,6 +1,6 @@
 /**
  * @file J4310.hpp
- * @author MF (you@domain.com)
+ * @author MoonFeather
  * @brief DM J4310 电机驱动程序
  * @version 0.1
  * @date 2025-06-27
