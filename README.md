@@ -19,7 +19,7 @@ OneMotor是大连民族大学C·One战队研发的C++电机驱动库，致力于
 
 - [x] DJI M3508/M2006
 - [ ] DJI GM6020
-- [ ] DM-J4310
+- [x] DM-J4310
 - [ ] 宇树电机
 - [ ] HT
 - [ ] ...
@@ -31,6 +31,6 @@ OneMotor是大连民族大学C·One战队研发的C++电机驱动库，致力于
 ## Todo
 
 - [x] 用reinterpret_cast优化CanFrame转换开销
-- [ ] 达妙电机
+- [ ] sleep_for接收std::chrono
 
 ## Credit
