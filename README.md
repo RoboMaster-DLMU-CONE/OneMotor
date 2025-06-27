@@ -24,13 +24,11 @@ OneMotor是大连民族大学C·One战队研发的C++电机驱动库，致力于
 - [ ] HT
 - [ ] ...
 
-## 贡献代码
-
-- TBD
-
 ## Todo
 
 - [x] 用reinterpret_cast优化CanFrame转换开销
 - [ ] sleep_for接收std::chrono
 
 ## Credit
+
+- [doxygen-awesome-css](https://github.com/jothepro/doxygen-awesome-css)
