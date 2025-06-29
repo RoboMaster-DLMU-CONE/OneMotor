@@ -95,30 +95,37 @@ namespace OneMotor::Motor::DM
         Can::CanFrame frame{};
         frame.dlc = 8;
         frame.id = canId_ + 0x100;
-        std::memcpy(frame.data, &position, sizeof(float));
-        std::memcpy(frame.data + 4, &velocity, sizeof(float));
+        auto& data = frame.data;
+        auto* pbuf = reinterpret_cast<const uint8_t*>(&position);
+        auto* vbuf = reinterpret_cast<const uint8_t*>(&velocity);
+        data[0] = *pbuf;
+        data[1] = *(pbuf + 1);
+        data[2] = *(pbuf + 2);
+        data[3] = *(pbuf + 3);
+        data[4] = *vbuf;
+        data[5] = *(vbuf + 1);
+        data[6] = *(vbuf + 2);
+        data[7] = *(vbuf + 3);
+
         return driver_.send(frame);
     }
 
     J4310::Result J4310::velControl(const float velocity)
     {
         Can::CanFrame frame{};
-        frame.dlc = 8;
+        frame.dlc = 4;
         frame.id = canId_ + 0x200;
-        std::memcpy(frame.data, &velocity, sizeof(float));
+        auto& data = frame.data;
+        const auto* vbuf = reinterpret_cast<const uint8_t*>(&velocity);
+        data[0] = *vbuf;
+        data[1] = *(vbuf + 1);
+        data[2] = *(vbuf + 2);
+        data[3] = *(vbuf + 3);
         return driver_.send(frame);
     }
 
     std::expected<J4310Status, std::string> J4310::getStatus()
     {
-        Can::CanFrame frame{};
-        frame.dlc = 8;
-        frame.id = canId_ + 0x100;
-        if (const auto result = driver_.send(frame); !result)
-        {
-            return std::unexpected(result.error());
-        }
-        thread::Othread::sleep_for(50 * 1000);
         lock_.lock();
         J4310Status status = status_;
         lock_.unlock();
