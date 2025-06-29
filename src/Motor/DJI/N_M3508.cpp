@@ -155,10 +155,11 @@ namespace OneMotor::Motor::DJI
         auto pos_result = pos_pid_->compute(pos_ref_.load(std::memory_order_acquire), this->status_.total_angle);
         auto ang_result = ang_pid_->compute(pos_result, this->status_.angular);
         const auto output_current = static_cast<int16_t>(ang_result);
+        this->status_.output_current = output_current;
+        this->status_lock_.unlock();
         const uint8_t hi_byte = output_current >> 8;
         const uint8_t lo_byte = output_current & 0xFF;
         MotorManager::getInstance().pushOutput<id>(this->driver_, lo_byte, hi_byte);
-        this->status_lock_.unlock();
     }
 
     template class M3508<1, MotorMode::Angular>;
