@@ -11,7 +11,8 @@
 
 #include "OneMotor/Can/CanDriver.hpp"
 #include "OneMotor/Control/PID.hpp"
-#include "OneMotor/Util/SpinLock.hpp"
+#include <atomic>
+
 
 namespace OneMotor::Motor::DJI
 {
