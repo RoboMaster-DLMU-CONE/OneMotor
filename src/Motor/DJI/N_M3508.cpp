@@ -119,7 +119,7 @@ namespace OneMotor::Motor::DJI
         const std::function<void(PIDController*)>& func)
     {
         this->status_lock_.lock();
-        func(ang_pid_.get());
+        func(pos_pid_.get());
         this->status_lock_.unlock();
     }
 
@@ -145,16 +145,22 @@ namespace OneMotor::Motor::DJI
     void M3508<id, MotorMode::Position>::enabled_func_(Can::CanFrame&& frame)
     {
         const auto msg = static_cast<M3508RawStatusFrame>(frame);
-        const auto ang_ref = ang_ref_.load(std::memory_order_acquire);
+        const auto ang_ref = std::abs(ang_ref_.load(std::memory_order_acquire));
 
         this->status_lock_.lock();
         trMsgToStatus(msg, this->status_);
-        const auto desired_angular = pos_pid_->compute(pos_ref_.load(std::memory_order_acquire),
-                                                       this->status_.total_angle);
+        auto desired_angular = pos_pid_->compute(pos_ref_.load(std::memory_order_acquire),
+                                                 this->status_.total_angle);
+
+        desired_angular = std::clamp(desired_angular, -ang_ref, ang_ref);
+
         auto ang_result = ang_pid_->compute(desired_angular, this->status_.angular);
         const auto output_current = static_cast<int16_t>(ang_result);
+
+        // 调试用输出
         // std::cout << static_cast<int>(id) << " " << desired_angular << " " << ang_result << " " << output_current <<
         //     std::endl << this->status_.format() << std::endl;
+
         this->status_.output_current = output_current;
         this->status_lock_.unlock();
         const uint8_t hi_byte = output_current >> 8;
