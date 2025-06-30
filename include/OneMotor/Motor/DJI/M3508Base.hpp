@@ -18,7 +18,7 @@ namespace OneMotor::Motor::DJI
      * @details 预设了位置式PID，并启用了死区、积分限幅等常用特性。
      */
     using PIDController = Control::PIDController<
-        Control::Positional, float, Control::WithDeadband, Control::WithIntegralLimit, Control::WithIntegralLimit>;
+        Control::Positional, float, Control::WithDeadband, Control::WithIntegralLimit, Control::WithOutputLimit>;
 
     /**
      * @class M3508Base

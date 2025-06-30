@@ -64,6 +64,11 @@ namespace OneMotor::Motor::DJI
         float total_angle; ///< 累计总角度 (°)，带方向
         int32_t total_round; ///< 累计总圈数，带方向
         int16_t output_current; ///< PID计算后输出给电机的电流值
+        /**
+         * @brief 将电机状态格式化为可读字符串。
+         * @return 包含状态所有字段信息的字符串。
+         */
+        [[nodiscard]] std::string format() const;
     };
 }
 

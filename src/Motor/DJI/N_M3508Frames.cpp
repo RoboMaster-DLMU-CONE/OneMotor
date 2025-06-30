@@ -34,4 +34,26 @@ namespace OneMotor::Motor::DJI
         return std::format("ID: {:X}, Ang: {} RPM, ecd: {} / 8191, CRT: {} mA, temperature: {} deg",
                            canId, rpm, ecd, current, temperature);
     }
+
+    std::string M3508Status::format() const
+    {
+        return std::format(
+            "M3508 Status:\n"
+            "\t- ECD: {} (last: {})\n"
+            "\t- Angle (single round): {:.2f} deg\n"
+            "\t- Angular Velocity: {:.2f} deg/s\n"
+            "\t- Total Angle: {:.2f} deg\n"
+            "\t- Total Rounds: {}\n"
+            "\t- Real Current: {} mA\n"
+            "\t- Output Current: {}\n"
+            "\t- Temperature: {} °C",
+            ecd, last_ecd,
+            angle_single_round,
+            angular,
+            total_angle,
+            total_round,
+            real_current,
+            output_current,
+            temperature);
+    }
 }
