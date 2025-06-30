@@ -18,6 +18,15 @@ include(OneMotorConfiguration)
 
 add_library(${PROJECT_NAME})
 
+target_compile_options(${PROJECT_NAME} INTERFACE
+        -ffunction-sections
+        -fdata-sections
+)
+
+target_link_options(${PROJECT_NAME} INTERFACE
+        -Wl,--gc-sections
+)
+
 file(GLOB_RECURSE LINUX_SOURCES CONFIGURE_DEPENDS "src/L_*.cpp")
 file(GLOB_RECURSE ZEPHYR_SOURCES CONFIGURE_DEPENDS "src/Z_*.cpp")
 file(GLOB_RECURSE NORMAL_SOURCES CONFIGURE_DEPENDS "src/N_*.cpp")
