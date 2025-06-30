@@ -87,7 +87,7 @@ namespace OneMotor::Motor::DJI
                     _ = driver->send(frame);
                 }
 
-                thread::sleep_for(std::chrono::microseconds(300));
+                thread::sleep_for(std::chrono::milliseconds(1));
             }
         });
     }
