@@ -11,20 +11,20 @@ int main()
     OneMotor::Motor::DM::J4310 j4310(driver, 0x53, 0x43);
 
     _ = j4310.enable();
-    OneMotor::thread::Othread::sleep_for(2 * 1000 * 1000 * 1000);
+    OneMotor::thread::sleep_for(std::chrono::seconds(2));
 
     _ = j4310.setZeroPosition();
-    OneMotor::thread::Othread::sleep_for(2 * 1000 * 1000 * 1000);
+    OneMotor::thread::sleep_for(std::chrono::seconds(2));
 
     _ = j4310.posVelControl(12.56, 6.28);
-    OneMotor::thread::Othread::sleep_for(2 * 1000 * 1000 * 1000);
+    OneMotor::thread::sleep_for(std::chrono::seconds(2));
 
     if (auto result = j4310.getStatus(); result.has_value()) std::cout << result.value().format() << std::endl;
     else std::cerr << result.error() << std::endl;
-    OneMotor::thread::Othread::sleep_for(2 * 1000 * 1000 * 1000);
+    OneMotor::thread::sleep_for(std::chrono::seconds(2));
 
     _ = j4310.disable();
-    OneMotor::thread::Othread::sleep_for(2 * 1000 * 1000 * 1000);
+    OneMotor::thread::sleep_for(std::chrono::seconds(2));
 
     return 0;
 }

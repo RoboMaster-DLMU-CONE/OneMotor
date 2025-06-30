@@ -16,6 +16,20 @@
 namespace OneMotor::thread
 {
     /**
+     * @brief 使当前线程休眠指定的时间。
+     * @tparam Rep `std::chrono::duration` 的表示类型。
+     * @tparam Period `std::chrono::duration` 的周期类型。
+     * @param duration 要休眠的时间段。
+     */
+    template <typename Rep, typename Period>
+    void sleep_for(const std::chrono::duration<Rep, Period>& duration) noexcept
+    {
+#ifdef ONE_MOTOR_LINUX
+        std::this_thread::sleep_for(duration);
+#endif
+    }
+
+    /**
      * @class Othread
      * @brief 一个对底层线程实现（如 std::thread）的封装器。
      * @details
@@ -79,12 +93,6 @@ namespace OneMotor::thread
          * @return 如果线程正在执行且尚未被加入或分离，返回 `true`。
          */
         [[nodiscard]] bool joinable() const noexcept;
-
-        /**
-         * @brief 使当前线程休眠指定的纳秒数。
-         * @param ns 要休眠的纳秒数。
-         */
-        static void sleep_for(uint64_t ns) noexcept;
 
     private:
         ThreadFunc thread_func{nullptr}; ///< 存储线程要执行的函数

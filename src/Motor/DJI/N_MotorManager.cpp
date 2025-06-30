@@ -86,7 +86,8 @@ namespace OneMotor::Motor::DJI
                     lock.unlock();
                     _ = driver->send(frame);
                 }
-                thread::Othread::sleep_for(300000);
+
+                thread::sleep_for(std::chrono::microseconds(300));
             }
         });
     }

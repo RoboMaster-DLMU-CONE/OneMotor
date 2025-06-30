@@ -34,7 +34,7 @@ int main()
     auto _ = can_driver.open();
     lock.unlock();
     DeltaT deltat{};
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    OneMotor::thread::sleep_for(std::chrono::milliseconds(500));
     printf("%f\n", deltat.getDeltaMS());
     thread.join();
 
@@ -42,7 +42,7 @@ int main()
     M3508<1, Angular> m3508_1(can_driver, params);
     M3508<2, Position> m3508_2(can_driver, params, params);
     _ = m3508_1.enable();
-    std::this_thread::sleep_for(std::chrono::seconds(3));
+    OneMotor::thread::sleep_for(std::chrono::seconds(3));
     _ = can_driver.close();
     return 0;
 }
