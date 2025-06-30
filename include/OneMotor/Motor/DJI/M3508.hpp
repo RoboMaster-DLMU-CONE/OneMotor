@@ -82,6 +82,9 @@ namespace OneMotor::Motor::DJI
      * 这是一个最终类，继承自 `M3508Base`。
      * 它实现了一个串级PID控制器：一个位置环PID和一个速度环PID。
      * 位置环的输出作为速度环的输入。
+     * @note
+     * 可以使用setAngRef来设定运行过程中的最大角速度。
+     * 速度标定值较小，负载较大的情况下，需要调整PID参数来达到更好的效果。
      */
     template <uint8_t id>
     class M3508<id, MotorMode::Position>final : public M3508Base<id>
@@ -132,7 +135,7 @@ namespace OneMotor::Motor::DJI
         std::unique_ptr<PIDController> pos_pid_; ///< 位置环PID控制器
         std::unique_ptr<PIDController> ang_pid_; ///< 速度环PID控制器
         std::atomic<float> pos_ref_; ///< 目标位置（总角度）
-        std::atomic<float> ang_ref_; ///< 速度限制（位置环输出限幅）
+        std::atomic<float> ang_ref_ = {16384}; ///< 速度限制（位置环输出限幅）
     };
 }
 

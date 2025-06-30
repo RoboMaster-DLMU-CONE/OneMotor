@@ -3,8 +3,9 @@
 #include "OneMotor/Motor/DJI/MotorManager.hpp"
 #include "OneMotor/Util/Panic.hpp"
 
-constexpr float ECD_TO_ANGLE_DJI = 0.043945f;
-constexpr float RPM_2_ANGLE_PER_SEC = 6.0f;
+static constexpr float ECD_TO_ANGLE_DJI = 0.043945f;
+static constexpr float RPM_2_ANGLE_PER_SEC = 6.0f;
+static constexpr float MAX_CURRENT_OUTPUT = 16384;
 
 using Result = std::expected<void, std::string>;
 
@@ -79,6 +80,7 @@ namespace OneMotor::Motor::DJI
         this->status_lock_.lock();
         trMsgToStatus(msg, this->status_);
         auto ang_result = ang_pid_->compute(ang_ref_.load(std::memory_order_acquire), this->status_.angular);
+        ang_result = std::clamp(ang_result, -MAX_CURRENT_OUTPUT, MAX_CURRENT_OUTPUT); // 顺便避免u16t整型溢出
         const auto output_current = static_cast<int16_t>(ang_result);
         this->status_.output_current = output_current;
         this->status_lock_.unlock();
@@ -93,6 +95,7 @@ namespace OneMotor::Motor::DJI
     {
         pos_pid_ = std::make_unique<PIDController>(pos_params);
         ang_pid_ = std::make_unique<PIDController>(ang_params);
+        ang_pid_->MaxOutputVal = MAX_CURRENT_OUTPUT;
         if (const auto result = driver.registerCallback({this->canId_}, [this](Can::CanFrame&& frame)
         {
             this->disabled_func_(std::move(frame));
@@ -149,12 +152,12 @@ namespace OneMotor::Motor::DJI
 
         this->status_lock_.lock();
         trMsgToStatus(msg, this->status_);
-        auto desired_angular = pos_pid_->compute(pos_ref_.load(std::memory_order_acquire),
-                                                 this->status_.total_angle);
+        auto pos_result = pos_pid_->compute(pos_ref_.load(std::memory_order_acquire), this->status_.total_angle);
 
-        desired_angular = std::clamp(desired_angular, -ang_ref, ang_ref);
+        pos_result = std::clamp(pos_result, -ang_ref, ang_ref);
 
-        auto ang_result = ang_pid_->compute(desired_angular, this->status_.angular);
+        auto ang_result = ang_pid_->compute(pos_result, this->status_.angular);
+        ang_result = std::clamp(ang_result, -MAX_CURRENT_OUTPUT, MAX_CURRENT_OUTPUT); // 顺便避免u16t整型溢出
         const auto output_current = static_cast<int16_t>(ang_result);
 
         // 调试用输出
