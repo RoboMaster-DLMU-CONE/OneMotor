@@ -1,5 +1,3 @@
-#include <iostream>
-
 #include "OneMotor/Motor/DJI/M3508.hpp"
 #include "OneMotor/Motor/DJI/M3508Frames.hpp"
 #include "OneMotor/Motor/DJI/MotorManager.hpp"
@@ -95,6 +93,13 @@ namespace OneMotor::Motor::DJI
     {
         pos_pid_ = std::make_unique<PIDController>(pos_params);
         ang_pid_ = std::make_unique<PIDController>(ang_params);
+        if (const auto result = driver.registerCallback({this->canId_}, [this](Can::CanFrame&& frame)
+        {
+            this->disabled_func_(std::move(frame));
+        }); !result)
+        {
+            Util::om_panic(std::move(result.error()));
+        }
     }
 
     template <uint8_t id>
@@ -150,10 +155,11 @@ namespace OneMotor::Motor::DJI
         const auto output_current = static_cast<int16_t>(ang_result);
         // std::cout << static_cast<int>(id) << " " << desired_angular << " " << ang_result << " " << output_current <<
         //     std::endl << this->status_.format() << std::endl;
+        this->status_.output_current = output_current;
+        this->status_lock_.unlock();
         const uint8_t hi_byte = output_current >> 8;
         const uint8_t lo_byte = output_current & 0xFF;
         MotorManager::getInstance().pushOutput<id>(this->driver_, lo_byte, hi_byte);
-        this->status_lock_.unlock();
     }
 
     template class M3508<1, MotorMode::Angular>;
