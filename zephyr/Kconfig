@@ -1,0 +1,15 @@
+config ONEMOTOR
+    bool "OneMotor library support"
+    help
+      Enable OneMotor library for motor control.
+
+if ONEMOTOR
+
+config ONEMOTOR_LOG_LEVEL
+    int "OneMotor log level"
+    default 3
+    range 0 4
+    help
+      Set the log level for OneMotor library.
+
+endif # ONEMOTOR

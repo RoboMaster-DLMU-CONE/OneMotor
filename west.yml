@@ -1,0 +1,15 @@
+manifest:
+  version: "1.2"
+
+  defaults:
+    remote: origin
+
+  remotes:
+    - name: origin
+      url-base: https://github.com/RoboMaster-DLMU-CONE
+
+  projects:
+    - name: OneMotor
+      repo-path: OneMotor
+      path: modules/lib/onemotor
+      revision: main

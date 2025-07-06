@@ -1,0 +1,4 @@
+name: onemotor
+build:
+  cmake: .
+  kconfig: zephyr/Kconfig
