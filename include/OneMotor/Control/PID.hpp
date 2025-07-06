@@ -7,6 +7,9 @@
 #ifndef PID_HPP
 #define PID_HPP
 #include <type_traits>
+#include <limits>
+#include <cmath>
+#include <algorithm>
 
 #include "OneMotor/Util/Arithmetic.hpp"
 #include "OneMotor/Util/DeltaT.hpp"

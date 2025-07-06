@@ -1,9 +1,23 @@
 config ONEMOTOR
     bool "OneMotor library support"
+    select CPP
+    select REQUIRES_FULL_LIBCPP
     help
       Enable OneMotor library for motor control.
 
 if ONEMOTOR
+
+choice STD_CPP
+    prompt "C++ Standard"
+    depends on CPP
+    default STD_CPP20
+endchoice
+
+config OM_CAN_MAX_DJI_MOTOR
+    int "Maximum number of DJI motors"
+    default 8
+    help
+      Maximum number of DJI motors that can be controlled simultaneously.
 
 config ONEMOTOR_LOG_LEVEL
     int "OneMotor log level"

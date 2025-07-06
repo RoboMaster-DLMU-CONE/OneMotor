@@ -16,42 +16,39 @@ else ()
 endif ()
 
 if (ZEPHYR_TOOLCHAIN_VARIANT)
-
+    zephyr_library_named(${PROJECT_NAME})
 else ()
     add_library(${PROJECT_NAME})
-    set(LIBRARY_TARGET ${PROJECT_NAME})
 endif ()
 
 include(OneMotorConfiguration)
-
-target_compile_options(${LIBRARY_TARGET} INTERFACE
-        -ffunction-sections
-        -fdata-sections
-)
-
-target_link_options(${LIBRARY_TARGET} INTERFACE
-        -Wl,--gc-sections
-)
 
 file(GLOB_RECURSE LINUX_SOURCES CONFIGURE_DEPENDS "src/L_*.cpp")
 file(GLOB_RECURSE ZEPHYR_SOURCES CONFIGURE_DEPENDS "src/Z_*.cpp")
 file(GLOB_RECURSE NORMAL_SOURCES CONFIGURE_DEPENDS "src/N_*.cpp")
 
 if (ZEPHYR_TOOLCHAIN_VARIANT)
-    target_sources(${LIBRARY_TARGET} PRIVATE ${ZEPHYR_SOURCES} ${NORMAL_SOURCES})
+    zephyr_library_sources(${ZEPHYR_SOURCES} ${NORMAL_SOURCES})
+    zephyr_include_directories(include)
 else ()
-    target_sources(${LIBRARY_TARGET} PRIVATE ${LINUX_SOURCES} ${NORMAL_SOURCES})
-    target_link_libraries(${LIBRARY_TARGET} PUBLIC HyCAN::HyCAN)
-    target_compile_definitions(${LIBRARY_TARGET} PUBLIC
+    target_compile_options(${PROJECT_NAME} INTERFACE
+            -ffunction-sections
+            -fdata-sections
+    )
+    target_link_options(${PROJECT_NAME} INTERFACE
+            -Wl,--gc-sections
+    )
+    target_sources(${PROJECT_NAME} PRIVATE ${LINUX_SOURCES} ${NORMAL_SOURCES})
+    target_link_libraries(${PROJECT_NAME} PUBLIC HyCAN::HyCAN)
+    target_compile_definitions(${PROJECT_NAME} PUBLIC
             ONE_MOTOR_LINUX
+    )
+    target_include_directories(${PROJECT_NAME} PUBLIC
+            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
     )
 endif ()
 
-
-target_include_directories(${LIBRARY_TARGET} PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-)
 
 if (BUILD_OM_EXAMPLE)
     include(OneMotorExamples)
@@ -68,8 +65,8 @@ if (ZEPHYR_TOOLCHAIN_VARIANT)
 else ()
     include(GNUInstallDirs)
     include(CMakePackageConfigHelpers)
-    install(TARGETS ${LIBRARY_TARGET}
-            EXPORT ${LIBRARY_TARGET}Targets
+    install(TARGETS ${PROJECT_NAME}
+            EXPORT ${PROJECT_NAME}Targets
             LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
             ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
             RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
@@ -77,25 +74,25 @@ else ()
     install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/
             DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
     )
-    install(EXPORT ${LIBRARY_TARGET}Targets
-            FILE ${LIBRARY_TARGET}Targets.cmake
+    install(EXPORT ${PROJECT_NAME}Targets
+            FILE ${PROJECT_NAME}Targets.cmake
             NAMESPACE OneMotor::
-            DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${LIBRARY_TARGET}
+            DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
     )
     write_basic_package_version_file(
-            "${CMAKE_CURRENT_BINARY_DIR}/${LIBRARY_TARGET}ConfigVersion.cmake"
+            "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
             VERSION ${PROJECT_VERSION}
             COMPATIBILITY AnyNewerVersion
     )
     configure_package_config_file(
-            "${CMAKE_CURRENT_SOURCE_DIR}/cmake/${LIBRARY_TARGET}Config.cmake.in"
-            "${CMAKE_CURRENT_BINARY_DIR}/${LIBRARY_TARGET}Config.cmake"
-            INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${LIBRARY_TARGET}
+            "${CMAKE_CURRENT_SOURCE_DIR}/cmake/${PROJECT_NAME}Config.cmake.in"
+            "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+            INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
     )
     install(
             FILES
-            "${CMAKE_CURRENT_BINARY_DIR}/${LIBRARY_TARGET}Config.cmake"
-            "${CMAKE_CURRENT_BINARY_DIR}/${LIBRARY_TARGET}ConfigVersion.cmake"
-            DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${LIBRARY_TARGET}
+            "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+            "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
+            DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
     )
 endif ()
