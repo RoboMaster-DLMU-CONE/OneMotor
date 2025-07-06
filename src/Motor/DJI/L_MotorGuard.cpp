@@ -65,7 +65,7 @@ namespace OneMotor::Motor::DJI
                     auto time_since_fed = now - state->last_fed_time_.load(std::memory_order_acquire);
                     if (time_since_fed > std::chrono::milliseconds(10))
                     {
-                        circuit_breaker_action(driver);
+                        circuit_breaker_action_(driver);
                         state->triggered_.store(true);
                     }
                     else
@@ -82,7 +82,7 @@ namespace OneMotor::Motor::DJI
         }
     }
 
-    void MotorGuard::circuit_breaker_action(const std::shared_ptr<Can::CanDriver>& driver)
+    void MotorGuard::circuit_breaker_action_(const std::shared_ptr<Can::CanDriver>& driver)
     {
         Can::CanFrame frame{};
         frame.dlc = 8;
