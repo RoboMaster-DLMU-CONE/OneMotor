@@ -19,7 +19,7 @@ namespace OneMotor::Motor::DJI
      */
     using PIDController = Control::PIDController<
         Control::Positional, float, Control::WithDeadband, Control::WithIntegralLimit, Control::WithOutputLimit,
-        Control::WithDerivativeOnMeasurement>;
+        Control::WithOutputFilter, Control::WithDerivativeFilter>;
 
     /**
      * @class M3508Base

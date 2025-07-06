@@ -100,7 +100,7 @@ namespace OneMotor::Motor::DJI
                        const Control::PID_Params<float>& pos_params,
                        const Control::PID_Params<float>& ang_params);
         /**
-         * @brief 设置速度环的最大输出，即位置环PID的输出限幅。
+         * @brief 设置速度环的最大输出，即位置环PID的输出限幅。该选项目前没有实际作用。
          * @param ang_ref 速度上限值 (单位：度/秒)。
          * @note 此操作是线程安全的。
          */

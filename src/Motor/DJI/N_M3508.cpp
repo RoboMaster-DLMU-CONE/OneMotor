@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include "OneMotor/Motor/DJI/M3508.hpp"
 #include "OneMotor/Motor/DJI/M3508Frames.hpp"
 #include "OneMotor/Motor/DJI/MotorManager.hpp"
@@ -148,21 +150,18 @@ namespace OneMotor::Motor::DJI
     void M3508<id, MotorMode::Position>::enabled_func_(Can::CanFrame&& frame)
     {
         const auto msg = static_cast<M3508RawStatusFrame>(frame);
-        const auto ang_ref = std::abs(ang_ref_.load(std::memory_order_acquire));
 
         this->status_lock_.lock();
         trMsgToStatus(msg, this->status_);
         auto pos_result = pos_pid_->compute(pos_ref_.load(std::memory_order_acquire), this->status_.total_angle);
-
-        pos_result = std::clamp(pos_result, -ang_ref, ang_ref);
 
         auto ang_result = ang_pid_->compute(pos_result, this->status_.angular);
         ang_result = std::clamp(ang_result, -MAX_CURRENT_OUTPUT, MAX_CURRENT_OUTPUT); // 顺便避免u16t整型溢出
         const auto output_current = static_cast<int16_t>(ang_result);
 
         // 调试用输出
-        // std::cout << static_cast<int>(id) << " " << desired_angular << " " << ang_result << " " << output_current <<
-        //     std::endl << this->status_.format() << std::endl;
+        // std::cout << static_cast<int>(id) << " " << pos_result << " " << ang_result << " " << output_current <<
+        //     std::endl;
 
         this->status_.output_current = output_current;
         this->status_lock_.unlock();
