@@ -29,7 +29,7 @@ namespace OneMotor::Motor::DJI
 
         std::unordered_map<std::shared_ptr<Can::CanDriver>, std::unique_ptr<WatchdogState>> watchdog_states_;
         std::mutex state_mutex_;
-        std::chrono::milliseconds check_timeout_{5};
+        std::chrono::milliseconds check_timeout_{50};
         std::jthread watchdog_monitor_;
 
         void feed_watchdog(const std::shared_ptr<Can::CanDriver>& driver);

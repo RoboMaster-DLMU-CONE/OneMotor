@@ -54,24 +54,26 @@ namespace OneMotor::Motor::DJI
 
             auto now = std::chrono::steady_clock::now();
             bool all_triggered = true;
-            std::lock_guard lock(state_mutex_);
-
-            for (auto& [driver, state] : watchdog_states_)
             {
-                if (state->triggered_.load(std::memory_order_acquire)) continue;
-                auto time_since_fed = now - state->last_fed_time_.load(std::memory_order_acquire);
-                if (time_since_fed > check_timeout_)
+                std::lock_guard lock(state_mutex_);
+                for (auto& [driver, state] : watchdog_states_)
                 {
-                    circuit_breaker_action(driver);
-                    state->triggered_.store(true);
-                }
-                else
-                {
-                    all_triggered = false;
+                    if (state->triggered_.load(std::memory_order_acquire)) continue;
+                    auto time_since_fed = now - state->last_fed_time_.load(std::memory_order_acquire);
+                    if (time_since_fed > std::chrono::milliseconds(10))
+                    {
+                        circuit_breaker_action(driver);
+                        state->triggered_.store(true);
+                    }
+                    else
+                    {
+                        all_triggered = false;
+                    }
                 }
             }
             if (all_triggered)
             {
+                watchdog_monitor_.detach();
                 std::exit(0);
             }
         }
