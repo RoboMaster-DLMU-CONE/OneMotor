@@ -3,15 +3,18 @@
 
 namespace OneMotor::Motor::DJI
 {
-    void MotorGuard::guard(const std::unordered_set<std::string>& interface_set)
+    void MotorGuard::guard(const std::vector<DriverPair>& driver_set)
     {
-        for (auto& interface : interface_set)
+        for (auto& [name, data] : driver_set)
         {
-            auto driver = std::make_shared<Can::CanDriver>(interface);
+            auto driver = std::make_shared<Can::CanDriver>(name);
             drivers.push_back(driver);
             watchdog_states_[driver] = std::make_unique<WatchdogState>();
             watchdog_states_[driver]->last_fed_time_ = std::chrono::steady_clock::now();
             watchdog_states_[driver]->triggered_.store(false, std::memory_order_relaxed);
+            std::array<uint8_t, 16> temp{};
+            if (data.has_value()) temp = data.value();
+            driver_exit_data_[driver] = temp;
         }
 
         for (const auto& driver : drivers)
@@ -84,8 +87,10 @@ namespace OneMotor::Motor::DJI
         Can::CanFrame frame{};
         frame.dlc = 8;
         frame.id = 0x200;
+        std::copy_n(driver_exit_data_[driver].data(), 8, frame.data);
         auto _ = driver->send(frame);
         frame.id = 0x1FF;
+        std::copy_n(driver_exit_data_[driver].data() + 8, 8, frame.data);
         _ = driver->send(frame);
     }
 
