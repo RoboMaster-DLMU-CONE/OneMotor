@@ -4,7 +4,6 @@
  * @brief DM J4310 电机驱动程序
  * @date 2025-06-27
  *
- * @copyright Copyright (c) 2025
  *
  */
 #ifndef J4310_HPP
@@ -74,7 +73,7 @@ namespace OneMotor::Motor::DM
         tl::expected<void, Error> velControl(float velocity);
         /**
          * @brief 获取电机状态
-         * @return 一个包含状态或错误字符串的 std::expected 对象
+         * @return 一个包含状态或错误字符串的 tl::expected 对象
          */
         tl::expected<J4310Status, Error> getStatus();
 

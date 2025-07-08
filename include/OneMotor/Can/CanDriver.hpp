@@ -54,20 +54,20 @@ namespace OneMotor::Can
 
         /**
          * @brief 打开CAN接口。
-         * @return Result 操作结果。
+         * @return 操作结果。
          */
         tl::expected<void, Error> open();
 
         /**
          * @brief 关闭CAN接口。
-         * @return Result 操作结果。
+         * @return 操作结果。
          */
         tl::expected<void, Error> close();
 
         /**
          * @brief 发送一帧CAN数据。
          * @param frame 要发送的CanFrame对象。
-         * @return Result 操作结果。
+         * @return 操作结果。
          */
         tl::expected<void, Error> send(const CanFrame& frame);
 
@@ -75,7 +75,7 @@ namespace OneMotor::Can
          * @brief 注册一个回调函数，用于处理特定CAN ID的数据帧。
          * @param can_ids 一个包含需要监听的CAN ID的集合。
          * @param func 当接收到指定ID的CAN帧时要调用的回调函数。
-         * @return Result 操作结果。
+         * @return 操作结果。
          */
         tl::expected<void, Error> registerCallback(const std::set<size_t>& can_ids, const CallbackFunc& func);
 

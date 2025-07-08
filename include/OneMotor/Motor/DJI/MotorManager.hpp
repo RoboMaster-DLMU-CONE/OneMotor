@@ -59,7 +59,7 @@ namespace OneMotor::Motor::DJI
          * @brief 从管理器中注销一个电机。
          * @param driver 电机所挂载的CAN总线驱动。
          * @param canId 电机的CAN ID。
-         * @return Result 操作结果。
+         * @return 操作结果。
          */
         tl::expected<void, Error> deregisterMotor(Can::CanDriver& driver, uint16_t canId) noexcept;
 

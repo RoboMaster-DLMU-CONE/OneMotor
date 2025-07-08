@@ -49,21 +49,21 @@ namespace OneMotor::Motor::DJI
         /**
          * @brief 禁用电机。
          * @details 电机将停止主动控制，但仍会接收和更新状态。控制器输出将被忽略。
-         * @return Result 操作结果。
+         * @return 操作结果。
          */
         tl::expected<void, Error> disable() noexcept;
 
         /**
          * @brief 启用电机。
          * @details 电机将根据设定的模式和目标值开始主动控制。
-         * @return Result 操作结果。
+         * @return 操作结果。
          */
         tl::expected<void, Error> enable() noexcept;
 
         /**
          * @brief 关闭电机。
          * @details 电机将完全停止响应，不进行任何处理。
-         * @return Result 操作结果。
+         * @return 操作结果。
          */
         tl::expected<void, Error> shutdown() noexcept;
 
