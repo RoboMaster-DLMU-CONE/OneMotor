@@ -34,10 +34,10 @@ static constexpr PID_Params<float> ANG_DEFAULT_PARAMS{
 [[noreturn]] int main()
 {
     CanDriver driver("can0");
-    auto _ = driver.open();
+    driver.open();
     M3508<1, Position> m1(driver, POS_DEFAULT_PARAMS, ANG_DEFAULT_PARAMS);
     m1.setPosRef(1000);
-    _ = m1.enable();
+    m1.enable();
 
 
     std::thread thread([&]
@@ -69,5 +69,5 @@ static constexpr PID_Params<float> ANG_DEFAULT_PARAMS{
         }
     }
 
-    _ = driver.close();
+    driver.close();
 }

@@ -26,10 +26,10 @@ using enum OneMotor::Motor::DJI::MotorMode;
         .IntegralLimit = 1000,
     };
     CanDriver driver("can0");
-    auto _ = driver.open();
+    driver.open();
     M3508<1, Angular> m1(driver, params);
     m1.setRef(2000);
-    _ = m1.enable();
+    m1.enable();
 
     while (true)
     {
@@ -83,5 +83,5 @@ using enum OneMotor::Motor::DJI::MotorMode;
         }
     }
 
-    _ = driver.close();
+    driver.close();
 }

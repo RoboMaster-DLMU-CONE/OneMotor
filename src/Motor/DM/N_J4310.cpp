@@ -23,7 +23,7 @@ namespace OneMotor::Motor::DM
 
         if (!result)
         {
-            Util::om_panic("Register Callback Failed for DM J4310");
+            Util::panic("Register Callback Failed for DM J4310");
         }
     }
 
