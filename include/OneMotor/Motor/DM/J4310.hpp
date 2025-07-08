@@ -4,7 +4,6 @@
  * @brief DM J4310 电机驱动程序
  * @date 2025-06-27
  *
- * @copyright Copyright (c) 2025
  *
  */
 #ifndef J4310_HPP
@@ -20,8 +19,6 @@ namespace OneMotor::Motor::DM
      */
     class J4310
     {
-        using Result = std::expected<void, std::string>;
-
     public:
         J4310() = delete;
         /**
@@ -35,22 +32,22 @@ namespace OneMotor::Motor::DM
          * @brief 启用电机
          * @return 操作结果
          */
-        Result enable();
+        tl::expected<void, Error> enable();
         /**
          * @brief 禁用电机
          * @return 操作结果
          */
-        Result disable();
+        tl::expected<void, Error> disable();
         /**
          * @brief 将当前位置设置为零
          * @return 操作结果
          */
-        Result setZeroPosition();
+        tl::expected<void, Error> setZeroPosition();
         /**
          * @brief 清除电机错误
          * @return 操作结果
          */
-        Result cleanError();
+        tl::expected<void, Error> cleanError();
         /**
          * @brief MIT 控制模式
          * @param position 目标位置 (rad)
@@ -60,29 +57,29 @@ namespace OneMotor::Motor::DM
          * @param kd 速度增益
          * @return 操作结果
          */
-        Result MITControl(float position, float velocity, float torque, float kp, float kd);
+        tl::expected<void, Error> MITControl(float position, float velocity, float torque, float kp, float kd);
         /**
          * @brief 位置和速度控制模式
          * @param position 目标位置 (rad)
          * @param velocity 目标速度 (rad/s)
          * @return 操作结果
          */
-        Result posVelControl(float position, float velocity);
+        tl::expected<void, Error> posVelControl(float position, float velocity);
         /**
          * @brief 速度控制模式
          * @param velocity 目标速度 (rad/s)
          * @return 操作结果
          */
-        Result velControl(float velocity);
+        tl::expected<void, Error> velControl(float velocity);
         /**
          * @brief 获取电机状态
-         * @return 一个包含状态或错误字符串的 std::expected 对象
+         * @return 一个包含状态或错误字符串的 tl::expected 对象
          */
-        std::expected<J4310Status, std::string> getStatus();
+        tl::expected<J4310Status, Error> getStatus();
 
     private:
         J4310Status status_{};
-        Util::SpinLock lock_;
+        SpinLock lock_;
         Can::CanDriver& driver_;
         uint16_t canId_;
         uint16_t masterId_;

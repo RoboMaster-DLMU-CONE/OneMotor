@@ -23,11 +23,11 @@ namespace OneMotor::Motor::DM
 
         if (!result)
         {
-            Util::om_panic("Register Callback Failed for DM J4310");
+            panic("Register Callback Failed for DM J4310");
         }
     }
 
-    J4310::Result J4310::enable()
+    tl::expected<void, Error> J4310::enable()
     {
         Can::CanFrame frame{};
         frame.id = canId_ + 0x100;
@@ -37,7 +37,7 @@ namespace OneMotor::Motor::DM
         return driver_.send(frame);
     }
 
-    J4310::Result J4310::disable()
+    tl::expected<void, Error> J4310::disable()
     {
         Can::CanFrame frame{};
         frame.id = canId_ + 0x100;
@@ -47,7 +47,7 @@ namespace OneMotor::Motor::DM
         return driver_.send(frame);
     }
 
-    J4310::Result J4310::setZeroPosition()
+    tl::expected<void, Error> J4310::setZeroPosition()
     {
         Can::CanFrame frame{};
         frame.id = canId_ + 0x100;
@@ -57,7 +57,7 @@ namespace OneMotor::Motor::DM
         return driver_.send(frame);
     }
 
-    J4310::Result J4310::cleanError()
+    tl::expected<void, Error> J4310::cleanError()
     {
         Can::CanFrame frame{};
         frame.id = canId_ + 0x100;
@@ -67,8 +67,9 @@ namespace OneMotor::Motor::DM
         return driver_.send(frame);
     }
 
-    J4310::Result J4310::MITControl(const float position, const float velocity, const float torque, const float kp,
-                                    const float kd)
+    tl::expected<void, Error> J4310::MITControl(const float position, const float velocity, const float torque,
+                                                const float kp,
+                                                const float kd)
     {
         Can::CanFrame frame{};
         frame.dlc = 8;
@@ -90,7 +91,7 @@ namespace OneMotor::Motor::DM
         return driver_.send(frame);
     }
 
-    J4310::Result J4310::posVelControl(const float position, const float velocity)
+    tl::expected<void, Error> J4310::posVelControl(const float position, const float velocity)
     {
         Can::CanFrame frame{};
         frame.dlc = 8;
@@ -110,7 +111,7 @@ namespace OneMotor::Motor::DM
         return driver_.send(frame);
     }
 
-    J4310::Result J4310::velControl(const float velocity)
+    tl::expected<void, Error> J4310::velControl(const float velocity)
     {
         Can::CanFrame frame{};
         frame.dlc = 4;
@@ -124,7 +125,7 @@ namespace OneMotor::Motor::DM
         return driver_.send(frame);
     }
 
-    std::expected<J4310Status, std::string> J4310::getStatus()
+    tl::expected<J4310Status, Error> J4310::getStatus()
     {
         lock_.lock();
         J4310Status status = status_;

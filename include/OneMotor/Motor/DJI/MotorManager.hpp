@@ -30,8 +30,6 @@ namespace OneMotor::Motor::DJI
     class MotorManager
     {
     public:
-        using Result = std::expected<void, std::string>;
-
         MotorManager(const MotorManager&) = delete;
         MotorManager(MotorManager&&) = delete;
         MotorManager& operator=(MotorManager&) = delete;
@@ -55,15 +53,15 @@ namespace OneMotor::Motor::DJI
          * @param canId 电机的CAN ID。
          * @return Result 操作结果。
          */
-        Result registerMotor(Can::CanDriver& driver, uint16_t canId) noexcept;
+        tl::expected<void, Error> registerMotor(Can::CanDriver& driver, uint16_t canId) noexcept;
 
         /**
          * @brief 从管理器中注销一个电机。
          * @param driver 电机所挂载的CAN总线驱动。
          * @param canId 电机的CAN ID。
-         * @return Result 操作结果。
+         * @return 操作结果。
          */
-        Result deregisterMotor(Can::CanDriver& driver, uint16_t canId) noexcept;
+        tl::expected<void, Error> deregisterMotor(Can::CanDriver& driver, uint16_t canId) noexcept;
 
         /**
          * @brief 将一个电机的目标电流值推送到发送缓冲区。
@@ -77,7 +75,7 @@ namespace OneMotor::Motor::DJI
 
     private:
         using OutputArray = std::array<uint8_t, 16>; ///< 存储两组CAN帧数据的数组 (2*8=16字节)
-        using OutputPair = std::pair<OutputArray, Util::SpinLock>; ///< 数据数组和保护它的自旋锁
+        using OutputPair = std::pair<OutputArray, SpinLock>; ///< 数据数组和保护它的自旋锁
 
         /**
          * @brief 私有构造函数，在`getInstance`中首次调用时执行。

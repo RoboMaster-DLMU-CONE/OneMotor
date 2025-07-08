@@ -9,7 +9,6 @@ static constexpr float ECD_TO_ANGLE_DJI = 0.043945f;
 static constexpr float RPM_2_ANGLE_PER_SEC = 6.0f;
 static constexpr float MAX_CURRENT_OUTPUT = 16384;
 
-using Result = std::expected<void, std::string>;
 
 void trMsgToStatus(const OneMotor::Motor::DJI::M3508RawStatusFrame& frame,
                    OneMotor::Motor::DJI::M3508Status& status)
@@ -42,13 +41,13 @@ namespace OneMotor::Motor::DJI
                                          const Control::PID_Params<float>& ang_params): M3508Base<id>(driver)
     {
         ang_pid_ = std::make_unique<PIDController>(ang_params);
-        if (const auto result = driver.registerCallback({this->canId_}, [this](Can::CanFrame&& frame)
+        driver.registerCallback({this->canId_}, [this](Can::CanFrame&& frame)
         {
             this->disabled_func_(std::move(frame));
-        }); !result)
+        }).or_else([](const auto& e)
         {
-            Util::om_panic(std::move(result.error()));
-        }
+            panic(std::move(e.message));
+        });
     }
 
     template <uint8_t id>
@@ -98,13 +97,13 @@ namespace OneMotor::Motor::DJI
         pos_pid_ = std::make_unique<PIDController>(pos_params);
         ang_pid_ = std::make_unique<PIDController>(ang_params);
         ang_pid_->MaxOutputVal = MAX_CURRENT_OUTPUT;
-        if (const auto result = driver.registerCallback({this->canId_}, [this](Can::CanFrame&& frame)
+        driver.registerCallback({this->canId_}, [this](Can::CanFrame&& frame)
         {
             this->disabled_func_(std::move(frame));
-        }); !result)
+        }).or_else([](const auto& e)
         {
-            Util::om_panic(std::move(result.error()));
-        }
+            panic(std::move(e.message));
+        });
     }
 
     template <uint8_t id>

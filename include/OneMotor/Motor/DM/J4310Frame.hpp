@@ -2,10 +2,8 @@
  * @file J4310Frame.hpp
  * @author MoonFeather
  * @brief J4310 电机 CAN 帧定义
- * @version 0.1
  * @date 2025-06-27
  *
- * @copyright Copyright (c) 2025
  *
  */
 #ifndef J4310FRAME_HPP

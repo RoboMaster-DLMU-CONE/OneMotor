@@ -1,7 +1,8 @@
 #include "OneMotor/Can/CanFrame.hpp"
 #include "OneMotor/Motor/DJI/MotorManager.hpp"
 
-using Result = std::expected<void, std::string>;
+using tl::unexpected;
+using enum OneMotor::ErrorCode;
 
 namespace OneMotor::Motor::DJI
 {
@@ -17,30 +18,35 @@ namespace OneMotor::Motor::DJI
         return instance;
     }
 
-    Result MotorManager::registerMotor(Can::CanDriver& driver, uint16_t canId) noexcept
+    tl::expected<void, Error> MotorManager::registerMotor(Can::CanDriver& driver, uint16_t canId) noexcept
     {
         if (auto& set = driver_motor_ids[&driver]; !set.contains(canId))
         {
             if (set.size() >= OM_CAN_MAX_DJI_MOTOR)
             {
-                return std::unexpected(std::format("Specified CanDriver has exceeded Max DJI Motor count ({}).",
-                                                   OM_CAN_MAX_DJI_MOTOR));
+                return unexpected(Error{
+                    DJIMotorManagerError, std::format(
+                        "Specified CanDriver has exceeded Max DJI Motor count ({}).",
+                        OM_CAN_MAX_DJI_MOTOR)
+                });
             }
             set.insert(canId);
             return {};
         }
-        return std::unexpected(std::format("Re-registration detected on CAN ID: {}.",
-                                           canId));
+        return unexpected(Error{
+            DJIMotorManagerError, std::format("Re-registration detected on CAN ID: {}.",
+                                              canId)
+        });
     }
 
     // ReSharper disable once CppParameterMayBeConstPtrOrRef
-    Result MotorManager::deregisterMotor(Can::CanDriver& driver, const uint16_t canId) noexcept
+    tl::expected<void, Error> MotorManager::deregisterMotor(Can::CanDriver& driver, const uint16_t canId) noexcept
     {
         if (const auto it = driver_motor_ids.find(&driver); it != driver_motor_ids.end())
         {
             if (it->second.empty())
             {
-                return std::unexpected("Too many times of deregistration.");
+                return unexpected(Error{DJIMotorManagerError, "Too many times of deregistration."});
             }
             it->second.erase(canId);
             if (it->second.empty())
@@ -49,7 +55,7 @@ namespace OneMotor::Motor::DJI
             }
             return {};
         }
-        return std::unexpected("Can't find specified CanDriver in MotorManager.");
+        return unexpected(Error{DJIMotorManagerError, "Can't find specified CanDriver in MotorManager."});
     }
 
     template <uint8_t id>
@@ -80,11 +86,11 @@ namespace OneMotor::Motor::DJI
                     frame.id = 0x200;
                     lock.lock();
                     std::copy_n(output.data(), 8, frame.data);
-                    [[maybe_unused]] auto _ = driver->send(frame);
+                    driver->send(frame);
                     frame.id = 0x1FF;
                     std::copy_n(output.data() + 8, 8, frame.data);
                     lock.unlock();
-                    _ = driver->send(frame);
+                    driver->send(frame);
                 }
 
                 thread::sleep_for(std::chrono::milliseconds(1));

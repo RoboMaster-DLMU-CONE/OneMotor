@@ -9,7 +9,7 @@
 
 #include <string>
 
-namespace OneMotor::Util
+namespace OneMotor
 {
     /**
      * @brief 触发一个严重错误（panic）。
@@ -18,7 +18,7 @@ namespace OneMotor::Util
      * 它会打印一条错误消息到标准错误流，然后立即终止程序。
      * @param message 要打印的错误消息。
      */
-    void om_panic(const std::string&& message);
+    void panic(const std::string&& message);
 }
 
 #endif //PANIC_HPP

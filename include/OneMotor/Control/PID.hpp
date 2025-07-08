@@ -20,7 +20,7 @@ namespace OneMotor::Control
      * @brief PID控制器的参数。
      * @tparam ValueType_ PID计算所使用的数据类型。
      */
-    template <Util::Arithmetic ValueType_ = float>
+    template <Arithmetic ValueType_ = float>
     struct PID_Params
     {
         ValueType_ Kp{1.0f}; ///< 比例增益
@@ -96,7 +96,7 @@ namespace OneMotor::Control
      *   - `WithOutputFilter`: 平滑最终输出。
      *   - `WithOutputLimit`: 限制输出范围。
      */
-    template <typename Algorithm = Positional, Util::Arithmetic ValueType = float, typename... Features>
+    template <typename Algorithm = Positional, Arithmetic ValueType = float, typename... Features>
     class PIDController
     {
         // 特性检查
@@ -117,7 +117,7 @@ namespace OneMotor::Control
         ValueType prev_measure{}; ///< 上一次的测量值 (用于微分先行)
         ValueType prev_derivative{}; ///< 上一次的微分项输出 (用于滤波)
         ValueType prev_output{}; ///< 上一次的PID总输出 (用于滤波)
-        Util::DeltaT<ValueType> deltaT{}; ///< 用于计算时间间隔 `dt`
+        DeltaT<ValueType> deltaT{}; ///< 用于计算时间间隔 `dt`
 
     public:
         mutable ValueType MaxOutputVal; ///< 最大输出值

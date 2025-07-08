@@ -1,6 +1,6 @@
 #include "OneMotor/Util/SpinLock.hpp"
 
-namespace OneMotor::Util
+namespace OneMotor
 {
     void SpinLock::lock() noexcept
     {

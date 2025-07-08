@@ -2,9 +2,9 @@
 
 #include "OneMotor/Util/Panic.hpp"
 
-namespace OneMotor::Util
+namespace OneMotor
 {
-    void om_panic(const std::string&& message)
+    void panic(const std::string&& message)
     {
         throw std::runtime_error(message);
     }
