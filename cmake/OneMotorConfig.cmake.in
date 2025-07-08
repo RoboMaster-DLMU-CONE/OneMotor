@@ -4,6 +4,19 @@ set(CMAKE_CXX_STANDARD @PROJECT_CXX_STANDARD@)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include(CMakeFindDependencyMacro)
+
+if(NOT TARGET tl::expected)
+    set(EXPECTED_BUILD_TESTS OFF)
+    set(EXPECTED_BUILD_PACKAGE_DEB OFF)
+    include(FetchContent)
+    FetchContent_Declare(
+        tl-expected
+        GIT_REPOSITORY "https://github.com/TartanLlama/expected"
+        GIT_TAG "master"
+    )
+    FetchContent_MakeAvailable(tl-expected)
+endif()
+
 find_dependency(HyCAN REQUIRED)
 
 if(NOT TARGET OneMotor::OneMotor)
