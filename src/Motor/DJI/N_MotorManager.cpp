@@ -1,5 +1,9 @@
 #include "OneMotor/Can/CanFrame.hpp"
 #include "OneMotor/Motor/DJI/MotorManager.hpp"
+#ifdef ONE_MOTOR_LINUX
+#include <format>
+#endif
+#include <sstream>
 
 using tl::unexpected;
 using enum OneMotor::ErrorCode;
@@ -24,19 +28,32 @@ namespace OneMotor::Motor::DJI
         {
             if (set.size() >= OM_CAN_MAX_DJI_MOTOR)
             {
+#ifdef ONE_MOTOR_LINUX
                 return unexpected(Error{
                     DJIMotorManagerError, std::format(
                         "Specified CanDriver has exceeded Max DJI Motor count ({}).",
                         OM_CAN_MAX_DJI_MOTOR)
                 });
+#else
+                std::ostringstream oss;
+                oss << "Specified CanDriver has exceeded Max DJI Motor count (" << OM_CAN_MAX_DJI_MOTOR << ").";
+                return unexpected(Error{DJIMotorManagerError, oss.str()});
+#endif
             }
             set.insert(canId);
             return {};
         }
+#ifdef ONE_MOTOR_LINUX
         return unexpected(Error{
-            DJIMotorManagerError, std::format("Re-registration detected on CAN ID: {}.",
-                                              canId)
+            DJIMotorManagerError, std::format("Re-registration detected on CAN ID: {}.", canId)
         });
+#else
+        {
+            std::ostringstream oss;
+            oss << "Re-registration detected on CAN ID: " << canId << ".";
+            return unexpected(Error{DJIMotorManagerError, oss.str()});
+        }
+#endif
     }
 
     // ReSharper disable once CppParameterMayBeConstPtrOrRef

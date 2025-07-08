@@ -8,10 +8,10 @@
 #define M3508_HPP
 
 #include "M3508Base.hpp"
-
 #include "OneMotor/Can/CanDriver.hpp"
 #include "OneMotor/Control/PID.hpp"
 #include <atomic>
+#include <memory>
 
 
 namespace OneMotor::Motor::DJI

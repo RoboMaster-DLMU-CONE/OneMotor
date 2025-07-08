@@ -31,6 +31,7 @@ file(GLOB_RECURSE NORMAL_SOURCES CONFIGURE_DEPENDS "src/N_*.cpp")
 
 if (ZEPHYR_TOOLCHAIN_VARIANT)
     zephyr_library_sources(${ZEPHYR_SOURCES} ${NORMAL_SOURCES})
+    zephyr_library_link_libraries(tl::expected)
     zephyr_include_directories(include)
 else ()
     target_compile_options(${PROJECT_NAME} INTERFACE
@@ -63,7 +64,7 @@ endif ()
 include(OneMotorGenerateDoc)
 
 if (ZEPHYR_TOOLCHAIN_VARIANT)
-    message(STATUS Zephyr RTOS detected, OneMotor won't install itself)
+    message(STATUS "Zephyr RTOS detected, OneMotor won't install itself")
 else ()
     include(GNUInstallDirs)
     include(CMakePackageConfigHelpers)

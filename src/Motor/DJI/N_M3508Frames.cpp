@@ -1,4 +1,13 @@
+#ifdef ONE_MOTOR_LINUX
 #include <format>
+#else
+#include <sstream>
+#include <iomanip>
+#endif
+// TODO: waiting for zephyr gcc14...
+// I had been removing std::expected all day long...
+// didn't expect zephyr gcc 12 have no std::format...
+
 
 #include "OneMotor/Can/CanFrame.hpp"
 #include "OneMotor/Motor/DJI/M3508Frames.hpp"
@@ -31,12 +40,21 @@ namespace OneMotor::Motor::DJI
 
     inline std::string M3508RawStatusFrame::format() const
     {
+#ifdef ONE_MOTOR_LINUX
         return std::format("ID: {:X}, Ang: {} RPM, ecd: {} / 8191, CRT: {} mA, temperature: {} deg",
                            canId, rpm, ecd, current, temperature);
+#else
+        std::ostringstream oss;
+        oss << "ID: " << std::hex << std::uppercase << canId << std::dec
+            << ", Ang: " << rpm << " RPM, ecd: " << ecd << " / 8191, CRT: "
+            << current << " mA, temperature: " << temperature << " deg";
+        return oss.str();
+#endif
     }
 
     std::string M3508Status::format() const
     {
+#ifdef ONE_MOTOR_LINUX
         return std::format(
             "M3508 Status:\n"
             "\t- ECD: {} (last: {})\n"
@@ -55,5 +73,18 @@ namespace OneMotor::Motor::DJI
             real_current,
             output_current,
             temperature);
+#else
+        std::ostringstream oss;
+        oss << "M3508 Status:\n"
+            << "\t- ECD: " << ecd << " (last: " << last_ecd << ")\n"
+            << "\t- Angle (single round): " << std::fixed << std::setprecision(2) << angle_single_round << " deg\n"
+            << "\t- Angular Velocity: " << std::fixed << std::setprecision(2) << angular << " deg/s\n"
+            << "\t- Total Angle: " << std::fixed << std::setprecision(2) << total_angle << " deg\n"
+            << "\t- Total Rounds: " << total_round << "\n"
+            << "\t- Real Current: " << real_current << " mA\n"
+            << "\t- Output Current: " << output_current << "\n"
+            << "\t- Temperature: " << temperature << " °C";
+        return oss.str();
+#endif
     }
 }

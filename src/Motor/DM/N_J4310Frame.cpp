@@ -1,5 +1,9 @@
 #include "OneMotor/Motor/DM/J4310Frame.hpp"
+#ifdef ONE_MOTOR_LINUX
 #include <format>
+#endif
+#include <sstream>
+#include <iomanip>
 
 namespace OneMotor::Motor::DM
 {
@@ -21,9 +25,19 @@ namespace OneMotor::Motor::DM
 
     std::string J4310Status::format()
     {
+#ifdef ONE_MOTOR_LINUX
         return std::format("ID: {:X}, Position: {}, Velocity: {}, Torque: {}, temperature: {},{} deg, ",
-                           // "Status: {}",
                            ID, position, velocity, torque, temperature_MOS,
                            temperature_Rotor);
+#else
+        std::ostringstream oss;
+        oss << "ID: " << std::hex << std::uppercase << ID << std::dec
+            << ", Position: " << position
+            << ", Velocity: " << velocity
+            << ", Torque: " << torque
+            << ", temperature: " << temperature_MOS
+            << "," << temperature_Rotor << " deg, ";
+        return oss.str();
+#endif
     }
 }

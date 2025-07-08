@@ -8,6 +8,7 @@
 #define OTHREAD_HPP
 
 #include <functional>
+#include <chrono>
 
 #ifdef ONE_MOTOR_LINUX
 #include <thread>

@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include "OneMotor/Motor/DM/J4310.hpp"
 #include "OneMotor/Thread/Othread.hpp"
 #include "OneMotor/Util/Panic.hpp"

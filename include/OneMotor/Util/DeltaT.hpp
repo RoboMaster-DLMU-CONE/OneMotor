@@ -11,6 +11,8 @@
 #include <chrono>
 #endif
 
+#include <cstdint>
+
 #include "Arithmetic.hpp"
 
 namespace OneMotor
@@ -47,6 +49,12 @@ namespace OneMotor
     private:
 #ifdef ONE_MOTOR_LINUX
         std::chrono::time_point<std::chrono::steady_clock> last_time; ///< 记录上一次调用的时间点
+#else
+#ifdef CONFIG_TIMER_HAS_64BIT_CYCLE_COUNTER
+        uint64_t last_time_cycles;
+#else
+        uint32_t last_time_cycles;
+#endif
 #endif
     };
 }

@@ -7,9 +7,11 @@
 #ifndef MOTORMANAGER_HPP
 #define MOTORMANAGER_HPP
 
+#include <atomic>
 #include <unordered_map>
-#include <OneMotor/Can/CanDriver.hpp>
+#include <memory>
 
+#include "OneMotor/Can/CanDriver.hpp"
 #include "OneMotor/Thread/Othread.hpp"
 #include "OneMotor/Util/SpinLock.hpp"
 
