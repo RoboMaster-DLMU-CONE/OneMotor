@@ -19,10 +19,10 @@ namespace OneMotor::Motor::DJI
 
         for (const auto& driver : drivers)
         {
-            if (auto result = driver->open(); !result)
+            driver->open().or_else([](const auto& e)
             {
-                Util::om_panic(result.error().data());
-            }
+                Util::om_panic(std::move(e.message));
+            });
         }
 
         for (const auto& driver : drivers)

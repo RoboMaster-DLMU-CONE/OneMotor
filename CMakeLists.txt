@@ -1,10 +1,12 @@
 cmake_minimum_required(VERSION 3.20)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD 20)
 
 option(BUILD_OM_EXAMPLE "Build OneMotor Examples" OFF)
 option(BUILD_OM_TEST "Build OneMotor Tests" OFF)
+
+include(OneMotorFindTlExpected)
 
 if (ZEPHYR_TOOLCHAIN_VARIANT)
     project(onemotor VERSION 0.6.0)
@@ -39,7 +41,7 @@ else ()
             -Wl,--gc-sections
     )
     target_sources(${PROJECT_NAME} PRIVATE ${LINUX_SOURCES} ${NORMAL_SOURCES})
-    target_link_libraries(${PROJECT_NAME} PUBLIC HyCAN::HyCAN)
+    target_link_libraries(${PROJECT_NAME} PUBLIC HyCAN::HyCAN tl::expected)
     target_compile_definitions(${PROJECT_NAME} PUBLIC
             ONE_MOTOR_LINUX
     )

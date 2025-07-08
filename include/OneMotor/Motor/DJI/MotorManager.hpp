@@ -30,8 +30,6 @@ namespace OneMotor::Motor::DJI
     class MotorManager
     {
     public:
-        using Result = std::expected<void, std::string>;
-
         MotorManager(const MotorManager&) = delete;
         MotorManager(MotorManager&&) = delete;
         MotorManager& operator=(MotorManager&) = delete;
@@ -55,7 +53,7 @@ namespace OneMotor::Motor::DJI
          * @param canId 电机的CAN ID。
          * @return Result 操作结果。
          */
-        Result registerMotor(Can::CanDriver& driver, uint16_t canId) noexcept;
+        tl::expected<void, Error> registerMotor(Can::CanDriver& driver, uint16_t canId) noexcept;
 
         /**
          * @brief 从管理器中注销一个电机。
@@ -63,7 +61,7 @@ namespace OneMotor::Motor::DJI
          * @param canId 电机的CAN ID。
          * @return Result 操作结果。
          */
-        Result deregisterMotor(Can::CanDriver& driver, uint16_t canId) noexcept;
+        tl::expected<void, Error> deregisterMotor(Can::CanDriver& driver, uint16_t canId) noexcept;
 
         /**
          * @brief 将一个电机的目标电流值推送到发送缓冲区。

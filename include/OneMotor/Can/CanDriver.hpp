@@ -10,8 +10,9 @@
 #include <string>
 #include <functional>
 #include <set>
-#include <expected>
+#include <tl/expected.hpp>
 #include "CanFrame.hpp"
+#include "OneMotor/Util/Error.hpp"
 
 #ifdef ONE_MOTOR_LINUX
 #include <HyCAN/Interface/Interface.hpp>
@@ -38,13 +39,6 @@ namespace OneMotor::Can
         using CallbackFunc = std::function<void(CanFrame&&)>;
 
         /**
-         * @brief 操作结果的类型定义。
-         * @details
-         * - `std::expected<void, std::string>`: 如果操作成功，包含 `void`；如果失败，包含一个描述错误的字符串。
-         */
-        using Result = std::expected<void, std::string>;
-
-        /**
          * @brief CanDriver 的构造函数。
          * @param interface_name CAN接口的名称 (例如 "can0")。
          */
@@ -62,20 +56,20 @@ namespace OneMotor::Can
          * @brief 打开CAN接口。
          * @return Result 操作结果。
          */
-        Result open();
+        tl::expected<void, Error> open();
 
         /**
          * @brief 关闭CAN接口。
          * @return Result 操作结果。
          */
-        Result close();
+        tl::expected<void, Error> close();
 
         /**
          * @brief 发送一帧CAN数据。
          * @param frame 要发送的CanFrame对象。
          * @return Result 操作结果。
          */
-        Result send(const CanFrame& frame);
+        tl::expected<void, Error> send(const CanFrame& frame);
 
         /**
          * @brief 注册一个回调函数，用于处理特定CAN ID的数据帧。
@@ -83,7 +77,7 @@ namespace OneMotor::Can
          * @param func 当接收到指定ID的CAN帧时要调用的回调函数。
          * @return Result 操作结果。
          */
-        Result registerCallback(const std::set<size_t>& can_ids, const CallbackFunc& func);
+        tl::expected<void, Error> registerCallback(const std::set<size_t>& can_ids, const CallbackFunc& func);
 
     private:
         std::string interface_name; ///< CAN接口名称
