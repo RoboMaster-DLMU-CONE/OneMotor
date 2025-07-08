@@ -10,7 +10,7 @@ int main()
     OneMotor::Can::CanDriver driver("can0");
     driver.open().or_else([](const auto& e)
     {
-        OneMotor::Util::panic(std::format("Can't Open 'can0' port: {}", e.message));
+        OneMotor::panic(std::format("Can't Open 'can0' port: {}", e.message));
     });
     OneMotor::Motor::DM::J4310 j4310(driver, 0x53, 0x43);
 

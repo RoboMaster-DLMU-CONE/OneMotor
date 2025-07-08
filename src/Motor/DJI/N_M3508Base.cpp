@@ -12,7 +12,7 @@ namespace OneMotor::Motor::DJI
         MotorManager& manager = MotorManager::getInstance();
         manager.registerMotor(driver_, canId_).or_else([](const auto& e)
         {
-            Util::panic(std::move(e.message));
+            panic(std::move(e.message));
         });
         manager.pushOutput<id>(driver_, 0, 0);
     }
@@ -23,7 +23,7 @@ namespace OneMotor::Motor::DJI
         MotorManager& manager = MotorManager::getInstance();
         manager.deregisterMotor(driver_, canId_).or_else([](const auto& e)
         {
-            Util::panic(std::move(e.message));
+            panic(std::move(e.message));
         });
     }
 

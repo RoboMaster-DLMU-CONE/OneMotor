@@ -9,7 +9,7 @@
 
 #include <string>
 
-namespace OneMotor::Util
+namespace OneMotor
 {
     /**
      * @brief 触发一个严重错误（panic）。

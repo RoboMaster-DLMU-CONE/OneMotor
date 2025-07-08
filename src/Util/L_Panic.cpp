@@ -2,7 +2,7 @@
 
 #include "OneMotor/Util/Panic.hpp"
 
-namespace OneMotor::Util
+namespace OneMotor
 {
     void panic(const std::string&& message)
     {

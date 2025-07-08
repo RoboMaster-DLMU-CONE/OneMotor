@@ -11,7 +11,7 @@
 #include <atomic>
 #endif
 
-namespace OneMotor::Util
+namespace OneMotor
 {
     /**
      * @class SpinLock

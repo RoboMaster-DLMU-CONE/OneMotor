@@ -1,6 +1,6 @@
 #include <OneMotor/Util/DeltaT.hpp>
 
-namespace OneMotor::Util
+namespace OneMotor
 {
     template <Arithmetic T>
     DeltaT<T>::DeltaT()

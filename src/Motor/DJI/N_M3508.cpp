@@ -46,7 +46,7 @@ namespace OneMotor::Motor::DJI
             this->disabled_func_(std::move(frame));
         }).or_else([](const auto& e)
         {
-            Util::panic(std::move(e.message));
+            panic(std::move(e.message));
         });
     }
 
@@ -102,7 +102,7 @@ namespace OneMotor::Motor::DJI
             this->disabled_func_(std::move(frame));
         }).or_else([](const auto& e)
         {
-            Util::panic(std::move(e.message));
+            panic(std::move(e.message));
         });
     }
 

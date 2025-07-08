@@ -75,7 +75,7 @@ namespace OneMotor::Motor::DJI
 
     private:
         using OutputArray = std::array<uint8_t, 16>; ///< 存储两组CAN帧数据的数组 (2*8=16字节)
-        using OutputPair = std::pair<OutputArray, Util::SpinLock>; ///< 数据数组和保护它的自旋锁
+        using OutputPair = std::pair<OutputArray, SpinLock>; ///< 数据数组和保护它的自旋锁
 
         /**
          * @brief 私有构造函数，在`getInstance`中首次调用时执行。

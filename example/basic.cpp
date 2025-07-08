@@ -9,8 +9,8 @@
 #include "OneMotor/Motor/DJI/M3508.hpp"
 #include "OneMotor/Util/SpinLock.hpp"
 
-using OneMotor::Util::DeltaT;
-using OneMotor::Util::SpinLock;
+using OneMotor::DeltaT;
+using OneMotor::SpinLock;
 using OneMotor::Control::PID_Params;
 using OneMotor::Control::PIDController;
 using OneMotor::Control::Positional;

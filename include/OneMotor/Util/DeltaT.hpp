@@ -13,7 +13,7 @@
 
 #include "Arithmetic.hpp"
 
-namespace OneMotor::Util
+namespace OneMotor
 {
     /**
      * @class DeltaT

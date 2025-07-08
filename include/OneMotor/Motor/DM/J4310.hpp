@@ -79,7 +79,7 @@ namespace OneMotor::Motor::DM
 
     private:
         J4310Status status_{};
-        Util::SpinLock lock_;
+        SpinLock lock_;
         Can::CanDriver& driver_;
         uint16_t canId_;
         uint16_t masterId_;

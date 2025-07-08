@@ -21,7 +21,7 @@ namespace OneMotor::Motor::DJI
         {
             driver->open().or_else([](const auto& e)
             {
-                Util::panic(std::move(e.message));
+                panic(std::move(e.message));
             });
         }
 

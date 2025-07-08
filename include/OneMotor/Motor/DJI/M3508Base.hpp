@@ -96,7 +96,7 @@ namespace OneMotor::Motor::DJI
         };
 
         Can::CanDriver& driver_; ///< CAN总线驱动的引用
-        Util::SpinLock status_lock_; ///< 用于保护状态访问的自旋锁
+        SpinLock status_lock_; ///< 用于保护状态访问的自旋锁
         M3508Status status_; ///< 电机的状态信息
         static constexpr uint16_t canId_ = id + 0x200; ///< 电机的CAN ID (标准ID范围 0x201-0x208)
     };

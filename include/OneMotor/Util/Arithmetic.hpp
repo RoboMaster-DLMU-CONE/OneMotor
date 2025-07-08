@@ -9,7 +9,7 @@
 
 #include <concepts>
 
-namespace OneMotor::Util
+namespace OneMotor
 {
     /**
      * @concept Arithmetic
