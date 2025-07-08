@@ -6,7 +6,7 @@ if (NOT HyCAN_FOUND)
     FetchContent_Declare(
             HyCAN_fetched
             GIT_REPOSITORY "https://github.com/RoboMaster-DLMU-CONE/HyCAN"
-            GIT_TAG "main"
+            GIT_TAG v0.6.2
     )
     FetchContent_MakeAvailable(HyCAN_fetched)
 else ()

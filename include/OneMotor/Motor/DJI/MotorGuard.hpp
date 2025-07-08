@@ -85,7 +85,7 @@ namespace OneMotor::Motor::DJI
         ///< 驱动器到其看门狗状态的映射
         std::unordered_map<std::shared_ptr<Can::CanDriver>, std::array<uint8_t, 16>> driver_exit_data_; ///< 驱动器退出时发送的数据
         std::mutex state_mutex_; ///< 用于保护看门狗状态的互斥锁
-        std::chrono::milliseconds check_timeout_{15}; ///< 看门狗检查超时时间
+        std::chrono::milliseconds check_timeout_{50}; ///< 看门狗检查超时时间
         std::jthread watchdog_monitor_; ///< 监控线程
 
         /**
