@@ -48,7 +48,7 @@ namespace OneMotor
 #ifdef ONE_MOTOR_LINUX
         std::atomic<bool> lock_ = {false}; ///< 使用原子布尔值作为锁的状态标志
 #else
-        k_spinlock lock_;
+        k_spinlock lock_{};
 #endif
     };
 }
