@@ -1,0 +1,41 @@
+name: zephyr.yml
+on:
+  push:
+    tags:
+      - 'v*'
+  pull_request:
+  workflow_dispatch:
+
+
+jobs:
+  test-project-on-zephyr:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-24.04 ]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: OneMotor
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.11
+
+      - name: Setup Zephyr project
+        uses: zephyrproject-rtos/action-zephyr-setup@v1
+        with:
+          app-path: OneMotor
+          toolchains: arm-zephyr-eabi
+
+      - name: Twister Tests
+        working-directory: OneMotor
+        shell: bash
+        run: |
+          west twister -T tests -v --inline-logs --integration $EXTRA_TWISTER_FLAGS
+          
+
+

@@ -45,4 +45,6 @@ namespace OneMotor
 
     template class DeltaT<float>;
     template class DeltaT<double>;
+    template class DeltaT<int>;
+    template class DeltaT<uint32_t>;
 }
