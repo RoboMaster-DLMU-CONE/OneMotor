@@ -5,11 +5,22 @@ manifest:
     remote: origin
 
   remotes:
+    - name: zephyrproject-rtos
+      url-base: https://github.com/zephyrproject-rtos
     - name: origin
       url-base: https://github.com/RoboMaster-DLMU-CONE
 
   projects:
+    - name: zephyr
+      remote: zephyrproject-rtos
+      revision: main
+      import:
+        name-allowlist:
+          - cmsis
     - name: OneMotor
       repo-path: OneMotor
       path: modules/lib/onemotor
       revision: main
+
+  self:
+    path: modules/lib/onemotor

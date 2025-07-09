@@ -1,4 +1,4 @@
-name: zephyr.yml
+name: Build and Test on Zephyr
 on:
   push:
     tags:
@@ -35,7 +35,7 @@ jobs:
         working-directory: OneMotor
         shell: bash
         run: |
-          west twister -T test/zephyr -v --inline-logs --integration $EXTRA_TWISTER_FLAGS
+          west twister -T tests/zephyr -v --inline-logs --integration $EXTRA_TWISTER_FLAGS
           
 
 
