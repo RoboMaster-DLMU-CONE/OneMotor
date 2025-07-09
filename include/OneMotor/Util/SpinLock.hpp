@@ -9,6 +9,8 @@
 
 #ifdef ONE_MOTOR_LINUX
 #include <atomic>
+#else
+#include <zephyr/spinlock.h>
 #endif
 
 namespace OneMotor
@@ -45,6 +47,8 @@ namespace OneMotor
     private:
 #ifdef ONE_MOTOR_LINUX
         std::atomic<bool> lock_ = {false}; ///< 使用原子布尔值作为锁的状态标志
+#else
+        k_spinlock lock_;
 #endif
     };
 }

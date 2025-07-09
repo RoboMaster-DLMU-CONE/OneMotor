@@ -286,4 +286,41 @@ ZTEST(pid_controller, test_reset)
     zassert_true(after_reset != before_reset, "Output should be different after reset");
 }
 
+// Test latency for PID compute with all optional features
+ZTEST(pid_controller, test_latency_all_features)
+{
+    // Setup PID parameters with all features enabled
+    PID_Params<float> params;
+    params.Kp = 1.0f;
+    params.Ki = 0.1f;
+    params.Kd = 0.05f;
+    params.Deadband = 0.1f;
+    params.IntegralLimit = 10.0f;
+    params.DerivativeFilterRC = 0.01f;
+    params.OutputFilterRC = 0.05f;
+    params.MaxOutput = 100.0f;
+
+    PIDController<Positional, float,
+                   WithDeadband,
+                   WithIntegralLimit,
+                   WithDerivativeOnMeasurement,
+                   WithDerivativeFilter,
+                   WithOutputFilter,
+                   WithOutputLimit> pid(params);
+
+    constexpr int iterations = 1000;
+    // Warm up
+    pid.compute(10.0f, 5.0f);
+
+    const uint32_t start = k_cycle_get_32();
+    for (int i = 0; i < iterations; i++) {
+        pid.compute(10.0f, 5.0f);
+    }
+    const uint32_t end = k_cycle_get_32();
+    const uint32_t total = end - start;
+    const auto avg_cycles = static_cast<double>(total) / iterations;
+    TC_PRINT("Total cycles: %u, avg cycles per compute: %f\n", total, avg_cycles);
+}
+
 ZTEST_SUITE(pid_controller, nullptr, NULL, NULL, NULL, NULL);
+

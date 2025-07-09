@@ -2,6 +2,7 @@ config ONEMOTOR
     bool "OneMotor library support"
     select CPP
     select REQUIRES_FULL_LIBCPP
+    select THREAD_LOCAL_STORAGE
     help
       Enable OneMotor library for motor control.
 
