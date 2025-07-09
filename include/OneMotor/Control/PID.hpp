@@ -23,14 +23,14 @@ namespace OneMotor::Control
     template <Arithmetic ValueType_ = float>
     struct PID_Params
     {
-        ValueType_ Kp{1.0f}; ///< 比例增益
-        ValueType_ Ki{0.0f}; ///< 积分增益
-        ValueType_ Kd{0.0f}; ///< 微分增益
+        ValueType_ Kp{}; ///< 比例增益
+        ValueType_ Ki{}; ///< 积分增益
+        ValueType_ Kd{}; ///< 微分增益
         ValueType_ MaxOutput{std::numeric_limits<ValueType_>::infinity()}; ///< 最大输出值
-        ValueType_ Deadband{0.0f}; ///< 死区范围
+        ValueType_ Deadband{}; ///< 死区范围
         ValueType_ IntegralLimit{std::numeric_limits<ValueType_>::infinity()}; ///< 积分项限幅
-        ValueType_ DerivativeFilterRC{0.02f}; ///< 微分项滤波器的时间常数 (RC)
-        ValueType_ OutputFilterRC{0.02f}; ///< 输出滤波器的时间常数 (RC)
+        ValueType_ DerivativeFilterRC{}; ///< 微分项滤波器的时间常数 (RC)
+        ValueType_ OutputFilterRC{}; ///< 输出滤波器的时间常数 (RC)
     };
 
     /**
