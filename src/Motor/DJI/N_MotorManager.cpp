@@ -90,7 +90,7 @@ namespace OneMotor::Motor::DJI
 
     MotorManager::MotorManager()
     {
-        thread_ = std::make_unique<thread::Othread>([&]()
+        thread_ = std::make_unique<Thread::Othread>([&]()
         {
             while (!stop_.load(std::memory_order_acquire))
             {
@@ -110,7 +110,7 @@ namespace OneMotor::Motor::DJI
                     driver->send(frame);
                 }
 
-                thread::sleep_for(std::chrono::milliseconds(1));
+                Thread::sleep_for(std::chrono::milliseconds(1));
             }
         });
     }
