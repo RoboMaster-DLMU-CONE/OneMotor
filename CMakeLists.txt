@@ -32,14 +32,15 @@ file(GLOB_RECURSE NORMAL_SOURCES CONFIGURE_DEPENDS "src/N_*.cpp")
 if (ZEPHYR_TOOLCHAIN_VARIANT)
     zephyr_library_sources(${ZEPHYR_SOURCES} ${NORMAL_SOURCES})
     zephyr_library_link_libraries(tl::expected)
+    zephyr_library_compile_options(
+            -ffunction-sections
+            -fdata-sections
+    )
     zephyr_include_directories(include)
 else ()
     target_compile_options(${PROJECT_NAME} INTERFACE
             -ffunction-sections
             -fdata-sections
-    )
-    target_link_options(${PROJECT_NAME} INTERFACE
-            -Wl,--gc-sections
     )
     target_sources(${PROJECT_NAME} PRIVATE ${LINUX_SOURCES} ${NORMAL_SOURCES})
     target_link_libraries(${PROJECT_NAME} PUBLIC HyCAN::HyCAN tl::expected)
@@ -51,6 +52,10 @@ else ()
             $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
     )
 endif ()
+
+target_link_options(${PROJECT_NAME} INTERFACE
+        -Wl,--gc-sections
+)
 
 
 if (BUILD_OM_EXAMPLE)
