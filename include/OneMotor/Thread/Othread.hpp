@@ -12,9 +12,11 @@
 
 #ifdef ONE_MOTOR_LINUX
 #include <thread>
+#else
+#include <zephyr/kernel.h>
 #endif
 
-namespace OneMotor::thread
+namespace OneMotor::Thread
 {
     /**
      * @brief 使当前线程休眠指定的时间。
@@ -50,7 +52,7 @@ namespace OneMotor::thread
          * @brief 构造函数，创建一个新的线程并立即开始执行。
          * @param func 要在线程中执行的函数。
          */
-        explicit Othread(const ThreadFunc& func) noexcept;
+        explicit Othread(ThreadFunc& func) noexcept;
 
         /**
          * @brief 默认构造函数，创建一个空的线程对象，不开始执行。
@@ -74,7 +76,7 @@ namespace OneMotor::thread
          * @param func 要在线程中执行的函数。
          * @return 如果成功启动线程，返回 `true`；如果线程已启动或函数无效，返回 `false`。
          */
-        bool start(const ThreadFunc& func) noexcept;
+        bool start(ThreadFunc& func) noexcept;
 
         /**
          * @brief 等待线程执行完成。
@@ -85,6 +87,7 @@ namespace OneMotor::thread
         /**
          * @brief 将线程从当前对象中分离。
          * @details 分离后，线程将在后台独立运行，Othread对象不再拥有该线程。
+         * @note 在Zephyr RTOS上，该函数无实际作用。
          * @return 如果成功分离线程，返回 `true`；如果线程未启动、已加入或已分离，返回 `false`。
          */
         bool detach() noexcept;
@@ -96,12 +99,16 @@ namespace OneMotor::thread
         [[nodiscard]] bool joinable() const noexcept;
 
     private:
-        ThreadFunc thread_func{nullptr}; ///< 存储线程要执行的函数
         bool started{false}; ///< 标志线程是否已启动
         bool joined{false}; ///< 标志线程是否已被加入
         bool detached{false}; ///< 标志线程是否已被分离
 #ifdef ONE_MOTOR_LINUX
+        ThreadFunc thread_func{nullptr}; ///< 存储线程要执行的函数
         std::thread native_handle{}; ///< 底层的 std::thread 对象
+#else
+        mutable k_thread k_thread_handle{};
+        k_thread_stack_t k_thread_stack{};
+        k_tid_t k_tid{};
 #endif
     };
 }

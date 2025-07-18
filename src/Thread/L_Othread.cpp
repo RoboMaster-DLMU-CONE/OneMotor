@@ -3,7 +3,7 @@
 
 namespace OneMotor::thread
 {
-    Othread::Othread(const ThreadFunc& func) noexcept
+    Othread::Othread(ThreadFunc& func) noexcept
     {
         start(func);
     }
@@ -24,7 +24,7 @@ namespace OneMotor::thread
         }
     }
 
-    bool Othread::start(const ThreadFunc& func) noexcept
+    bool Othread::start(ThreadFunc& func) noexcept
     {
         if (started || !func)
         {

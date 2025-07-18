@@ -90,7 +90,7 @@ namespace OneMotor::Motor::DJI
         /// @brief 存储每个CAN驱动要发送的电机电流数据，并用自旋锁保护
         std::unordered_map<Can::CanDriver*, OutputPair> driver_motor_outputs;
         std::atomic<bool> stop_{false}; ///< 用于通知发送线程停止的原子标志
-        std::unique_ptr<thread::Othread> thread_; ///< 后台发送线程的封装
+        std::unique_ptr<Thread::Othread> thread_; ///< 后台发送线程的封装
     };
 }
 

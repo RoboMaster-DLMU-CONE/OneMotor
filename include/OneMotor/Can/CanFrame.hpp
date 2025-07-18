@@ -18,6 +18,8 @@
 
 #ifdef ONE_MOTOR_LINUX
 #include <linux/can.h>
+#else
+#include <zephyr/drivers/can.h>
 #endif
 
 
@@ -51,6 +53,15 @@ namespace OneMotor::Can
     static_assert(offsetof(CanFrame, id) == offsetof(can_frame, can_id),
                   "Offset mismatch for 'id' member.");
     static_assert(offsetof(CanFrame, dlc) == offsetof(can_frame, can_dlc),
+                  "Offset mismatch for 'dlc' member.");
+    static_assert(offsetof(CanFrame, data) == offsetof(can_frame, data),
+                  "Offset mismatch for 'data' member.");
+#else
+    static_assert(sizeof(CanFrame) == sizeof(can_frame), "Size mismatch between CanFrame and can_frame.");
+    static_assert(alignof(CanFrame) == alignof(can_frame), "Alignment mismatch between CanFrame and can_frame.");
+    static_assert(std::is_standard_layout_v<CanFrame>, "CanFrame must be a standard-layout type for safe casting.");
+    static_assert(offsetof(CanFrame, id) == offsetof(can_frame, id), "Offset mismatch for 'id' member.");
+    static_assert(offsetof(CanFrame, dlc) == offsetof(can_frame, dlc),
                   "Offset mismatch for 'dlc' member.");
     static_assert(offsetof(CanFrame, data) == offsetof(can_frame, data),
                   "Offset mismatch for 'data' member.");
