@@ -49,7 +49,7 @@ namespace OneMotor::Can
                  * @brief CanDriver 的构造函数。
                  * @param device Zephyr CAN接口设备。
                  */
-                explicit CanDriver(device* device);
+                explicit CanDriver(const device* device);
 #endif
 
                 /**
@@ -92,7 +92,7 @@ namespace OneMotor::Can
         std::string interface_name; ///< CAN接口名称
         HyCAN::Interface interface; ///< 底层的HyCAN接口实例
 #else
-                device* can_dev;
+                const device* can_dev;
                 std::unordered_map<uint16_t, CallbackFunc> callbacks;
                 std::unordered_map<uint16_t, std::pair<can_filter, int>> filters{};
 

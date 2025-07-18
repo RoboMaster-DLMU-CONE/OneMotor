@@ -10,7 +10,7 @@ namespace OneMotor::Motor::DJI
     {
         static_assert(id >= 1 && id <= 8, "M3508 Only support 1 <= id <= 8.");
         MotorManager& manager = MotorManager::getInstance();
-        manager.registerMotor(driver_, canId_).or_else([](const auto& e)
+        (void)manager.registerMotor(driver_, canId_).or_else([](const auto& e)
         {
             panic(std::move(e.message));
         });
@@ -21,7 +21,7 @@ namespace OneMotor::Motor::DJI
     M3508Base<id>::~M3508Base()
     {
         MotorManager& manager = MotorManager::getInstance();
-        manager.deregisterMotor(driver_, canId_).or_else([](const auto& e)
+        (void)manager.deregisterMotor(driver_, canId_).or_else([](const auto& e)
         {
             panic(std::move(e.message));
         });

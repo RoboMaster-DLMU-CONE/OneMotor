@@ -103,11 +103,11 @@ namespace OneMotor::Motor::DJI
                     frame.id = 0x200;
                     lock.lock();
                     std::copy_n(output.data(), 8, frame.data);
-                    driver->send(frame);
+                    [[maybe_unused]] auto _ = driver->send(frame);
                     frame.id = 0x1FF;
                     std::copy_n(output.data() + 8, 8, frame.data);
                     lock.unlock();
-                    driver->send(frame);
+                    _ = driver->send(frame);
                 }
 
                 Thread::sleep_for(std::chrono::milliseconds(1));

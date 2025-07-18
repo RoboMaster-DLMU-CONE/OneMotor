@@ -15,7 +15,7 @@ namespace OneMotor::Can
         }
     }
 
-    CanDriver::CanDriver(device* device): can_dev(device)
+    CanDriver::CanDriver(const device* device): can_dev(device)
     {
         if (!device_is_ready(can_dev))
         {
