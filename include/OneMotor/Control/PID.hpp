@@ -26,9 +26,19 @@ namespace OneMotor::Control
         ValueType_ Kp{}; ///< 比例增益
         ValueType_ Ki{}; ///< 积分增益
         ValueType_ Kd{}; ///< 微分增益
+#ifdef ONE_MOTOR_LINUX
         ValueType_ MaxOutput{std::numeric_limits<ValueType_>::infinity()}; ///< 最大输出值
+#else
+        //TODO: 等Zephyr SDK更新看能不能修bug
+        ValueType_ MaxOutput{};
+#endif
+
         ValueType_ Deadband{}; ///< 死区范围
+#ifdef ONE_MOTOR_LINUX
         ValueType_ IntegralLimit{std::numeric_limits<ValueType_>::infinity()}; ///< 积分项限幅
+#else
+        ValueType_ IntegralLimit{};
+#endif
         ValueType_ DerivativeFilterRC{}; ///< 微分项滤波器的时间常数 (RC)
         ValueType_ OutputFilterRC{}; ///< 输出滤波器的时间常数 (RC)
     };
