@@ -28,9 +28,8 @@ namespace OneMotor::Can
     /**
      * @brief 一个与平台无关的CAN帧结构体。
      * @details
-     * 这个结构体的设计旨在与Linux SocketCAN的 `can_frame` 结构体在内存布局上兼容，
-     * 以便在Linux系统上可以直接进行类型转换。
-     * 未来也会兼容Zephyr系统的`can_frame`结构体。
+     * 这个结构体的设计旨在与Linux SocketCAN 和 Zephyr 的 `can_frame` 结构体在内存布局上兼容，
+     * 以便在对应系统上可以直接进行类型转换。
      * 通过 `static_assert` 在编译时保证其兼容性。
      */
     struct CanFrame
@@ -41,7 +40,7 @@ namespace OneMotor::Can
         uint8_t __pad{}; ///< 填充字节，用于对齐
         uint8_t __res0{}; ///< 保留字节
         uint8_t len8_dlc{}; ///< CAN FD中真实的数据长度 (兼容普通CAN)
-        uint8_t data[ONE_MOTOR_CAN_MAX_DLEN]alignas(8){}; ///< CAN数据负载，8字节对齐
+        uint8_t data[ONE_MOTOR_CAN_MAX_DLEN]{}; ///< CAN数据负载
     };
 #ifdef ONE_MOTOR_LINUX
     static_assert(sizeof(CanFrame) == sizeof(can_frame),

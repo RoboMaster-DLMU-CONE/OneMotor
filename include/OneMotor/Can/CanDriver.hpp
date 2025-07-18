@@ -94,13 +94,9 @@ namespace OneMotor::Can
 #else
                 void rx_callback_entry(const device* dev, can_frame* frame, void*);
                 device* can_dev;
-                std::array<CallbackFunc*, 2048>;
-                std::vector<can_filter, >
+                std::unordered_map<uint16_t, CallbackFunc*> funcs;
 
 #endif
-
-
-
         };
 }
 
