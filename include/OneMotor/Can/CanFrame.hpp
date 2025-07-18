@@ -40,7 +40,11 @@ namespace OneMotor::Can
         uint8_t __pad{}; ///< 填充字节，用于对齐
         uint8_t __res0{}; ///< 保留字节
         uint8_t len8_dlc{}; ///< CAN FD中真实的数据长度 (兼容普通CAN)
+#ifdef ONE_MOTOR_LINUX
+        uint8_t data[ONE_MOTOR_CAN_MAX_DLEN]alignas(8){};
+#else
         uint8_t data[ONE_MOTOR_CAN_MAX_DLEN]{}; ///< CAN数据负载
+#endif
     };
 #ifdef ONE_MOTOR_LINUX
     static_assert(sizeof(CanFrame) == sizeof(can_frame),

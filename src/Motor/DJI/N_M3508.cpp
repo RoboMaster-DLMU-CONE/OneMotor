@@ -41,7 +41,7 @@ namespace OneMotor::Motor::DJI
                                          const Control::PID_Params<float>& ang_params): M3508Base<id>(driver)
     {
         ang_pid_ = std::make_unique<PIDController>(ang_params);
-        driver.registerCallback({this->canId_}, [this](Can::CanFrame&& frame)
+        (void)driver.registerCallback({this->canId_}, [this](Can::CanFrame&& frame)
         {
             this->disabled_func_(std::move(frame));
         }).or_else([](const auto& e)
@@ -97,7 +97,7 @@ namespace OneMotor::Motor::DJI
         pos_pid_ = std::make_unique<PIDController>(pos_params);
         ang_pid_ = std::make_unique<PIDController>(ang_params);
         ang_pid_->MaxOutputVal = MAX_CURRENT_OUTPUT;
-        driver.registerCallback({this->canId_}, [this](Can::CanFrame&& frame)
+        (void)driver.registerCallback({this->canId_}, [this](Can::CanFrame&& frame)
         {
             this->disabled_func_(std::move(frame));
         }).or_else([](const auto& e)

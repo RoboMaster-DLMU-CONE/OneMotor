@@ -52,8 +52,11 @@ namespace OneMotor::Thread
          * @brief 构造函数，创建一个新的线程并立即开始执行。
          * @param func 要在线程中执行的函数。
          */
-        explicit Othread(ThreadFunc& func) noexcept;
+#ifdef ONE_MOTOR_LINUX
+        explicit Othread(const ThreadFunc& func) noexcept;
+#else
         explicit Othread(ThreadFunc func) noexcept;
+#endif
 
         /**
          * @brief 默认构造函数，创建一个空的线程对象，不开始执行。
@@ -77,7 +80,12 @@ namespace OneMotor::Thread
          * @param func 要在线程中执行的函数。
          * @return 如果成功启动线程，返回 `true`；如果线程已启动或函数无效，返回 `false`。
          */
-        bool start(ThreadFunc& func) noexcept;
+#ifdef ONE_MOTOR_LINUX
+        bool start(const ThreadFunc& func) noexcept;
+#else
+            bool start(ThreadFunc func) noexcept;
+#endif
+
 
         /**
          * @brief 等待线程执行完成。
