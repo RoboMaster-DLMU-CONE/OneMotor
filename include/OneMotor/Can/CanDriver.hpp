@@ -85,16 +85,16 @@ namespace OneMotor::Can
                  * @param func 当接收到指定ID的CAN帧时要调用的回调函数。
                  * @return 操作结果。
                  */
-                tl::expected<void, Error> registerCallback(const std::set<size_t>& can_ids, const CallbackFunc& func);
+                tl::expected<void, Error> registerCallback(const std::set<size_t>& can_ids, CallbackFunc func);
 
         private:
 #ifdef ONE_MOTOR_LINUX
         std::string interface_name; ///< CAN接口名称
         HyCAN::Interface interface; ///< 底层的HyCAN接口实例
 #else
-                void rx_callback_entry(const device* dev, can_frame* frame, void*);
                 device* can_dev;
-                std::unordered_map<uint16_t, CallbackFunc*> funcs;
+                std::unordered_map<uint16_t, CallbackFunc> callbacks;
+                std::unordered_map<uint16_t, std::pair<can_filter, int>> filters{};
 
 #endif
         };

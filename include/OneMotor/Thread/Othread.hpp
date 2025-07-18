@@ -53,6 +53,7 @@ namespace OneMotor::Thread
          * @param func 要在线程中执行的函数。
          */
         explicit Othread(ThreadFunc& func) noexcept;
+        explicit Othread(ThreadFunc func) noexcept;
 
         /**
          * @brief 默认构造函数，创建一个空的线程对象，不开始执行。
@@ -109,6 +110,7 @@ namespace OneMotor::Thread
         mutable k_thread k_thread_handle{};
         k_thread_stack_t k_thread_stack{};
         k_tid_t k_tid{};
+        ThreadFunc func_;
 #endif
     };
 }

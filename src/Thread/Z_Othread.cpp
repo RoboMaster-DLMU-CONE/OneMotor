@@ -4,13 +4,18 @@ namespace OneMotor::Thread
 {
     static void thread_entry(void* func, void*, void*)
     {
-        if (func && *func)
+        if (const auto f = reinterpret_cast<Othread::ThreadFunc*>(func); f)
         {
-            (*func)();
+            (*f)();
         }
     }
 
     Othread::Othread(ThreadFunc& func) noexcept
+    {
+        start(func);
+    }
+
+    Othread::Othread(ThreadFunc func) noexcept: func_(func)
     {
         start(func);
     }
