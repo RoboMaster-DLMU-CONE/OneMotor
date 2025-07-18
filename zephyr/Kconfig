@@ -3,6 +3,7 @@ config ONEMOTOR
     select CPP
     select REQUIRES_FULL_LIBCPP
     select THREAD_LOCAL_STORAGE
+    select CAN
     help
       Enable OneMotor library for motor control.
 
@@ -16,7 +17,7 @@ endchoice
 
 config OM_CAN_MAX_DJI_MOTOR
     int "Maximum number of DJI motors"
-    default 8
+    default 4
     help
       Maximum number of DJI motors that can be controlled simultaneously.
 
