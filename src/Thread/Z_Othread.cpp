@@ -10,11 +10,6 @@ namespace OneMotor::Thread
         }
     }
 
-    Othread::Othread(ThreadFunc& func) noexcept
-    {
-        start(func);
-    }
-
     Othread::Othread(ThreadFunc func) noexcept: func_(func)
     {
         start(func);
