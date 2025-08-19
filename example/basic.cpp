@@ -14,7 +14,7 @@ using OneMotor::SpinLock;
 using OneMotor::Control::PID_Params;
 using OneMotor::Control::PIDController;
 using OneMotor::Control::Positional;
-using OneMotor::thread::Othread;
+using OneMotor::Thread::Othread;
 using OneMotor::Can::CanDriver;
 using OneMotor::Motor::DJI::M3508;
 using enum OneMotor::Motor::DJI::MotorMode;
@@ -34,10 +34,10 @@ int main()
     can_driver.open();
     lock.unlock();
     DeltaT deltat{};
-    OneMotor::thread::sleep_for(std::chrono::milliseconds(500));
+    OneMotor::Thread::sleep_for(std::chrono::milliseconds(500));
     printf("%f\n", deltat.getDeltaMS());
     thread.join();
-    OneMotor::thread::sleep_for(std::chrono::seconds(3));
+    OneMotor::Thread::sleep_for(std::chrono::seconds(3));
     can_driver.close();
     return 0;
 }
