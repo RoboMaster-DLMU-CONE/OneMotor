@@ -16,8 +16,6 @@ else ()
     project(OneMotor VERSION 0.6.0)
 endif ()
 
-include(OneMotorConfiguration)
-
 file(GLOB_RECURSE LINUX_SOURCES CONFIGURE_DEPENDS "src/L_*.cpp")
 file(GLOB_RECURSE ZEPHYR_SOURCES CONFIGURE_DEPENDS "src/Z_*.cpp")
 file(GLOB_RECURSE NORMAL_SOURCES CONFIGURE_DEPENDS "src/N_*.cpp")
@@ -27,6 +25,8 @@ if (ZEPHYR_TOOLCHAIN_VARIANT)
 else ()
     include(OneMotorLinux)
 endif ()
+
+include(OneMotorConfiguration)
 
 if (BUILD_OM_EXAMPLE)
     include(OneMotorExamples)
