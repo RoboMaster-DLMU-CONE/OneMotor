@@ -1,18 +1,19 @@
-message(STATUS "Configuring OneMotor for Zephyr building system")
 
 set(ZEPHYR_PROJECT_NAME "onemotor")
-
 zephyr_library_named(${PROJECT_NAME})
 
-zephyr_library_sources(${ZEPHYR_SOURCES} ${NORMAL_SOURCES})
+if (CONFIG_ONE_MOTOR)
+    message(STATUS "Configuring OneMotor for Zephyr building system")
 
-zephyr_library_link_libraries(tl::expected)
+    zephyr_library_sources(${ZEPHYR_SOURCES} ${NORMAL_SOURCES})
 
-zephyr_library_compile_options(
-        -ffunction-sections
-        -fdata-sections
-)
+    zephyr_library_link_libraries(tl::expected)
 
-zephyr_include_directories(include)
+    zephyr_library_compile_options(
+            -ffunction-sections
+            -fdata-sections
+    )
 
-message(STATUS "Zephyr RTOS detected, OneMotor won't install itself")
+    zephyr_include_directories(include)
+
+endif ()
