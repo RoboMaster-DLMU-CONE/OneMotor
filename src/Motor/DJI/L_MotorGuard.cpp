@@ -74,11 +74,8 @@ namespace OneMotor::Motor::DJI
                     }
                 }
             }
-            if (all_triggered)
-            {
-                watchdog_monitor_.detach();
-                std::exit(0);
-            }
+            // Continue monitoring without exiting when all interfaces trigger
+            // The system should continuously monitor and respond to disconnections
         }
     }
 
@@ -88,10 +85,12 @@ namespace OneMotor::Motor::DJI
         frame.dlc = 8;
         frame.id = 0x200;
         std::copy_n(driver_exit_data_[driver].data(), 8, frame.data);
-        auto _ = driver->send(frame);
-        frame.id = 0x1FF;
-        std::copy_n(driver_exit_data_[driver].data() + 8, 8, frame.data);
-        _ = driver->send(frame);
+        
+        // Send 5 frames with 0x200 ID to ensure motor stops
+        for (int i = 0; i < 5; ++i)
+        {
+            auto _ = driver->send(frame);
+        }
     }
 
 
