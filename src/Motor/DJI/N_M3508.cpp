@@ -38,7 +38,7 @@ namespace OneMotor::Motor::DJI
 {
     template <uint8_t id>
     M3508<id, MotorMode::Angular>::M3508(Can::CanDriver& driver,
-                                         const Control::PID_Params<float>& ang_params): M3508Base<id>(driver)
+                                         const Control::PID_Params<float>& ang_params) : M3508Base<id>(driver)
     {
         ang_pid_ = std::make_unique<PIDController>(ang_params);
         (void)driver.registerCallback({this->canId_}, [this](Can::CanFrame&& frame)

@@ -9,6 +9,8 @@ target_compile_options(${PROJECT_NAME} INTERFACE
 
 target_sources(${PROJECT_NAME} PRIVATE ${LINUX_SOURCES} ${NORMAL_SOURCES})
 
+include(OneMotorFindHyCAN)
+
 target_link_libraries(${PROJECT_NAME} PUBLIC HyCAN::HyCAN tl::expected)
 
 target_compile_definitions(${PROJECT_NAME} PUBLIC
