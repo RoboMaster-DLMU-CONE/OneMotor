@@ -27,7 +27,6 @@ OneMotor是大连民族大学C·One战队研发的C++电机驱动库，致力于
 ## Todo
 
 - [ ] 等待Zephyr更新sdk，用std::format处理字符串拼接
-- [ ] Zephyr编译模板GC优化探索
 - [ ] 3508MotorGuard优化
 - [ ] 各电机对应文档页面
 
