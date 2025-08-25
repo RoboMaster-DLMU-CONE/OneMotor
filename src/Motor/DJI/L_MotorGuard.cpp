@@ -56,7 +56,6 @@ namespace OneMotor::Motor::DJI
             if (stop_token.stop_requested()) break;
 
             auto now = std::chrono::steady_clock::now();
-            bool all_triggered = true;
             {
                 std::lock_guard lock(state_mutex_);
                 for (auto& [driver, state] : watchdog_states_)
@@ -68,28 +67,26 @@ namespace OneMotor::Motor::DJI
                         circuit_breaker_action_(driver);
                         state->triggered_.store(true);
                     }
-                    else
-                    {
-                        all_triggered = false;
-                    }
                 }
             }
-            // Continue monitoring without exiting when all interfaces trigger
-            // The system should continuously monitor and respond to disconnections
         }
     }
 
     void MotorGuard::circuit_breaker_action_(const std::shared_ptr<Can::CanDriver>& driver)
     {
-        Can::CanFrame frame{};
-        frame.dlc = 8;
-        frame.id = 0x200;
-        std::copy_n(driver_exit_data_[driver].data(), 8, frame.data);
-        
-        // Send 5 frames with 0x200 ID to ensure motor stops
-        for (int i = 0; i < 5; ++i)
+        Can::CanFrame frame1;
+        frame1.dlc = 8;
+        frame1.id = 0x200;
+        Can::CanFrame frame2;
+        frame2.dlc = 8;
+        frame2.id = 0x1FF;
+        std::copy_n(driver_exit_data_[driver].data(), 8, frame1.data);
+        std::copy_n(driver_exit_data_[driver].data() + 8, 8, frame2.data);
+
+        for (int i = 0; i < 3; ++i)
         {
-            auto _ = driver->send(frame);
+            (void)driver->send(frame1);
+            (void)driver->send(frame2);
         }
     }
 
