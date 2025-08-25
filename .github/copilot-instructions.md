@@ -1,217 +1,217 @@
-# OneMotor Copilot Instructions
+# OneMotor Copilot 使用说明
 
-## Repository Overview
+## 仓库概览
 
-OneMotor is a C++ motor driver library developed by Dalian Nationality University C·One team for robotics competitions. It provides efficient, convenient, and universal motor control capabilities.
+OneMotor 是大连民族大学 C·One 团队为机器人竞赛开发的 C++ 电机驱动库。它提供高效、便捷和通用的电机控制功能。
 
-### High-Level Information
+### 高级信息
 
-- **Project Type**: C++20 library for motor control
-- **Version**: 0.6.0
-- **Repository Size**: Medium (~78 source files)
-- **Languages**: C++ (primary), CMake (build system), Markdown (documentation)
-- **Platforms**: Linux (native), Zephyr RTOS (embedded), Windows (via WSL)
-- **Target Motors**: DJI M3508/M2006, DM J4310, with support for additional motors planned
+- **项目类型**: 用于电机控制的 C++20 库
+- **版本**: 0.6.0
+- **仓库规模**: 中等（约 78 个源文件）
+- **编程语言**: C++（主要）、CMake（构建系统）、Markdown（文档）
+- **支持平台**: Linux（原生）、Zephyr RTOS（嵌入式）、Windows（通过 WSL）
+- **目标电机**: DJI M3508/M2006、DM J4310，计划支持更多电机
 
-### Key Features
+### 主要特性
 
-- Ready-to-use support for common competition motors (DJI M3508, DM J4310)
-- Multi-platform compatibility (Linux, Zephyr RTOS, Windows via WSL)
-- Modern C++20 high-performance implementation
-- Modular architecture with separate components for CAN communication, PID control, motor drivers, threading, and utilities
+- 开箱即用支持常见竞赛电机（DJI M3508、DM J4310）
+- 多平台兼容性（Linux、Zephyr RTOS、Windows via WSL）
+- 现代 C++20 高性能实现
+- 模块化架构，包含 CAN 通信、PID 控制、电机驱动、线程和实用工具等独立组件
 
-## Build Instructions
+## 构建说明
 
-### Prerequisites
+### 前置条件
 
-**Always ensure these dependencies are installed before building:**
+**构建前请确保已安装以下依赖：**
 
 ```bash
 sudo apt update
 sudo apt install -y pkg-config libnl-3-dev libnl-nf-3-dev ninja-build
 ```
 
-**For Linux CAN support (required for motor communication):**
+**Linux CAN 支持（电机通信必需）：**
 ```bash
 sudo modprobe vcan
 sudo modprobe can
 ```
-Note: CAN modules may not be available in all environments (e.g., Docker containers). Build will succeed without them, but motor communication will not work.
+注意：CAN 模块在某些环境中可能不可用（例如 Docker 容器）。构建仍会成功，但电机通信将无法工作。
 
-**For documentation generation (optional):**
+**文档生成（可选）：**
 ```bash
 sudo apt install -y doxygen
 ```
 
-### Build Commands
+### 构建命令
 
-**Basic library build (most common):**
+**基础库构建（最常用）：**
 ```bash
 cmake -S . -B build
 cmake --build build
 ```
 
-**Build with examples and tests:**
+**构建示例和测试：**
 ```bash
 cmake -S . -B build -G Ninja -DBUILD_OM_EXAMPLE=ON -DBUILD_OM_TEST=ON
 cmake --build build
 ```
 
-**Clean rebuild:**
+**清理重构建：**
 ```bash
 rm -rf build
 cmake -S . -B build -G Ninja -DBUILD_OM_EXAMPLE=ON -DBUILD_OM_TEST=ON
 cmake --build build
 ```
 
-### Build Requirements
+### 构建要求
 
 - **CMake**: >= 3.20
-- **Compiler**: GCC >= 13 or Clang >= 15
-- **C++ Standard**: C++20
-- **Build Tool**: Ninja (recommended) or Make
+- **编译器**: GCC >= 13 或 Clang >= 15
+- **C++ 标准**: C++20
+- **构建工具**: Ninja（推荐）或 Make
 
-### Testing
+### 测试
 
-**Run tests:**
+**运行测试：**
 ```bash
 cd build
 ctest --output-on-failure
 ```
 
-**Run specific test executable:**
+**运行特定测试可执行文件：**
 ```bash
 ./build/OneMotorTest_PID
 ```
 
-### Documentation Generation
+### 文档生成
 
-**Via CMake (recommended):**
+**通过 CMake（推荐）：**
 ```bash
 cmake --build build --target doc
 ```
 
-**Direct Doxygen:**
+**直接使用 Doxygen：**
 ```bash
 cd doc
 doxygen Doxyfile
 ```
-Output: `doc/html/index.html`
+输出：`doc/html/index.html`
 
-Note: Doxygen warnings about unsupported tags are expected and can be ignored.
+注意：Doxygen 关于不支持标签的警告是正常的，可以忽略。
 
-## Codebase Layout
+## 代码库布局
 
-### Project Architecture
+### 项目架构
 
-The codebase follows a modular design with platform-specific and cross-platform components:
+代码库采用模块化设计，包含平台特定和跨平台组件：
 
 ```
-include/OneMotor/          # Public headers
-├── Can/                   # CAN bus communication
-├── Control/               # PID controllers and control algorithms
-├── Motor/                 # Motor drivers
-│   ├── DJI/              # DJI motor support (M3508, M2006)
-│   └── DM/               # DM motor support (J4310)
-├── Thread/                # Threading utilities
-└── Util/                  # Utility classes (DeltaT, SpinLock, etc.)
+include/OneMotor/          # 公共头文件
+├── Can/                   # CAN 总线通信
+├── Control/               # PID 控制器和控制算法
+├── Motor/                 # 电机驱动器
+│   ├── DJI/              # DJI 电机支持（M3508、M2006）
+│   └── DM/               # DM 电机支持（J4310）
+├── Thread/                # 线程实用工具
+└── Util/                  # 实用工具类（DeltaT、SpinLock 等）
 
-src/                       # Implementation files
-├── **/L_*.cpp            # Linux-specific implementations
-├── **/Z_*.cpp            # Zephyr-specific implementations
-└── **/N_*.cpp            # Normal/cross-platform implementations
+src/                       # 实现文件
+├── **/L_*.cpp            # Linux 特定实现
+├── **/Z_*.cpp            # Zephyr 特定实现
+└── **/N_*.cpp            # 普通/跨平台实现
 ```
 
-### Key Configuration Files
+### 关键配置文件
 
-- **CMakeLists.txt**: Main build configuration
-- **cmake/**: Build system modules
-  - `OneMotorLinux.cmake`: Linux build configuration
-  - `OneMotorZephyr.cmake`: Zephyr build configuration
-  - `OneMotorExamples.cmake`: Example targets
-  - `OneMotorTests.cmake`: Test configuration
-- **west.yml**: Zephyr workspace configuration
-- **zephyr/module.yml**: Zephyr module definition
-- **doc/Doxyfile**: Documentation configuration
+- **CMakeLists.txt**: 主构建配置
+- **cmake/**: 构建系统模块
+  - `OneMotorLinux.cmake`: Linux 构建配置
+  - `OneMotorZephyr.cmake`: Zephyr 构建配置
+  - `OneMotorExamples.cmake`: 示例目标
+  - `OneMotorTests.cmake`: 测试配置
+- **west.yml**: Zephyr 工作空间配置
+- **zephyr/module.yml**: Zephyr 模块定义
+- **doc/Doxyfile**: 文档配置
 
-### Examples and Tests
+### 示例和测试
 
-- **example/**: Demo applications showing library usage
-  - `basic.cpp`: Basic library usage
-  - `DJI/`: DJI motor examples
-  - `DM/`: DM motor examples
-- **tests/**: Test suites
-  - `PID_Latency.cpp`: Linux PID performance test
-  - `zephyr/`: Zephyr-specific tests with ZTEST framework
+- **example/**: 展示库用法的演示应用程序
+  - `basic.cpp`: 基础库用法
+  - `DJI/`: DJI 电机示例
+  - `DM/`: DM 电机示例
+- **tests/**: 测试套件
+  - `PID_Latency.cpp`: Linux PID 性能测试
+  - `zephyr/`: 带 ZTEST 框架的 Zephyr 特定测试
 
-### CI/CD Pipeline
+### CI/CD 流水线
 
-**GitHub Actions workflows:**
-- `.github/workflows/linux.yml`: Linux build and test (Ubuntu 24.04, Ninja, CTest)
-- `.github/workflows/zephyr.yml`: Zephyr build and test (west twister)
-- `.github/workflows/docs.yml`: Documentation generation and deployment
+**GitHub Actions 工作流：**
+- `.github/workflows/linux.yml`: Linux 构建和测试（Ubuntu 24.04、Ninja、CTest）
+- `.github/workflows/zephyr.yml`: Zephyr 构建和测试（west twister）
+- `.github/workflows/docs.yml`: 文档生成和部署
 
-**Pre-commit checks include:**
-- CMake configuration and build
-- CTest execution
-- Zephyr twister tests
+**预提交检查包括：**
+- CMake 配置和构建
+- CTest 执行
+- Zephyr twister 测试
 
-## Important Build Notes
+## 重要构建注意事项
 
-### Common Build Issues
+### 常见构建问题
 
-1. **Missing CAN modules**: The build may show warnings about vcan/can modules not found. This is expected in containerized environments and won't prevent compilation.
+1. **缺少 CAN 模块**：构建时可能显示找不到 vcan/can 模块的警告。这在容器化环境中是正常的，不会阻止编译。
 
-2. **Compiler warnings**: The build typically shows warnings from dependencies (HyCAN, tl::expected) about unused nodiscard return values. These are expected and safe to ignore.
+2. **编译器警告**：构建时通常会显示来自依赖项（HyCAN、tl::expected）关于未使用 nodiscard 返回值的警告。这些是正常的，可以安全忽略。
 
-3. **Dependency fetching**: The build automatically fetches HyCAN and tl::expected from GitHub if not found locally.
+3. **依赖获取**：如果本地未找到 HyCAN 和 tl::expected，构建会自动从 GitHub 获取它们。
 
-4. **CMake generator conflicts**: If switching between build generators (Make vs Ninja), always clean build directory first: `rm -rf build`
+4. **CMake 生成器冲突**：如果在构建生成器之间切换（Make vs Ninja），请始终先清理构建目录：`rm -rf build`
 
-### Platform-Specific Builds
+### 平台特定构建
 
-**Linux Build**: Uses `OneMotorLinux.cmake`, includes CAN support via libnl
-**Zephyr Build**: Uses `OneMotorZephyr.cmake`, integrates with Zephyr kernel
+**Linux 构建**：使用 `OneMotorLinux.cmake`，通过 libnl 包含 CAN 支持
+**Zephyr 构建**：使用 `OneMotorZephyr.cmake`，与 Zephyr 内核集成
 
-### Build Options
+### 构建选项
 
-- `BUILD_OM_EXAMPLE=ON`: Build example applications
-- `BUILD_OM_TEST=ON`: Build test suites
-- `CMAKE_BUILD_TYPE`: Debug/Release (default: unspecified)
+- `BUILD_OM_EXAMPLE=ON`: 构建示例应用程序
+- `BUILD_OM_TEST=ON`: 构建测试套件
+- `CMAKE_BUILD_TYPE`: Debug/Release（默认：未指定）
 
-## Validation Steps
+## 验证步骤
 
-**To verify a successful build:**
-1. Check that `libOneMotor.a` exists in `build/`
-2. Run `ctest --output-on-failure` (if tests built)
-3. Run example executables (if examples built)
+**验证构建成功：**
+1. 检查 `build/` 中是否存在 `libOneMotor.a`
+2. 运行 `ctest --output-on-failure`（如果构建了测试）
+3. 运行示例可执行文件（如果构建了示例）
 
-**For code changes, always:**
-1. Build the library: `cmake --build build`
-2. Run tests: `cd build && ctest --output-on-failure`
-3. Verify examples compile (if relevant to changes)
+**对于代码更改，始终：**
+1. 构建库：`cmake --build build`
+2. 运行测试：`cd build && ctest --output-on-failure`
+3. 验证示例编译（如果与更改相关）
 
-## File Organization
+## 文件组织
 
-### Root Directory Files
+### 根目录文件
 
-- `CMakeLists.txt`: Main build configuration
-- `README.md`: Project overview and basic usage
-- `LICENSE`: BSD 3-Clause license
-- `west.yml`: Zephyr workspace manifest
-- `.gitignore`: Git ignore rules (build/, doc/html/, etc.)
+- `CMakeLists.txt`: 主构建配置
+- `README.md`: 项目概览和基本用法
+- `LICENSE`: BSD 3-Clause 许可证
+- `west.yml`: Zephyr 工作空间清单
+- `.gitignore`: Git 忽略规则（build/、doc/html/ 等）
 
-### Dependencies
+### 依赖项
 
-- **HyCAN**: CAN communication library (auto-fetched)
-- **tl::expected**: Error handling library (auto-fetched)
-- **Zephyr**: RTOS support (external)
+- **HyCAN**: CAN 通信库（自动获取）
+- **tl::expected**: 错误处理库（自动获取）
+- **Zephyr**: RTOS 支持（外部）
 
-### Trust These Instructions
+### 信任这些说明
 
-These instructions are comprehensive and tested. Only search for additional information if:
-- The provided build commands fail
-- You need to modify the build system itself
-- The information appears outdated or incorrect
+这些说明是全面且经过测试的。仅在以下情况下寻找额外信息：
+- 提供的构建命令失败
+- 需要修改构建系统本身
+- 信息显得过时或不正确
 
-For routine development tasks (building, testing, adding features), follow these instructions without additional exploration.
+对于常规开发任务（构建、测试、添加功能），请遵循这些说明，无需额外探索。
