@@ -5,8 +5,8 @@ using OneMotor::Motor::DJI::MotorGuard;
 int main()
 {
     std::array<uint8_t, 16> exit_frame_data{};
-    exit_frame_data[0] = 0x07;
-    exit_frame_data[1] = 0x21;
+    exit_frame_data[0] = 0x00;
+    exit_frame_data[1] = 0x10;
 
     MotorGuard::getInstance().guard({{"can0", exit_frame_data}});
 
