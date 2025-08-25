@@ -82,12 +82,8 @@ namespace OneMotor::Motor::DJI
         frame2.id = 0x1FF;
         std::copy_n(driver_exit_data_[driver].data(), 8, frame1.data);
         std::copy_n(driver_exit_data_[driver].data() + 8, 8, frame2.data);
-
-        for (int i = 0; i < 3; ++i)
-        {
-            (void)driver->send(frame1);
-            (void)driver->send(frame2);
-        }
+        (void)driver->send(frame1);
+        (void)driver->send(frame2);
     }
 
 
