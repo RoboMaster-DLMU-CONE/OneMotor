@@ -31,13 +31,13 @@ int main()
     SpinLock lock;
     lock.lock();
     CanDriver can_driver("can0");
-    can_driver.open();
+    (void)can_driver.open();
     lock.unlock();
     DeltaT deltat{};
     OneMotor::Thread::sleep_for(std::chrono::milliseconds(500));
     printf("%f\n", deltat.getDeltaMS());
     thread.join();
     OneMotor::Thread::sleep_for(std::chrono::seconds(3));
-    can_driver.close();
+    (void)can_driver.close();
     return 0;
 }

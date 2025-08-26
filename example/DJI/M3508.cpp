@@ -26,10 +26,10 @@ using enum OneMotor::Motor::DJI::MotorMode;
         .IntegralLimit = 1000,
     };
     CanDriver driver("can0");
-    driver.open();
+    (void)driver.open().map_error([](const auto& err) { std::cerr << err.message << std::endl; });
     M3508<1, Angular> m1(driver, params);
     m1.setRef(2000);
-    m1.enable();
+    (void)m1.enable();
 
     while (true)
     {
@@ -83,5 +83,5 @@ using enum OneMotor::Motor::DJI::MotorMode;
         }
     }
 
-    driver.close();
+    (void)driver.close().map_error([](const auto& err) { std::cerr << err.message << std::endl; });
 }
