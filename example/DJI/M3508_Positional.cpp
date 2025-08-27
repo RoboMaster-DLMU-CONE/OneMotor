@@ -19,16 +19,16 @@ static constexpr PID_Params<float> POS_DEFAULT_PARAMS{
     .Ki = 0,
     .Kd = 0,
     .MaxOutput = 3000,
-    .Deadband = 100,
+    .Deadband = 40,
     .IntegralLimit = 500,
 };
 static constexpr PID_Params<float> ANG_DEFAULT_PARAMS{
-    .Kp = 1,
-    .Ki = 0.1,
-    .Kd = 0,
+    .Kp = 0.6,
+    .Ki = 0.05,
+    .Kd = 0.1,
     .MaxOutput = 8000,
-    .Deadband = 100,
-    .IntegralLimit = 500,
+    .Deadband = 50,
+    .IntegralLimit = 100,
 };
 
 int main()
