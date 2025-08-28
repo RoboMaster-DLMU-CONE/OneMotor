@@ -10,10 +10,13 @@
 #include <atomic>
 #include <unordered_map>
 #include <memory>
+#include <set>
+#include <array>
 
 #include "OneMotor/Can/CanDriver.hpp"
 #include "OneMotor/Thread/Othread.hpp"
-#include "OneMotor/Util/SpinLock.hpp"
+#include "OneMotor/Util/Error.hpp"
+#include <tl/expected.hpp>
 
 namespace OneMotor::Motor::DJI
 {
@@ -77,7 +80,20 @@ namespace OneMotor::Motor::DJI
 
     private:
         using OutputArray = std::array<uint8_t, 16>; ///< 存储两组CAN帧数据的数组 (2*8=16字节)
-        using OutputPair = std::pair<OutputArray, SpinLock>; ///< 数据数组和保护它的自旋锁
+
+        // 双缓冲区优化：使用原子指针实现无锁pushOutput
+        struct DriverOutputBuffers
+        {
+            OutputArray buffers[2]; ///< 双缓冲区
+            std::atomic<OutputArray*> current_read_buffer{&buffers[0]}; ///< 发送线程读取的缓冲区
+            OutputArray* current_write_buffer{&buffers[1]}; ///< PID线程写入的缓冲区（无需原子）
+        };
+
+        /**
+                * @brief 交换指定驱动的读写缓冲区
+                * @param driver_buffers 驱动对应的缓冲区结构
+                */
+        void swapBuffers(DriverOutputBuffers& driver_buffers) noexcept;
 
         /**
          * @brief 私有构造函数，在`getInstance`中首次调用时执行。
@@ -88,7 +104,7 @@ namespace OneMotor::Motor::DJI
         /// @brief 记录每个CAN驱动下注册了哪些电机ID
         std::unordered_map<Can::CanDriver*, std::set<uint16_t>> driver_motor_ids;
         /// @brief 存储每个CAN驱动要发送的电机电流数据，并用自旋锁保护
-        std::unordered_map<Can::CanDriver*, OutputPair> driver_motor_outputs;
+        std::unordered_map<Can::CanDriver*, DriverOutputBuffers> driver_motor_outputs;
         std::atomic<bool> stop_{false}; ///< 用于通知发送线程停止的原子标志
         std::unique_ptr<Thread::Othread> thread_; ///< 后台发送线程的封装
     };

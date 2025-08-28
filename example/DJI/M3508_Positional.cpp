@@ -16,18 +16,18 @@ using enum OneMotor::Motor::DJI::MotorMode;
 
 static constexpr PID_Params<float> POS_DEFAULT_PARAMS{
     .Kp = 3,
-    .Ki = 0,
+    .Ki = 0.1,
     .Kd = 0,
-    .MaxOutput = 3000,
-    .Deadband = 40,
-    .IntegralLimit = 500,
+    .MaxOutput = 20000,
+    .Deadband = 50,
+    .IntegralLimit = 1000,
 };
 static constexpr PID_Params<float> ANG_DEFAULT_PARAMS{
-    .Kp = 0.6,
+    .Kp = 0.8,
     .Ki = 0.05,
     .Kd = 0.1,
     .MaxOutput = 8000,
-    .Deadband = 50,
+    .Deadband = 10,
     .IntegralLimit = 100,
 };
 
@@ -37,7 +37,8 @@ int main()
     (void)driver.open()
                 .or_else([](const auto& err) { std::cerr << err.message << std::endl; });
     M3508<1, Position> m1(driver, POS_DEFAULT_PARAMS, ANG_DEFAULT_PARAMS);
-    m1.setPosRef(1000);
+    m1.setPosRef(10000);
+    m1.setAngRef(100);
     (void)m1.enable();
 
     std::thread thread([&]

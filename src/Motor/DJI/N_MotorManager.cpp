@@ -5,6 +5,8 @@
 #endif
 #include <sstream>
 
+#include "OneMotor/Util/Panic.hpp"
+
 using tl::unexpected;
 using enum OneMotor::ErrorCode;
 
@@ -79,13 +81,22 @@ namespace OneMotor::Motor::DJI
     void MotorManager::pushOutput(Can::CanDriver& driver, const uint8_t lo_value, const uint8_t hi_value) noexcept
     {
         constexpr uint8_t base_index = (id - 1) * 2;
-        auto& lock = driver_motor_outputs[&driver].second;
-        lock.lock();
-        auto& output_buffer = driver_motor_outputs[&driver].first;
+        // 直接写入工作缓冲区
+        auto& driver_buffers = driver_motor_outputs[&driver];
+        auto& output_buffer = *driver_buffers.current_write_buffer;
 
         output_buffer[base_index] = hi_value;
         output_buffer[base_index + 1] = lo_value;
-        lock.unlock();
+        // 每次写入后交换缓冲区，使发送线程能看到最新数据
+        swapBuffers(driver_buffers);
+    }
+
+    void MotorManager::swapBuffers(DriverOutputBuffers& driver_buffers) noexcept
+    {
+        // 原子交换读写缓冲区指针
+        auto* old_read = driver_buffers.current_read_buffer.exchange(
+            driver_buffers.current_write_buffer, std::memory_order_acq_rel);
+        driver_buffers.current_write_buffer = old_read;
     }
 
     MotorManager::MotorManager()
@@ -94,24 +105,25 @@ namespace OneMotor::Motor::DJI
         {
             while (!stop_.load(std::memory_order_acquire))
             {
-                for (auto& [driver, pair] : driver_motor_outputs)
+                for (auto& [driver, driver_buffers] : driver_motor_outputs)
                 {
-                    auto& lock = pair.second;
-                    auto& output = pair.first;
+                    // 直接从读取缓冲区获取数据
+                    auto* read_buffer = driver_buffers.current_read_buffer.load(std::memory_order_acquire);
+
                     Can::CanFrame frame;
                     frame.dlc = 8;
                     frame.id = 0x200;
-                    lock.lock();
-                    std::copy_n(output.data(), 8, frame.data);
-                    [[maybe_unused]] auto _ = driver->send(frame);
+                    std::copy_n(read_buffer->data(), 8, frame.data);
+                    auto result = driver->send(frame);
+
                     static constexpr uint8_t zero_bytes[8] = {0};
-                    if (memcmp(output.data() + 8, zero_bytes, 8) != 0)
+                    if (memcmp(read_buffer->data() + 8, zero_bytes, 8) != 0)
                     {
                         frame.id = 0x1FF;
-                        std::copy_n(output.data() + 8, 8, frame.data);
-                        _ = driver->send(frame);
+                        std::copy_n(read_buffer->data() + 8, 8, frame.data);
+                        result = driver->send(frame);
                     }
-                    lock.unlock();
+                    if (!result) panic("Failed to send CAN Message in MotorManager");
                 }
 
                 Thread::sleep_for(std::chrono::milliseconds(1));
