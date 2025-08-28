@@ -9,6 +9,8 @@
 #include "M3508Frames.hpp"
 #include "OneMotor/Control/PID.hpp"
 #include "OneMotor/Util/SpinLock.hpp"
+#include "OneMotor/Util/Error.hpp"
+#include <tl/expected.hpp>
 
 namespace OneMotor::Motor::DJI
 {
@@ -69,6 +71,12 @@ namespace OneMotor::Motor::DJI
 
     protected:
         /**
+         * @brief 交换读写缓冲区，在PID解算完成后调用以同步状态。
+         * @note 此方法仅供派生类在PID解算完成后调用。
+         */
+        void swapBuffers() noexcept;
+
+        /**
          * @brief 基类构造函数。
          * @param driver 电机连接的CAN总线驱动实例。
          * @details 在构造时会自动向MotorManager注册该电机。
@@ -96,8 +104,11 @@ namespace OneMotor::Motor::DJI
         };
 
         Can::CanDriver& driver_; ///< CAN总线驱动的引用
-        SpinLock status_lock_; ///< 用于保护状态访问的自旋锁
-        M3508Status status_; ///< 电机的状态信息
+
+        M3508Status status_buffers_[2]; ///< 双缓冲区
+        std::atomic<M3508Status*> current_read_buffer_{&status_buffers_[0]}; ///< 当前读取缓冲区指针
+        M3508Status* current_write_buffer_{&status_buffers_[1]}; ///< 当前写入缓冲区指针（PID线程专用）
+
         static constexpr uint16_t canId_ = id + 0x200; ///< 电机的CAN ID (标准ID范围 0x201-0x208)
     };
 }

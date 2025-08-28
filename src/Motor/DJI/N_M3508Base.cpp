@@ -1,11 +1,12 @@
 #include "OneMotor/Motor/DJI/M3508Base.hpp"
 #include "OneMotor/Motor/DJI/MotorManager.hpp"
 #include "OneMotor/Util/Panic.hpp"
+#include "OneMotor/Util/Error.hpp"
 
 namespace OneMotor::Motor::DJI
 {
     template <uint8_t id>
-    M3508Base<id>::M3508Base(Can::CanDriver& driver): driver_(driver), status_()
+    M3508Base<id>::M3508Base(Can::CanDriver& driver) : driver_(driver), status_buffers_{}
 
     {
         static_assert(id >= 1 && id <= 8, "M3508 Only support 1 <= id <= 8.");
@@ -30,10 +31,17 @@ namespace OneMotor::Motor::DJI
     template <uint8_t id>
     M3508Status M3508Base<id>::getStatus() noexcept
     {
-        status_lock_.lock();
-        const auto status = status_;
-        status_lock_.unlock();
-        return status;
+        // 仅需一次原子加载，获取当前读取缓冲区
+        return *current_read_buffer_.load(std::memory_order_acquire);
+    }
+
+    // 添加一个新的保护方法，用于在PID解算完成后同步状态
+    template <uint8_t id>
+    void M3508Base<id>::swapBuffers() noexcept
+    {
+        // 原子交换读写缓冲区指针，这样下次外部读取就能看到最新状态
+        auto* old_read = current_read_buffer_.exchange(current_write_buffer_, std::memory_order_acq_rel);
+        current_write_buffer_ = old_read;
     }
 
     template <uint8_t id>
