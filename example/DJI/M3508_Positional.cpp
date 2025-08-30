@@ -34,8 +34,6 @@ static constexpr PID_Params<float> ANG_DEFAULT_PARAMS{
 int main()
 {
     CanDriver driver("can0");
-    (void)driver.open()
-                .or_else([](const auto& err) { std::cerr << err.message << std::endl; });
     M3508<1, Position> m1(driver, POS_DEFAULT_PARAMS, ANG_DEFAULT_PARAMS);
     m1.setPosRef(10000);
     m1.setAngRef(100);

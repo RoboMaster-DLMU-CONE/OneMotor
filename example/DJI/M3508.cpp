@@ -26,7 +26,6 @@ using enum OneMotor::Motor::DJI::MotorMode;
         .IntegralLimit = 1000,
     };
     CanDriver driver("can0");
-    (void)driver.open().map_error([](const auto& err) { std::cerr << err.message << std::endl; });
     M3508<1, Angular> m1(driver, params);
     m1.setRef(2000);
     (void)m1.enable();

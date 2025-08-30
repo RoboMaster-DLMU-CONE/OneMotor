@@ -45,11 +45,11 @@ namespace OneMotor::Can
          */
         explicit CanDriver(std::string interface_name);
 #else
-                /**
-                 * @brief CanDriver 的构造函数。
-                 * @param device Zephyr CAN接口设备。
-                 */
-                explicit CanDriver(const device* device);
+        /**
+         * @brief CanDriver 的构造函数。
+         * @param device Zephyr CAN接口设备。
+         */
+        explicit CanDriver(const device* device);
 #endif
 
         /**
@@ -59,6 +59,8 @@ namespace OneMotor::Can
 
         CanDriver(const CanDriver&) = delete;
         CanDriver& operator=(const CanDriver&) = delete;
+
+        tl::expected<bool, Error> is_open();
 
         /**
          * @brief 打开CAN接口。
@@ -94,11 +96,11 @@ namespace OneMotor::Can
     private:
 #ifdef ONE_MOTOR_LINUX
         std::string interface_name; ///< CAN接口名称
-        HyCAN::Interface interface; ///< 底层的HyCAN接口实例
+        HyCAN::CANInterface interface; ///< 底层的HyCAN接口实例
 #else
-                const device* can_dev;
-                std::unordered_map<uint16_t, CallbackFunc> callbacks;
-                std::unordered_map<uint16_t, std::pair<can_filter, int>> filters{};
+        const device* can_dev;
+        std::unordered_map<uint16_t, CallbackFunc> callbacks;
+        std::unordered_map<uint16_t, std::pair<can_filter, int>> filters{};
 
 #endif
     };

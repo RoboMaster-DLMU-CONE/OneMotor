@@ -11,18 +11,21 @@ static constexpr uint8_t CLEANERROR_FRAME_DATA[8] = {0xFF, 0xFF, 0xFF, 0xFF, 0xF
 
 namespace OneMotor::Motor::DM
 {
-    J4310::J4310(Can::CanDriver& driver, const uint16_t canId, const uint16_t masterId): driver_(driver),
+    J4310::J4310(Can::CanDriver& driver, const uint16_t canId, const uint16_t masterId) : driver_(driver),
         canId_(canId),
         masterId_(masterId)
     {
-        const auto result = driver_.registerCallback({masterId_}, [&](Can::CanFrame&& frame)
-        {
-            const auto msg = static_cast<J4310Status>(frame);
-            lock_.lock();
-            status_ = msg;
-            lock_.unlock();
-        });
-
+        const auto result = driver_.open()
+                                   .and_then([this]
+                                    {
+                                        return driver_.registerCallback({masterId_}, [&](Can::CanFrame&& frame)
+                                        {
+                                            const auto msg = static_cast<J4310Status>(frame);
+                                            lock_.lock();
+                                            status_ = msg;
+                                            lock_.unlock();
+                                        });
+                                    });
         if (!result)
         {
             panic("Register Callback Failed for DM J4310");
