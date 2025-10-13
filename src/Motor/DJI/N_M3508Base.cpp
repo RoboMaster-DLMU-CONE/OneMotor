@@ -2,6 +2,7 @@
 #include "OneMotor/Motor/DJI/MotorManager.hpp"
 #include "OneMotor/Util/Panic.hpp"
 #include "OneMotor/Util/Error.hpp"
+#include "OneMotor/Util/DoubleBuffer.hpp"
 
 namespace OneMotor::Motor::DJI
 {
@@ -37,7 +38,6 @@ namespace OneMotor::Motor::DJI
         return *current_read_buffer_.load(std::memory_order_acquire);
     }
 
-    // 添加一个新的保护方法，用于在PID解算完成后同步状态
     template <uint8_t id>
     void M3508Base<id>::swapBuffers() noexcept
     {
