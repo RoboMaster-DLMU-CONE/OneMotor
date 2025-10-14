@@ -15,17 +15,16 @@ namespace OneMotor::Motor::DM
         canId_(canId),
         masterId_(masterId)
     {
-        const auto result = driver_.open()
-                                   .and_then([this]
-                                    {
-                                        return driver_.registerCallback({masterId_}, [&](Can::CanFrame&& frame)
-                                        {
-                                            const auto msg = static_cast<J4310Status>(frame);
-                                            lock_.lock();
-                                            status_ = msg;
-                                            lock_.unlock();
-                                        });
-                                    });
+        const auto result = driver_
+                           .open()
+                           .and_then([this]
+                            {
+                                return driver_.registerCallback({masterId_}, [&](Can::CanFrame&& frame)
+                                {
+                                    const auto msg = static_cast<J4310Status>(frame);
+                                    m_Buffer.push(msg);
+                                });
+                            });
         if (!result)
         {
             panic("Register Callback Failed for DM J4310");
@@ -132,9 +131,6 @@ namespace OneMotor::Motor::DM
 
     tl::expected<J4310Status, Error> J4310::getStatus()
     {
-        lock_.lock();
-        J4310Status status = status_;
-        lock_.unlock();
-        return status;
+        return m_Buffer.readCopy();
     }
 }

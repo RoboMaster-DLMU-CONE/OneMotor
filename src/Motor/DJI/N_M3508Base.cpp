@@ -7,7 +7,7 @@
 namespace OneMotor::Motor::DJI
 {
     template <uint8_t id>
-    M3508Base<id>::M3508Base(Can::CanDriver& driver) : driver_(driver), status_buffers_{}
+    M3508Base<id>::M3508Base(Can::CanDriver& driver) : driver_(driver), m_Buffer()
 
     {
         static_assert(id >= 1 && id <= 8, "M3508 Only support 1 <= id <= 8.");
@@ -34,17 +34,9 @@ namespace OneMotor::Motor::DJI
     template <uint8_t id>
     M3508Status M3508Base<id>::getStatus() noexcept
     {
-        // 仅需一次原子加载，获取当前读取缓冲区
-        return *current_read_buffer_.load(std::memory_order_acquire);
+        return m_Buffer.readCopy();
     }
 
-    template <uint8_t id>
-    void M3508Base<id>::swapBuffers() noexcept
-    {
-        // 原子交换读写缓冲区指针，这样下次外部读取就能看到最新状态
-        auto* old_read = current_read_buffer_.exchange(current_write_buffer_, std::memory_order_acq_rel);
-        current_write_buffer_ = old_read;
-    }
 
     template <uint8_t id>
     tl::expected<void, Error> M3508Base<id>::disable() noexcept

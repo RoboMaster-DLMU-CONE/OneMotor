@@ -1,7 +1,17 @@
 #ifndef ONEMOTOR_DOUBLEBUFFER_HPP
 #define ONEMOTOR_DOUBLEBUFFER_HPP
 
-#include <concepts>
+#include <cstring>
+#include <atomic>
+
+/**
+ * @file DoubleBuffer.hpp
+ * @author MoonFeather
+ * @brief 定义 DoubleBuffer 类，用于在多线程模型下保证电机状态信息的安全更新
+ * @date 2025-10-14
+ *
+ */
+
 
 namespace OneMotor
 {
@@ -29,7 +39,12 @@ namespace OneMotor
         DoubleBuffer(const DoubleBuffer&) = delete;
         DoubleBuffer& operator=(const DoubleBuffer&) = delete;
 
-        const T& read() noexcept
+        const T& readView() noexcept
+        {
+            return *m_CurrentRead.load(std::memory_order_acquire);
+        }
+
+        T readCopy() noexcept
         {
             return *m_CurrentRead.load(std::memory_order_acquire);
         }
@@ -39,16 +54,16 @@ namespace OneMotor
             return *m_CurrentWrite;
         }
 
-        void snapshot(T& out) const noexcept
-        {
-            auto* p = m_CurrentRead.load(std::memory_order_acquire);
-            out = *p;
-        }
-
         void swap() noexcept
         {
             T* old_read = m_CurrentRead.exchange(m_CurrentWrite, std::memory_order_acq_rel);
             m_CurrentWrite = old_read;
+        }
+
+        void push(const T& frame) noexcept
+        {
+            std::memcpy(m_CurrentWrite, &frame, sizeof(T));
+            swap();
         }
 
     private:

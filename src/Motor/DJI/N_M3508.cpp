@@ -69,9 +69,9 @@ namespace OneMotor::Motor::DJI
     {
         const auto msg = static_cast<M3508RawStatusFrame>(frame);
         // 直接更新写入缓冲区，完全无锁操作
-        trMsgToStatus(msg, *this->current_write_buffer_);
+        trMsgToStatus(msg, this->m_Buffer.write());
         // 交换缓冲区，使外部能读取到最新状态（仅一次原子操作）
-        this->swapBuffers();
+        this->m_Buffer.swap();
     }
 
     template <uint8_t id>
@@ -79,15 +79,15 @@ namespace OneMotor::Motor::DJI
     {
         const auto msg = static_cast<M3508RawStatusFrame>(frame);
         // 直接更新写入缓冲区，完全无锁的PID解算过程
-        trMsgToStatus(msg, *this->current_write_buffer_);
+        trMsgToStatus(msg, this->m_Buffer.write());
         auto ang_result = ang_pid_->compute(ang_ref_.load(std::memory_order_acquire),
-                                            this->current_write_buffer_->angular);
+                                            this->m_Buffer.write().angular);
         ang_result = std::clamp(ang_result, -MAX_CURRENT_OUTPUT, MAX_CURRENT_OUTPUT);
         const auto output_current = static_cast<int16_t>(ang_result);
-        this->current_write_buffer_->output_current = output_current;
+        this->m_Buffer.write().output_current = output_current;
 
         // 交换缓冲区，使外部能读取到最新状态（仅一次原子操作）
-        this->swapBuffers();
+        this->m_Buffer.swap();
 
         const uint8_t hi_byte = output_current >> 8;
         const uint8_t lo_byte = output_current & 0xFF;
@@ -143,9 +143,9 @@ namespace OneMotor::Motor::DJI
     {
         const auto msg = static_cast<M3508RawStatusFrame>(frame);
         // 直接更新写入缓冲区，完全无锁操作
-        trMsgToStatus(msg, *this->current_write_buffer_);
+        trMsgToStatus(msg, this->m_Buffer.write());
         // 交换缓冲区，使外部能读取到最新状态（仅一次原子操作）
-        this->swapBuffers();
+        this->m_Buffer.swap();
     }
 
     template <uint8_t id>
@@ -154,18 +154,18 @@ namespace OneMotor::Motor::DJI
         const auto msg = static_cast<M3508RawStatusFrame>(frame);
 
         // 更新写入缓冲区
-        trMsgToStatus(msg, *this->current_write_buffer_);
+        trMsgToStatus(msg, this->m_Buffer.write());
         auto pos_result = pos_pid_->compute(pos_ref_.load(std::memory_order_acquire),
-                                            this->current_write_buffer_->total_angle);
+                                            this->m_Buffer.write().total_angle);
 
-        auto ang_result = ang_pid_->compute(pos_result, this->current_write_buffer_->angular);
+        auto ang_result = ang_pid_->compute(pos_result, this->m_Buffer.write().angular);
         ang_result = std::clamp(ang_result, -MAX_CURRENT_OUTPUT, MAX_CURRENT_OUTPUT);
         const auto output_current = static_cast<int16_t>(ang_result);
 
-        this->current_write_buffer_->output_current = output_current;
+        this->m_Buffer.write().output_current = output_current;
 
         // 交换缓冲区，使外部能读取到最新状态
-        this->swapBuffers();
+        this->m_Buffer.swap();
         const uint8_t hi_byte = output_current >> 8;
         const uint8_t lo_byte = output_current & 0xFF;
         MotorManager::getInstance().pushOutput<id>(this->driver_, lo_byte, hi_byte);

@@ -10,7 +10,7 @@
 #define J4310_HPP
 #include "J4310Frame.hpp"
 #include "OneMotor/Can/CanDriver.hpp"
-#include "OneMotor/Util/SpinLock.hpp"
+#include "OneMotor/Util/DoubleBuffer.hpp"
 
 namespace OneMotor::Motor::DM
 {
@@ -78,8 +78,7 @@ namespace OneMotor::Motor::DM
         tl::expected<J4310Status, Error> getStatus();
 
     private:
-        J4310Status status_{};
-        SpinLock lock_;
+        DoubleBuffer<J4310Status> m_Buffer{};
         Can::CanDriver& driver_;
         uint16_t canId_;
         uint16_t masterId_;
