@@ -129,8 +129,29 @@ namespace OneMotor::Motor::DM
         return driver_.send(frame);
     }
 
-    tl::expected<J4310Status, Error> J4310::getStatus()
+    tl::expected<void, Error> J4310::refreshStatus() noexcept
+    {
+        Can::CanFrame frame{};
+        frame.dlc = 4;
+        frame.id = 0x7FF;
+        auto& data = frame.data;
+        const auto* ibuf = reinterpret_cast<const uint8_t*>(&canId_);
+        data[0] = *(ibuf);
+        data[1] = *(ibuf + 1);
+        data[2] = 0xCC;
+        data[3] = 0x00;
+        return driver_.send(frame);
+    }
+
+    J4310Status J4310::getStatus()
     {
         return m_Buffer.readCopy();
+    }
+
+    tl::expected<J4310Status, Error> J4310::getNewStatus(const uint16_t usec)
+    {
+        if (auto result = refreshStatus(); !result) return tl::make_unexpected(result.error());
+        Thread::sleep_for(std::chrono::microseconds(usec));
+        return getStatus();
     }
 }

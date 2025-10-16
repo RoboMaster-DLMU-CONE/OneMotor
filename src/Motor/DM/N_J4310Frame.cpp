@@ -23,7 +23,7 @@ namespace OneMotor::Motor::DM
         temperature_Rotor = data[7];
     }
 
-    std::string J4310Status::format()
+    std::string J4310Status::format() const
     {
 #ifdef ONE_MOTOR_LINUX
         return std::format("ID: {:X}, Position: {}, Velocity: {}, Torque: {}, temperature: {},{} deg, ",

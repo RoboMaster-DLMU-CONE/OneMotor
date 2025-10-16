@@ -71,11 +71,28 @@ namespace OneMotor::Motor::DM
          * @return 操作结果
          */
         tl::expected<void, Error> velControl(float velocity);
+
         /**
-         * @brief 获取电机状态
-         * @return 一个包含状态或错误字符串的 tl::expected 对象
+         *
+         * @brief 刷新电机状态，仅支持V13以上固件
+         * @return 操作结果
          */
-        tl::expected<J4310Status, Error> getStatus();
+        tl::expected<void, Error> refreshStatus() noexcept;
+
+        /**
+         * @brief 获取电机上一次接收到到的反馈帧状态
+         * 对电机进行各种控制操作均会获得反馈帧
+         * @note 若想获取当前最新状态，需配合 @ref refreshStatus "refreshStatus" 函数，或直接使用 @ref getNewStatus "getNewStatus"函数
+         * @return @ref J4310Status "J4310Status"
+         */
+        J4310Status getStatus();
+
+        /**
+         * @brief 获取电机最新状态
+         * @param usec 指定向电机请求获取反馈帧后的延时时间。延时过低可能来不及接收最新状态；延时过高可能导致主线程阻塞
+         * @return 包含电机状态或错误信息的expected结构体
+         */
+        tl::expected<J4310Status, Error> getNewStatus(uint16_t usec = 500);
 
     private:
         DoubleBuffer<J4310Status> m_Buffer{};

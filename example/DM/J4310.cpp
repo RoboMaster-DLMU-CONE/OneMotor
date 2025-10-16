@@ -5,23 +5,31 @@
 #include "OneMotor/Thread/Othread.hpp"
 #include "OneMotor/Util/Panic.hpp"
 
+constexpr float cycle = 2 * std::numbers::pi;
+
 int main()
 {
     OneMotor::Can::CanDriver driver("can0");
-    OneMotor::Motor::DM::J4310 j4310(driver, 0x53, 0x43);
+    // Remember to Change the ID
+    OneMotor::Motor::DM::J4310 j4310(driver, 0x15, 0x05);
 
     (void)j4310.enable();
     OneMotor::Thread::sleep_for(std::chrono::seconds(2));
 
     (void)j4310.setZeroPosition();
     OneMotor::Thread::sleep_for(std::chrono::seconds(2));
+    // Position Velocity mode
+    // (void)j4310.posVelControl(2 * cycle, cycle);
+    // OneMotor::Thread::sleep_for(std::chrono::seconds(2));
 
-    (void)j4310.posVelControl(12.56, 6.28);
+    // MIT mode
+    // No-load params
+    (void)j4310.MITControl(2 * cycle, cycle / 4.0, 0.01, 0.01f, 0.05f);
+
+    std::cout << j4310.getStatus().format() << std::endl;
     OneMotor::Thread::sleep_for(std::chrono::seconds(2));
 
-    if (auto result = j4310.getStatus(); result) std::cout << result.value().format() << std::endl;
-    else std::cerr << result.error().message << std::endl;
-    OneMotor::Thread::sleep_for(std::chrono::seconds(2));
+    std::cout << j4310.getNewStatus(1000).value().format() << std::endl;
 
     (void)j4310.disable();
     OneMotor::Thread::sleep_for(std::chrono::seconds(2));

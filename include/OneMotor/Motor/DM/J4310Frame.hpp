@@ -90,7 +90,7 @@ namespace OneMotor::Motor::DM
          * @brief 将状态格式化为用于打印的字符串
          * @return 格式化后的字符串
          */
-        std::string format();
+        std::string format() const;
 
         uint8_t ID; ///< 电机 ID
         DMStatus status; ///< 电机状态
