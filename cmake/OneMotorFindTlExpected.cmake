@@ -1,10 +1,11 @@
-cmake_policy(PUSH)
-cmake_policy(SET CMP0135 NEW)
-set(EXPECTED_BUILD_TESTS OFF)
-set(EXPECTED_BUILD_PACKAGE_DEB OFF)
 include(FetchContent)
 find_package(tl-expected QUIET)
 if (NOT tl-expected_FOUND AND NOT TARGET expected)
+    cmake_policy(PUSH)
+    cmake_policy(SET CMP0135 NEW)
+    set(EXPECTED_BUILD_PACKAGE OFF)
+    set(EXPECTED_BUILD_TESTS OFF)
+    set(EXPECTED_BUILD_PACKAGE_DEB OFF)
     execute_process(
             COMMAND git ls-remote --heads https://github.com/TartanLlama/expected master
             RESULT_VARIABLE tl_expected_primary_repo_ok
