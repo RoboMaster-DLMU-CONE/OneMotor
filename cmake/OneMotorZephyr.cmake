@@ -1,5 +1,3 @@
-
-set(ZEPHYR_PROJECT_NAME "onemotor")
 zephyr_library_named(${PROJECT_NAME})
 
 if (CONFIG_ONE_MOTOR)
@@ -15,5 +13,7 @@ if (CONFIG_ONE_MOTOR)
     )
 
     zephyr_include_directories(include)
+
+    target_link_libraries(app PRIVATE ${PROJECT_NAME})
 
 endif ()

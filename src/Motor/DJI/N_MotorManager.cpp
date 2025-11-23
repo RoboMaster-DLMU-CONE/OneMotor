@@ -4,9 +4,9 @@
 #include <format>
 #endif
 #include <sstream>
+#include <vector>
 
 #include "OneMotor/Util/Panic.hpp"
-
 using tl::unexpected;
 using enum OneMotor::ErrorCode;
 
@@ -123,7 +123,10 @@ namespace OneMotor::Motor::DJI
                         std::copy_n(read_buffer->data() + 8, 8, frame.data);
                         result = driver->send(frame);
                     }
-                    if (!result) panic("Failed to send CAN Message in MotorManager");
+                    if (!result)
+                    {
+                        panic("Failed to send CAN Message in MotorManager");
+                    }
                 }
 
                 Thread::sleep_for(std::chrono::milliseconds(1));

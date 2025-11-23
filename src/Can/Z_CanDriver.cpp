@@ -1,7 +1,6 @@
 #include "autoconf.h"
 #include "OneMotor/Can/CanDriver.hpp"
 #include "OneMotor/Util/Panic.hpp"
-
 using tl::unexpected;
 using enum OneMotor::ErrorCode;
 
@@ -9,13 +8,13 @@ namespace OneMotor::Can
 {
     void rx_callback_entry(const device* dev, can_frame* frame, void* user_data)
     {
-        if (const auto callback = reinterpret_cast<CanDriver::CallbackFunc*>(user_data))
+        if (const auto callback = static_cast<CanDriver::CallbackFunc*>(user_data))
         {
             (*callback)(std::move(*reinterpret_cast<CanFrame*>(frame)));
         }
     }
 
-    CanDriver::CanDriver(const device* device): can_dev(device)
+    CanDriver::CanDriver(const device* device) : can_dev(device)
     {
         if (!device_is_ready(can_dev))
         {
@@ -70,7 +69,7 @@ namespace OneMotor::Can
                 .mask = CAN_STD_ID_MASK,
                 .flags = 0U,
             };
-            int filter_id = can_add_rx_filter(can_dev, rx_callback_entry, &func, &filter);
+            int filter_id = can_add_rx_filter(can_dev, rx_callback_entry, &callbacks[id], &filter);
             if (filter_id < 0)
             {
                 return unexpected(Error{CanDriverInternalError, strerror(-filter_id)});

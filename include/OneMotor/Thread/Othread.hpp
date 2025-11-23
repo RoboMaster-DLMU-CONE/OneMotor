@@ -28,7 +28,11 @@ namespace OneMotor::Thread
         void sleep_for(const std::chrono::duration<Rep, Period>& duration) noexcept
         {
 #ifdef ONE_MOTOR_LINUX
-        std::this_thread::sleep_for(duration);
+                std::this_thread::sleep_for(duration);
+#else
+                auto us = std::chrono::duration_cast<std::chrono::microseconds>(duration).count();
+                k_usleep(us);
+
 #endif
         }
 
@@ -53,7 +57,7 @@ namespace OneMotor::Thread
                  * @param func 要在线程中执行的函数。
                  */
 #ifdef ONE_MOTOR_LINUX
-        explicit Othread(const ThreadFunc& func) noexcept;
+                explicit Othread(const ThreadFunc& func) noexcept;
 #else
                 explicit Othread(ThreadFunc func) noexcept;
 #endif
@@ -81,7 +85,7 @@ namespace OneMotor::Thread
                  * @return 如果成功启动线程，返回 `true`；如果线程已启动或函数无效，返回 `false`。
                  */
 #ifdef ONE_MOTOR_LINUX
-        bool start(const ThreadFunc& func) noexcept;
+                bool start(const ThreadFunc& func) noexcept;
 #else
                 bool start(ThreadFunc& func) noexcept;
 #endif
@@ -112,11 +116,12 @@ namespace OneMotor::Thread
                 bool joined{false}; ///< 标志线程是否已被加入
                 bool detached{false}; ///< 标志线程是否已被分离
 #ifdef ONE_MOTOR_LINUX
-        ThreadFunc thread_func{nullptr}; ///< 存储线程要执行的函数
-        std::thread native_handle{}; ///< 底层的 std::thread 对象
+                ThreadFunc thread_func{nullptr}; ///< 存储线程要执行的函数
+                std::thread native_handle{}; ///< 底层的 std::thread 对象
 #else
+                static constexpr size_t StackSize = 1024;
+                K_KERNEL_STACK_MEMBER(stack_mem, StackSize);
                 mutable k_thread k_thread_handle{};
-                k_thread_stack_t k_thread_stack{};
                 k_tid_t k_tid{};
                 ThreadFunc func_;
 #endif

@@ -84,7 +84,7 @@ namespace OneMotor::Motor::DJI
         // 双缓冲区优化：使用原子指针实现无锁pushOutput
         struct DriverOutputBuffers
         {
-            OutputArray buffers[2]; ///< 双缓冲区
+            OutputArray buffers[2]{}; ///< 双缓冲区
             std::atomic<OutputArray*> current_read_buffer{&buffers[0]}; ///< 发送线程读取的缓冲区
             OutputArray* current_write_buffer{&buffers[1]}; ///< PID线程写入的缓冲区（无需原子）
         };
@@ -103,7 +103,7 @@ namespace OneMotor::Motor::DJI
 
         /// @brief 记录每个CAN驱动下注册了哪些电机ID
         std::unordered_map<Can::CanDriver*, std::set<uint16_t>> driver_motor_ids;
-        /// @brief 存储每个CAN驱动要发送的电机电流数据，并用自旋锁保护
+        /// @brief 存储每个CAN驱动要发送的电机电流数据
         std::unordered_map<Can::CanDriver*, DriverOutputBuffers> driver_motor_outputs;
         std::atomic<bool> stop_{false}; ///< 用于通知发送线程停止的原子标志
         std::unique_ptr<Thread::Othread> thread_; ///< 后台发送线程的封装

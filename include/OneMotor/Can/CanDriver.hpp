@@ -10,6 +10,8 @@
 #include <string>
 #include <functional>
 #include <set>
+#include <memory>
+#include <unordered_map>
 #include <tl/expected.hpp>
 #include "CanFrame.hpp"
 #include "OneMotor/Util/Error.hpp"
