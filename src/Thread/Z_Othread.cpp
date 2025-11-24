@@ -1,16 +1,12 @@
 #include <OneMotor/Thread/Othread.hpp>
 #include <utility>
-#include <zephyr/logging/log.h>
-LOG_MODULE_REGISTER(Othread, CONFIG_LOG_DEFAULT_LEVEL);
 
 namespace OneMotor::Thread
 {
     static void thread_entry(void* func, void*, void*)
     {
-        LOG_INF("entering thread");
         if (const auto f = static_cast<Othread::ThreadFunc*>(func); f)
         {
-            LOG_INF("casted function");
             (*f)();
         }
     }
@@ -57,10 +53,8 @@ namespace OneMotor::Thread
 
     bool Othread::start(ThreadFunc& func) noexcept
     {
-        LOG_INF("try starting a thread");
         if (started || !func)
         {
-            LOG_ERR("func invalid");
             return false;
         }
 
@@ -68,7 +62,6 @@ namespace OneMotor::Thread
                                 nullptr, nullptr, 0,
                                 0,
                                 K_NO_WAIT);
-        LOG_INF("successfully creaate thread");
         return true;
     }
 }

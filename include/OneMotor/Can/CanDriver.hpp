@@ -92,7 +92,7 @@ namespace OneMotor::Can
 #ifdef ONE_MOTOR_LINUX
         tl::expected<void, Error> registerCallback(const std::set<size_t>& can_ids, const CallbackFunc& func);
 #else
-        tl::expected<void, Error> registerCallback(const std::set<size_t>& can_ids, CallbackFunc func);
+        tl::expected<void, Error> registerCallback(const std::set<size_t>& can_ids, const CallbackFunc& func);
 #endif
 
     private:

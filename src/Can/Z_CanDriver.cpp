@@ -52,7 +52,7 @@ namespace OneMotor::Can
         return {};
     }
 
-    tl::expected<void, Error> CanDriver::registerCallback(const std::set<size_t>& can_ids, CallbackFunc func)
+    tl::expected<void, Error> CanDriver::registerCallback(const std::set<size_t>& can_ids, const CallbackFunc& func)
     {
         for (const auto& id : can_ids)
         {
