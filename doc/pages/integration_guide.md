@@ -71,4 +71,6 @@ TBD
 
 ## Zephyr
 
-TBD
+> 推荐使用[one-framework](https://github.com/RoboMaster-DLMU-CONE/one-framework)来获取开箱即用的OneMotor模组
+> 
+
