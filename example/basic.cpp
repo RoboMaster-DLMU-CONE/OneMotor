@@ -7,10 +7,8 @@
 #include "OneMotor/Can/CanDriver.hpp"
 #include "OneMotor/Can/CanFrame.hpp"
 #include "OneMotor/Motor/DJI/M3508.hpp"
-#include "OneMotor/Util/SpinLock.hpp"
 
 using OneMotor::DeltaT;
-using OneMotor::SpinLock;
 using OneMotor::Control::PID_Params;
 using OneMotor::Control::PIDController;
 using OneMotor::Control::Positional;
@@ -28,11 +26,8 @@ int main()
         PIDController pid(params);
         pid.compute(1, 0.1);
     });
-    SpinLock lock;
-    lock.lock();
     CanDriver can_driver("can0");
     (void)can_driver.open();
-    lock.unlock();
     DeltaT deltat{};
     OneMotor::Thread::sleep_for(std::chrono::milliseconds(500));
     printf("%f\n", deltat.getDeltaMS());
