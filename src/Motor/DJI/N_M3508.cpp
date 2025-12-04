@@ -1,9 +1,9 @@
 #include <iostream>
 
-#include "OneMotor/Motor/DJI/M3508.hpp"
-#include "OneMotor/Motor/DJI/M3508Frames.hpp"
-#include "OneMotor/Motor/DJI/MotorManager.hpp"
-#include "OneMotor/Util/Panic.hpp"
+#include <OneMotor/Motor/DJI/M3508.hpp>
+#include <OneMotor/Motor/DJI/M3508Frames.hpp>
+#include <OneMotor/Motor/DJI/MotorManager.hpp>
+#include <OneMotor/Util/Panic.hpp>
 
 static constexpr float ECD_TO_ANGLE_DJI = 0.043945f;
 static constexpr float RPM_2_ANGLE_PER_SEC = 6.0f;
@@ -151,8 +151,13 @@ namespace OneMotor::Motor::DJI
     template <uint8_t id>
     void M3508<id, MotorMode::Position>::enabled_func_(Can::CanFrame&& frame)
     {
+#ifdef CONFIG_OM_DJI_MOTOR_SKIP_N_FRAME
+#if CONFIG_OM_DJI_MOTOR_SKIP_N_FRAME != 0
+        if (skip_frame++ < CONFIG_OM_DJI_MOTOR_SKIP_N_FRAME) return;
+        skip_frame = 0;
+#endif
+#endif
         const auto msg = static_cast<M3508RawStatusFrame>(frame);
-
         // 更新写入缓冲区
         trMsgToStatus(msg, this->m_Buffer.write());
         auto pos_result = pos_pid_->compute(pos_ref_.load(std::memory_order_acquire),

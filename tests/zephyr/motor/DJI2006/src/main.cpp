@@ -1,4 +1,3 @@
-#include <OF/drivers/output/status_leds.h>
 #include <OneMotor/Motor/DJI/M3508.hpp>
 #include <zephyr/logging/log.h>
 #include <zephyr/debug/cpu_load.h>
@@ -31,15 +30,6 @@ static constexpr PID_Params<float> ANG_DEFAULT_PARAMS{
 
 int main()
 {
-    const device* status_led_dev = DEVICE_DT_GET(DT_NODELABEL(status_leds));
-    if (!device_is_ready(status_led_dev))
-    {
-        LOG_ERR("LED not ready\n");
-        return -1;
-    }
-    const auto led_api = static_cast<const status_leds_api*>(status_led_dev->api);
-    led_api->set_heartbeat(status_led_dev);
-
     LOG_INF("Starting...");
     LOG_INF("Init CanDriver...");
     CanDriver driver(can_device);

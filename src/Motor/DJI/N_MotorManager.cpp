@@ -1,4 +1,3 @@
-#include "OF/utils/CCM.h"
 #include "OneMotor/Can/CanFrame.hpp"
 #include "OneMotor/Motor/DJI/MotorManager.hpp"
 #ifdef ONE_MOTOR_LINUX
@@ -7,16 +6,17 @@
 #include <sstream>
 #include <vector>
 
-#include "OneMotor/Util/Panic.hpp"
+#include <OneMotor/Util/Panic.hpp>
+#include <OneMotor/Util/CCM.h>
 using tl::unexpected;
 using enum OneMotor::ErrorCode;
 
 namespace OneMotor::Motor::DJI
 {
     /// @brief 记录每个CAN驱动下注册了哪些电机ID
-    OF_CCM_ATTR std::unordered_map<Can::CanDriver*, std::set<uint16_t>> g_driver_motor_ids;
+    OM_CCM_ATTR std::unordered_map<Can::CanDriver*, std::set<uint16_t>> g_driver_motor_ids;
     /// @brief 存储每个CAN驱动要发送的电机电流数据
-    OF_CCM_ATTR std::unordered_map<Can::CanDriver*, MotorManager::DriverOutputBuffers> g_driver_motor_outputs;
+    OM_CCM_ATTR std::unordered_map<Can::CanDriver*, MotorManager::DriverOutputBuffers> g_driver_motor_outputs;
 
     MotorManager::~MotorManager()
     {
