@@ -1,7 +1,7 @@
 #include <OF/drivers/output/status_leds.h>
 #include <OneMotor/Motor/DJI/M3508.hpp>
 #include <zephyr/logging/log.h>
-#include <zephyr/devicetree/can.h>
+#include <zephyr/debug/cpu_load.h>
 
 LOG_MODULE_REGISTER(main, CONFIG_LOG_DEFAULT_LEVEL);
 const device* can_device = DEVICE_DT_GET(DT_NODELABEL(can1));
@@ -52,7 +52,8 @@ int main()
 
     while (true)
     {
-        LOG_INF("looping...");
+        uint32_t load = cpu_load_get(false);
+        LOG_INF("cpu: %u.%u%%", load / 10, load % 10);
         k_sleep(K_MSEC(500));
     }
     return 0;
