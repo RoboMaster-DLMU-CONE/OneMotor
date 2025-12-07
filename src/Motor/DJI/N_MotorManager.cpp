@@ -6,12 +6,18 @@
 #include <sstream>
 #include <vector>
 
-#include "OneMotor/Util/Panic.hpp"
+#include <OneMotor/Util/Panic.hpp>
+#include <OneMotor/Util/CCM.h>
 using tl::unexpected;
 using enum OneMotor::ErrorCode;
 
 namespace OneMotor::Motor::DJI
 {
+    /// @brief 记录每个CAN驱动下注册了哪些电机ID
+    OM_CCM_ATTR std::unordered_map<Can::CanDriver*, std::set<uint16_t>> g_driver_motor_ids;
+    /// @brief 存储每个CAN驱动要发送的电机电流数据
+    OM_CCM_ATTR std::unordered_map<Can::CanDriver*, MotorManager::DriverOutputBuffers> g_driver_motor_outputs;
+
     MotorManager::~MotorManager()
     {
         stop_.store(true, std::memory_order_release);
@@ -26,7 +32,7 @@ namespace OneMotor::Motor::DJI
 
     tl::expected<void, Error> MotorManager::registerMotor(Can::CanDriver& driver, uint16_t canId) noexcept
     {
-        if (auto& set = driver_motor_ids[&driver]; !set.contains(canId))
+        if (auto& set = g_driver_motor_ids[&driver]; !set.contains(canId))
         {
             if (set.size() >= OM_CAN_MAX_DJI_MOTOR)
             {
@@ -61,7 +67,7 @@ namespace OneMotor::Motor::DJI
     // ReSharper disable once CppParameterMayBeConstPtrOrRef
     tl::expected<void, Error> MotorManager::deregisterMotor(Can::CanDriver& driver, const uint16_t canId) noexcept
     {
-        if (const auto it = driver_motor_ids.find(&driver); it != driver_motor_ids.end())
+        if (const auto it = g_driver_motor_ids.find(&driver); it != g_driver_motor_ids.end())
         {
             if (it->second.empty())
             {
@@ -70,7 +76,7 @@ namespace OneMotor::Motor::DJI
             it->second.erase(canId);
             if (it->second.empty())
             {
-                driver_motor_ids.erase(it);
+                g_driver_motor_ids.erase(it);
             }
             return {};
         }
@@ -82,7 +88,7 @@ namespace OneMotor::Motor::DJI
     {
         constexpr uint8_t base_index = (id - 1) * 2;
         // 直接写入工作缓冲区
-        auto& driver_buffers = driver_motor_outputs[&driver];
+        auto& driver_buffers = g_driver_motor_outputs[&driver];
         auto& output_buffer = *driver_buffers.current_write_buffer;
 
         output_buffer[base_index] = hi_value;
@@ -105,7 +111,7 @@ namespace OneMotor::Motor::DJI
         {
             while (!stop_.load(std::memory_order_acquire))
             {
-                for (auto& [driver, driver_buffers] : driver_motor_outputs)
+                for (auto& [driver, driver_buffers] : g_driver_motor_outputs)
                 {
                     // 直接从读取缓冲区获取数据
                     auto* read_buffer = driver_buffers.current_read_buffer.load(std::memory_order_acquire);

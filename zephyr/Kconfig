@@ -16,16 +16,18 @@ choice STD_CPP
 endchoice
 
 config OM_CAN_MAX_DJI_MOTOR
-    int "Maximum number of DJI motors"
+    int "CAN总线最大大疆电机数"
     default 4
     help
-      Maximum number of DJI motors that can be controlled simultaneously.
+      单条CAN总线上最大能挂载的大疆电机数量，默认回报率（1000hz）情况下不推荐超过4个。
 
-config ONE_MOTOR_LOG_LEVEL
-    int "OneMotor log level"
-    default 3
-    range 0 4
+config OM_DJI_MOTOR_SKIP_N_FRAME
+    int "DJI 电机跳帧数"
+    default 2
     help
-      Set the log level for OneMotor library.
+      读取DJI电机回报值时跳过 N 帧。增大该值可以减小解算开销，代价是解算精准度降低。设为0时不启用跳帧功能。
+module = ONE_MOTOR
+module-str = OneMotor
+source "subsys/logging/Kconfig.template.log_config"
 
 endif # ONE_MOTOR

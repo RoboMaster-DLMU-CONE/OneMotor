@@ -1,11 +1,17 @@
-#include "autoconf.h"
-#include "OneMotor/Can/CanDriver.hpp"
-#include "OneMotor/Util/Panic.hpp"
+#include <OneMotor/Util/CCM.h>
+#include <OneMotor/Can/CanDriver.hpp>
+#include <OneMotor/Util/Panic.hpp>
 using tl::unexpected;
 using enum OneMotor::ErrorCode;
 
 namespace OneMotor::Can
 {
+    using CallbackFunc = std::function<void(CanFrame&&)>;
+    using Callbacks = std::unordered_map<uint16_t, CallbackFunc>;
+    using Filters = std::unordered_map<uint16_t, std::pair<can_filter, int>>;
+    OM_CCM_ATTR std::unordered_map<const device*, Callbacks> g_callbacks;
+    OM_CCM_ATTR std::unordered_map<const device*, Filters> g_filters;
+
     void rx_callback_entry(const device* dev, can_frame* frame, void* user_data)
     {
         if (const auto callback = static_cast<CanDriver::CallbackFunc*>(user_data))
@@ -20,6 +26,8 @@ namespace OneMotor::Can
         {
             panic("CAN Device not ready.");
         }
+        g_callbacks[can_dev] = {};
+        g_filters[can_dev] = {};
     }
 
     CanDriver::~CanDriver() = default;
@@ -57,6 +65,8 @@ namespace OneMotor::Can
         for (const auto& id : can_ids)
         {
             if (id > 2048) return unexpected(Error{CanDriverInternalError, "specified CAN ID has exceeded 2048."});
+            auto& callbacks = g_callbacks.at(can_dev);
+            auto& filters = g_filters.at(can_dev);
             if (auto it = filters.find(id); it != filters.end())
             {
                 can_remove_rx_filter(can_dev, it->second.second);

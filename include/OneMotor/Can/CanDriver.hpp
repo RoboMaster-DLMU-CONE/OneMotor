@@ -101,8 +101,7 @@ namespace OneMotor::Can
         HyCAN::CANInterface interface; ///< 底层的HyCAN接口实例
 #else
         const device* can_dev;
-        std::unordered_map<uint16_t, CallbackFunc> callbacks;
-        std::unordered_map<uint16_t, std::pair<can_filter, int>> filters{};
+
 
 #endif
     };

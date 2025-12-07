@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20.0)
 find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
-project(onemotor_pid_test)
+project(onemotor_dji_motor_test)
 
 target_sources(app PRIVATE src/main.cpp)

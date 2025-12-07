@@ -136,6 +136,11 @@ namespace OneMotor::Motor::DJI
         std::unique_ptr<PIDController> ang_pid_; ///< 速度环PID控制器
         std::atomic<float> pos_ref_; ///< 目标位置（总角度）
         std::atomic<float> ang_ref_ = {16384}; ///< 速度限制（位置环输出限幅）
+#ifdef CONFIG_OM_DJI_MOTOR_SKIP_N_FRAME
+#if CONFIG_OM_DJI_MOTOR_SKIP_N_FRAME != 0
+        uint8_t skip_frame{};
+#endif
+#endif
     };
 }
 
