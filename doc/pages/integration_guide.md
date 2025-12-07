@@ -18,11 +18,8 @@
     sudo modprobe vcan
     sudo modprobe can
     ```
-    - 需要`pkg-config`和`libnl3`库。Debian系发行版可使用下列命令安装：
-
-    ```shell
-    sudo apt install pkg-config ibnl-3-dev libnl-nf-3-dev
-    ```
+    - 需要[HyCAN](https://github.com/RoboMaster-DLMU-CONE/HyCAN)
+      库。你可以从源代码构建，或者直接在[HyCAN Release](https://github.com/RoboMaster-DLMU-CONE/HyCAN/releases)里下载最新的安装包
 
 ### 使用CMake远程获取
 

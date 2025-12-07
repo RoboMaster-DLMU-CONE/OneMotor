@@ -17,7 +17,12 @@ jobs:
       - name: Install Dependencies
         run: |
           sudo apt update
-          sudo apt install -y pkg-config libnl-3-dev libnl-nf-3-dev linux-modules-extra-$(uname -r)
+          sudo apt install -y curl linux-modules-extra-$(uname -r)
+
+      - name: Install HyCAN .deb
+        run: |
+          curl -L -o hycan-0.8.3-Linux.deb https://github.com/RoboMaster-DLMU-CONE/HyCAN/releases/download/v0.8.3/hycan-0.8.3-Linux.deb
+          sudo apt-get install -y ./hycan-0.8.3-Linux.deb || (sudo dpkg -i hycan-0.8.3-Linux.deb && sudo apt-get install -f -y)
 
       - name: Load CAN Module
         run: |

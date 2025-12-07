@@ -50,10 +50,10 @@ namespace OneMotor::Can
 
     tl::expected<void, Error> CanDriver::registerCallback(const std::set<size_t>& can_ids, const CallbackFunc& func)
     {
-        return interface.tryRegisterCallback<can_frame>(can_ids, [func](can_frame&& frame)
-                                                        {
-                                                            func(std::move(reinterpret_cast<CanFrame&>(frame)));
-                                                        }
+        return interface.register_callback<can_frame>(can_ids, [func](can_frame&& frame)
+                                                      {
+                                                          func(std::move(reinterpret_cast<CanFrame&>(frame)));
+                                                      }
         ).map_error([&](const auto& e)
         {
             return Error({CanDriverInternalError, e.message});
