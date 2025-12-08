@@ -11,7 +11,7 @@ target_sources(${PROJECT_NAME} PRIVATE ${LINUX_SOURCES} ${NORMAL_SOURCES})
 
 include(OneMotorFindHyCAN)
 
-target_link_libraries(${PROJECT_NAME} PUBLIC HyCAN::HyCAN tl::expected)
+target_link_libraries(${PROJECT_NAME} PUBLIC HyCAN::HyCAN tl::expected unordered_dense::unordered_dense)
 
 target_compile_definitions(${PROJECT_NAME} PUBLIC
         ONE_MOTOR_LINUX

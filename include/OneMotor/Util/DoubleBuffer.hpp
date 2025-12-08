@@ -3,6 +3,8 @@
 
 #include <cstring>
 #include <atomic>
+#include <array>
+#include <utility>
 
 /**
  * @file DoubleBuffer.hpp
@@ -19,25 +21,67 @@ namespace OneMotor
     class DoubleBuffer
     {
     public:
-        template <typename... Args>
-        explicit DoubleBuffer(Args&&... args)
+        DoubleBuffer() noexcept
         {
-            new(&m_Buffers[0]) T(std::forward<Args>(args)...);
-            new(&m_Buffers[1])T(std::forward<Args>(args)...);
+            static_assert(std::is_default_constructible_v<T>,
+                          "T must be default constructible for DoubleBuffer default ctor");
+            m_Buffers[0] = T();
+            m_Buffers[1] = T();
             m_CurrentRead.store(&m_Buffers[0], std::memory_order_release);
             m_CurrentWrite = &m_Buffers[1];
         }
 
-        ~DoubleBuffer() noexcept
+        template <typename... Args, typename = std::enable_if_t<std::is_constructible_v<T, Args...>>>
+        explicit DoubleBuffer(Args&&... args)
         {
-            T* r = &m_Buffers[0];
-            T* w = &m_Buffers[1];
-            r->~T();
-            w->~T();
+            m_Buffers = std::array<T, 2>{T(std::forward<Args>(args)...), T(std::forward<Args>(args)...)};
+            m_CurrentRead.store(&m_Buffers[0], std::memory_order_release);
+            m_CurrentWrite = &m_Buffers[1];
         }
 
+        // 禁用拷贝语义
         DoubleBuffer(const DoubleBuffer&) = delete;
         DoubleBuffer& operator=(const DoubleBuffer&) = delete;
+
+        // 移动语义，保证内部原子指针指向新对象的缓冲区
+        DoubleBuffer(DoubleBuffer&& other) noexcept
+        {
+            m_Buffers = std::move(other.m_Buffers);
+
+            T* other_read = other.m_CurrentRead.load(std::memory_order_acquire);
+            std::size_t idx = 0;
+            if (other_read == &other.m_Buffers[0]) idx = 0;
+            else if (other_read == &other.m_Buffers[1]) idx = 1;
+            else idx = 0; // 保守处理（应当不会发生）
+
+            m_CurrentRead.store(&m_Buffers[idx], std::memory_order_release);
+            m_CurrentWrite = &m_Buffers[1 - idx];
+
+            // 留下被移动对象为有效状态
+            other.m_CurrentRead.store(&other.m_Buffers[0], std::memory_order_release);
+            other.m_CurrentWrite = &other.m_Buffers[1];
+        }
+
+        DoubleBuffer& operator=(DoubleBuffer&& other) noexcept
+        {
+            if (this == &other) return *this;
+
+            m_Buffers = std::move(other.m_Buffers);
+
+            T* other_read = other.m_CurrentRead.load(std::memory_order_acquire);
+            std::size_t idx = 0;
+            if (other_read == &other.m_Buffers[0]) idx = 0;
+            else if (other_read == &other.m_Buffers[1]) idx = 1;
+            else idx = 0;
+
+            m_CurrentRead.store(&m_Buffers[idx], std::memory_order_release);
+            m_CurrentWrite = &m_Buffers[1 - idx];
+
+            other.m_CurrentRead.store(&other.m_Buffers[0], std::memory_order_release);
+            other.m_CurrentWrite = &other.m_Buffers[1];
+
+            return *this;
+        }
 
         const T& readView() noexcept
         {
@@ -67,10 +111,7 @@ namespace OneMotor
         }
 
     private:
-        union
-        {
-            T m_Buffers[2];
-        };
+        std::array<T, 2> m_Buffers;
 
         std::atomic<T*> m_CurrentRead{nullptr};
         T* m_CurrentWrite{nullptr};

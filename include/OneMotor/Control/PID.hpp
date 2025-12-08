@@ -89,6 +89,36 @@ namespace OneMotor::Control
     };
 
     /**
+     * @brief 特性包容器，用于将多个特性打包成一个类型。
+     * @tparam Fs 特性列表
+     */
+    template <typename... Fs>
+    struct FeaturePack
+    {
+    };
+
+    namespace Detail
+    {
+        /**
+         * @brief 递归检查特性是否存在。
+         * @tparam Target 要查找的目标特性 (如 WithDeadband)
+         * @tparam T 当前检查的类型 (可能是 FeaturePack，也可能是普通类型)
+         */
+        template <typename Target, typename T>
+        struct HasFeatureCheck : std::is_same<Target, T>
+        {
+        };
+
+        // 特化：如果当前类型是 FeaturePack，则递归检查包内的所有类型
+        template <typename Target, typename... Fs>
+        struct HasFeatureCheck<Target, FeaturePack<Fs...>>
+        {
+            // 使用折叠表达式递归展开
+            static constexpr bool value = (HasFeatureCheck<Target, Fs>::value || ...);
+        };
+    }
+
+    /**
      * @brief 一个通用的、可配置的PID控制器。
      * @tparam Algorithm PID算法类型，可以是 `Positional` (位置式) 或 `Incremental` (增量式)。
      * @tparam ValueType PID计算所使用的数据类型。
@@ -109,15 +139,18 @@ namespace OneMotor::Control
     template <typename Algorithm = Positional, Arithmetic ValueType = float, typename... Features>
     class PIDController
     {
+        template <typename TargetFeature>
+        static constexpr bool Check = (Detail::HasFeatureCheck<TargetFeature, Features>::value || ...);
+
         // 特性检查
         static constexpr bool PositionalPID = std::is_same_v<Algorithm, Positional>;
-        static constexpr bool HasDeadband = (std::is_same_v<Features, WithDeadband> || ...);
-        static constexpr bool HasIntegralLimit = (std::is_same_v<Features, WithIntegralLimit> || ...);
-        static constexpr bool HasDerivativeOnMeasurement =
-            (std::is_same_v<Features, WithDerivativeOnMeasurement> || ...);
-        static constexpr bool HasDerivativeFilter = (std::is_same_v<Features, WithDerivativeFilter> || ...);
-        static constexpr bool HasOutputFilter = (std::is_same_v<Features, WithOutputFilter> || ...);
-        static constexpr bool HasOutputLimit = (std::is_same_v<Features, WithOutputLimit> || ...);
+
+        static constexpr bool HasDeadband = Check<WithDeadband>;
+        static constexpr bool HasIntegralLimit = Check<WithIntegralLimit>;
+        static constexpr bool HasDerivativeOnMeasurement = Check<WithDerivativeOnMeasurement>;
+        static constexpr bool HasDerivativeFilter = Check<WithDerivativeFilter>;
+        static constexpr bool HasOutputFilter = Check<WithOutputFilter>;
+        static constexpr bool HasOutputLimit = Check<WithOutputLimit>;
 
         // 状态变量
         ValueType ITerm{}; ///< 积分项累加值
@@ -130,6 +163,8 @@ namespace OneMotor::Control
         DeltaT<ValueType> deltaT{}; ///< 用于计算时间间隔 `dt`
 
     public:
+        using ParamsType = PID_Params<ValueType>;
+        using ValType = ValueType;
         mutable ValueType MaxOutputVal; ///< 最大输出值
         mutable ValueType DeadbandVal; ///< 死区值
         mutable ValueType IntegralLimitVal; ///< 积分限幅值

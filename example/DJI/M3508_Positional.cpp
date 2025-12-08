@@ -1,20 +1,25 @@
 #include <OneMotor/Can/CanDriver.hpp>
-#include <OneMotor/Control/PID.hpp>
+#include <OneMotor/Control/PIDChain.hpp>
 #include <OneMotor/Motor/DJI/M3508.hpp>
-
-#include "OneMotor/Thread/Othread.hpp"
 
 #include <iostream>
 #include <string>
 
+#include "OneMotor/Motor/DJI/DjiMotor.hpp"
+
 using OneMotor::Control::PID_Params;
-using OneMotor::Motor::DJI::PIDController;
+using OneMotor::Control::PIDChain;
+using OneMotor::Control::createPIDChain;
+using OneMotor::Motor::DJI::PIDFeatures;
+using OneMotor::Motor::DJI::DjiMotor;
+using OneMotor::Motor::DJI::createDjiMotor;
 using OneMotor::Control::Positional;
 using OneMotor::Can::CanDriver;
 using OneMotor::Motor::DJI::M3508;
 using enum OneMotor::Motor::DJI::MotorMode;
+using OneMotor::Motor::DJI::M3508Traits;
 
-static constexpr PID_Params<float> POS_DEFAULT_PARAMS{
+static constexpr PID_Params<> POS_DEFAULT_PARAMS{
     .Kp = 3,
     .Ki = 0.1,
     .Kd = 0,
@@ -22,7 +27,7 @@ static constexpr PID_Params<float> POS_DEFAULT_PARAMS{
     .Deadband = 50,
     .IntegralLimit = 1000,
 };
-static constexpr PID_Params<float> ANG_DEFAULT_PARAMS{
+static constexpr PID_Params<> ANG_DEFAULT_PARAMS{
     .Kp = 0.8,
     .Ki = 0.05,
     .Kd = 0.1,
@@ -33,17 +38,22 @@ static constexpr PID_Params<float> ANG_DEFAULT_PARAMS{
 
 int main()
 {
+    auto pid_chain = createPIDChain()
+                    .add<Positional, float, PIDFeatures>(POS_DEFAULT_PARAMS)
+                    .add<Positional, float, PIDFeatures>(ANG_DEFAULT_PARAMS)
+                    .build();
     CanDriver driver("can0");
-    M3508<1, Position> m1(driver, POS_DEFAULT_PARAMS, ANG_DEFAULT_PARAMS);
-    m1.setPosRef(10000);
-    m1.setAngRef(100);
-    (void)m1.enable();
+    auto m11 = createDjiMotor<M3508Traits, 1>(driver, pid_chain);
+    // M3508<1, Position> m1(driver, POS_DEFAULT_PARAMS, ANG_DEFAULT_PARAMS);
+    // m1.setPosRef(10000);
+    // m1.setAngRef(100);
+    // (void)m1.enable();
 
     std::thread thread([&]
     {
         while (true)
         {
-            std::cout << m1.getStatus().total_angle << std::endl;
+            // std::cout << m1.getStatus().total_angle << std::endl;
             std::this_thread::sleep_for(std::chrono::milliseconds(700));
         }
     });
@@ -60,7 +70,7 @@ int main()
             float ref;
             std::cout << "Enter new ref value: ";
             std::cin >> ref;
-            m1.setPosRef(ref);
+            // m1.setPosRef(ref);
         }
         else if (param_to_change == "exit")
         {

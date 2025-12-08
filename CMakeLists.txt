@@ -9,6 +9,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 
 include(OneMotorFindTlExpected)
+include(OneMotorFindAnkerl)
 
 if (ZEPHYR_TOOLCHAIN_VARIANT)
     project(onemotor VERSION 0.6.0)
