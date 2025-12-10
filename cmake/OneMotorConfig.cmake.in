@@ -33,21 +33,6 @@ if(NOT TARGET tl::expected)
 
 endif()
 
-if (NOT TARGET unordered_dense::unordered_dense)
-    cmake_policy(PUSH)
-    cmake_policy(SET CMP0135 NEW)
-    include(FetchContent)
-    FetchContent_Declare(
-            unordered_dense
-            GIT_REPOSITORY https://gitee.com/dlmu-cone/unordered_dense.git
-            GIT_TAG main
-            GIT_SHALLOW true
-    )
-    FetchContent_MakeAvailable(unordered_dense)
-    cmake_policy(POP)
-endif ()
-
-
 find_dependency(HyCAN REQUIRED)
 
 if(NOT TARGET OneMotor::OneMotor)
