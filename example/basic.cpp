@@ -1,12 +1,9 @@
 #include <iostream>
-#include <thread>
 #include <OneMotor/Control/PID.hpp>
 #include <OneMotor/Util/DeltaT.hpp>
 #include <OneMotor/Thread/Othread.hpp>
 
 #include "OneMotor/Can/CanDriver.hpp"
-#include "OneMotor/Can/CanFrame.hpp"
-#include "OneMotor/Motor/DJI/M3508.hpp"
 
 using OneMotor::DeltaT;
 using OneMotor::Control::PID_Params;
@@ -14,9 +11,6 @@ using OneMotor::Control::PIDController;
 using OneMotor::Control::Positional;
 using OneMotor::Thread::Othread;
 using OneMotor::Can::CanDriver;
-using OneMotor::Motor::DJI::M3508;
-using enum OneMotor::Motor::DJI::MotorMode;
-
 
 int main()
 {

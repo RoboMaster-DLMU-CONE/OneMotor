@@ -8,15 +8,22 @@
 
 #include <OneMotor/Util/Panic.hpp>
 #include <OneMotor/Util/CCM.h>
+#include <ankerl/unordered_dense.h>
+
+#include "OneMotor/Util/DoubleBuffer.hpp"
+
 using tl::unexpected;
 using enum OneMotor::ErrorCode;
 
 namespace OneMotor::Motor::DJI
 {
+    using OutputArray = std::array<uint8_t, 8>;
+    using ControlBuffers = ankerl::unordered_dense::map<uint16_t, DoubleBuffer<OutputArray>>;
     /// @brief 记录每个CAN驱动下注册了哪些电机ID
     OM_CCM_ATTR std::unordered_map<Can::CanDriver*, std::set<uint16_t>> g_driver_motor_ids;
     /// @brief 存储每个CAN驱动要发送的电机电流数据
-    OM_CCM_ATTR std::unordered_map<Can::CanDriver*, MotorManager::DriverOutputBuffers> g_driver_motor_outputs;
+    // OM_CCM_ATTR std::unordered_map<Can::CanDriver*, MotorManager::DriverOutputBuffers> g_driver_motor_outputs;
+    OM_CCM_ATTR ankerl::unordered_dense::map<Can::CanDriver*, ControlBuffers> g_driver_motor_outputs;
 
     MotorManager::~MotorManager()
     {
@@ -83,26 +90,18 @@ namespace OneMotor::Motor::DJI
         return unexpected(Error{DJIMotorManagerError, "Can't find specified CanDriver in MotorManager."});
     }
 
-    template <uint8_t id>
-    void MotorManager::pushOutput(Can::CanDriver& driver, const uint8_t lo_value, const uint8_t hi_value) noexcept
+    void MotorManager::pushOutput(Can::CanDriver& driver, const uint16_t control_can_id, const uint8_t offset,
+                                  const uint8_t lo_value, const uint8_t hi_value) noexcept
     {
-        constexpr uint8_t base_index = (id - 1) * 2;
         // 直接写入工作缓冲区
         auto& driver_buffers = g_driver_motor_outputs[&driver];
-        auto& output_buffer = *driver_buffers.current_write_buffer;
+        auto& output_buffer = driver_buffers[control_can_id];
+        auto& raw_buffer = output_buffer.write();
 
-        output_buffer[base_index] = hi_value;
-        output_buffer[base_index + 1] = lo_value;
+        raw_buffer[offset] = hi_value;
+        raw_buffer[offset + 1] = lo_value;
         // 每次写入后交换缓冲区，使发送线程能看到最新数据
-        swapBuffers(driver_buffers);
-    }
-
-    void MotorManager::swapBuffers(DriverOutputBuffers& driver_buffers) noexcept
-    {
-        // 原子交换读写缓冲区指针
-        auto* old_read = driver_buffers.current_read_buffer.exchange(
-            driver_buffers.current_write_buffer, std::memory_order_acq_rel);
-        driver_buffers.current_write_buffer = old_read;
+        output_buffer.swap();
     }
 
     MotorManager::MotorManager()
@@ -113,39 +112,29 @@ namespace OneMotor::Motor::DJI
             {
                 for (auto& [driver, driver_buffers] : g_driver_motor_outputs)
                 {
-                    // 直接从读取缓冲区获取数据
-                    auto* read_buffer = driver_buffers.current_read_buffer.load(std::memory_order_acquire);
-
-                    Can::CanFrame frame;
-                    frame.dlc = 8;
-                    frame.id = 0x200;
-                    std::copy_n(read_buffer->data(), 8, frame.data);
-                    auto result = driver->send(frame);
-
-                    static constexpr uint8_t zero_bytes[8] = {0};
-                    if (memcmp(read_buffer->data() + 8, zero_bytes, 8) != 0)
+                    for (auto& [control_can_id, output_buffer] : driver_buffers)
                     {
-                        frame.id = 0x1FF;
-                        std::copy_n(read_buffer->data() + 8, 8, frame.data);
-                        result = driver->send(frame);
-                    }
-                    if (!result)
-                    {
-                        panic("Failed to send CAN Message in MotorManager");
+                        Can::CanFrame frame;
+                        frame.dlc = 8;
+                        frame.id = control_can_id;
+                        std::copy_n(output_buffer.readView().data(), 8, frame.data);
+                        if (const auto result = driver->send(frame); !result)
+                        {
+                            panic("Failed to send CAN Message in MotorManager");
+                        }
                     }
                 }
 
+#ifdef CONFIG_OM_DJI_MOTOR_SKIP_N_FRAME
+#if CONFIG_OM_DJI_MOTOR_SKIP_N_FRAME != 0
+                Thread::sleep_for(std::chrono::milliseconds(CONFIG_OM_DJI_MOTOR_SKIP_N_FRAME * 5));
+#else
                 Thread::sleep_for(std::chrono::milliseconds(1));
+#endif
+#else
+                Thread::sleep_for(std::chrono::milliseconds(1));
+#endif
             }
         });
     }
-
-    template void MotorManager::pushOutput<1>(Can::CanDriver& driver, uint8_t lo_value, uint8_t hi_value) noexcept;
-    template void MotorManager::pushOutput<2>(Can::CanDriver& driver, uint8_t lo_value, uint8_t hi_value) noexcept;
-    template void MotorManager::pushOutput<3>(Can::CanDriver& driver, uint8_t lo_value, uint8_t hi_value) noexcept;
-    template void MotorManager::pushOutput<4>(Can::CanDriver& driver, uint8_t lo_value, uint8_t hi_value) noexcept;
-    template void MotorManager::pushOutput<5>(Can::CanDriver& driver, uint8_t lo_value, uint8_t hi_value) noexcept;
-    template void MotorManager::pushOutput<6>(Can::CanDriver& driver, uint8_t lo_value, uint8_t hi_value) noexcept;
-    template void MotorManager::pushOutput<7>(Can::CanDriver& driver, uint8_t lo_value, uint8_t hi_value) noexcept;
-    template void MotorManager::pushOutput<8>(Can::CanDriver& driver, uint8_t lo_value, uint8_t hi_value) noexcept;
 }

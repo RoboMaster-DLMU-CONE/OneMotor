@@ -72,28 +72,15 @@ namespace OneMotor::Motor::DJI
          * @brief 将一个电机的目标电流值推送到发送缓冲区。
          * @tparam id 电机的ID (1-8)，对应其在CAN帧数据区的位置。
          * @param driver 电机所挂载的CAN总线驱动。
+         * @param control_can_id
+         * @param offset
          * @param lo_value 电流值的低8位。
          * @param hi_value 电流值的高8位。
          */
-        template <uint8_t id>
-        void pushOutput(Can::CanDriver& driver, uint8_t lo_value, uint8_t hi_value) noexcept;
-
-        using OutputArray = std::array<uint8_t, 16>; ///< 存储两组CAN帧数据的数组 (2*8=16字节)
-        // 双缓冲区优化：使用原子指针实现无锁pushOutput
-        struct DriverOutputBuffers
-        {
-            OutputArray buffers[2]{}; ///< 双缓冲区
-            std::atomic<OutputArray*> current_read_buffer{&buffers[0]}; ///< 发送线程读取的缓冲区
-            OutputArray* current_write_buffer{&buffers[1]}; ///< PID线程写入的缓冲区（无需原子）
-        };
+        void pushOutput(Can::CanDriver& driver, uint16_t control_can_id, uint8_t offset, uint8_t lo_value,
+                        uint8_t hi_value) noexcept;
 
     private:
-        /**
-            * @brief 交换指定驱动的读写缓冲区
-            * @param driver_buffers 驱动对应的缓冲区结构
-        */
-        void swapBuffers(DriverOutputBuffers& driver_buffers) noexcept;
-
         /**
          * @brief 私有构造函数，在`getInstance`中首次调用时执行。
          * @details 初始化并启动后台发送线程。

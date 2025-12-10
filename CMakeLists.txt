@@ -9,11 +9,12 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 
 include(OneMotorFindTlExpected)
+include(OneMotorFindAnkerl)
 
 if (ZEPHYR_TOOLCHAIN_VARIANT)
-    project(onemotor VERSION 0.6.0)
+    project(onemotor VERSION 0.7.0)
 else ()
-    project(OneMotor VERSION 0.6.0)
+    project(OneMotor VERSION 0.7.0)
 endif ()
 
 file(GLOB_RECURSE LINUX_SOURCES CONFIGURE_DEPENDS "src/L_*.cpp")

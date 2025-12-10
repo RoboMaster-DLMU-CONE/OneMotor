@@ -14,21 +14,20 @@ using OneMotor::Motor::DJI::DjiMotor;
 using OneMotor::Motor::DJI::createDjiMotor;
 using OneMotor::Control::Positional;
 using OneMotor::Can::CanDriver;
-using OneMotor::Motor::DJI::M3508Traits;
+using OneMotor::Motor::DJI::GM6020CurrentTraits;
+using OneMotor::Motor::DJI::GM6020VoltageTraits;
 
 static constexpr PID_Params<> POS_DEFAULT_PARAMS{
-    .Kp = 3,
-    .Ki = 0.1,
-    .Kd = 0,
-    .MaxOutput = 20000,
+    .Kp = 8.1,
+    .Ki = 0.04,
+    .Kd = 0.5,
     .Deadband = 50,
-    .IntegralLimit = 1000,
+    .IntegralLimit = 2000,
 };
 static constexpr PID_Params<> ANG_DEFAULT_PARAMS{
-    .Kp = 0.8,
+    .Kp = 2.5,
     .Ki = 0.05,
-    .Kd = 0.1,
-    .MaxOutput = 8000,
+    .Kd = 0.5,
     .Deadband = 10,
     .IntegralLimit = 100,
 };
@@ -40,8 +39,9 @@ int main()
                     .add<Positional, float, PIDFeatures>(ANG_DEFAULT_PARAMS)
                     .build();
     CanDriver driver("can0");
-    auto m1 = createDjiMotor<M3508Traits, 1>(driver, pid_chain);
-    m1.setPosRef(10000);
+    auto m1 = createDjiMotor<GM6020VoltageTraits, 1>(driver, pid_chain);
+    auto m2 = createDjiMotor<OneMotor::Motor::DJI::M2006Traits, 5>(driver, pid_chain);
+    m1.setPosRef(1000);
     m1.setAngRef(100);
     (void)m1.enable();
 
@@ -66,7 +66,7 @@ int main()
             float ref;
             std::cout << "Enter new ref value: ";
             std::cin >> ref;
-            // m1.setPosRef(ref);
+            m1.setPosRef(ref);
         }
         else if (param_to_change == "exit")
         {
