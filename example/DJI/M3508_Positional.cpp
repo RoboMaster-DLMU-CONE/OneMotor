@@ -1,6 +1,5 @@
 #include <OneMotor/Can/CanDriver.hpp>
 #include <OneMotor/Control/PIDChain.hpp>
-#include <OneMotor/Motor/DJI/M3508.hpp>
 
 #include <iostream>
 #include <string>
@@ -15,8 +14,6 @@ using OneMotor::Motor::DJI::DjiMotor;
 using OneMotor::Motor::DJI::createDjiMotor;
 using OneMotor::Control::Positional;
 using OneMotor::Can::CanDriver;
-using OneMotor::Motor::DJI::M3508;
-using enum OneMotor::Motor::DJI::MotorMode;
 using OneMotor::Motor::DJI::M3508Traits;
 
 static constexpr PID_Params<> POS_DEFAULT_PARAMS{
@@ -44,7 +41,6 @@ int main()
                     .build();
     CanDriver driver("can0");
     auto m1 = createDjiMotor<M3508Traits, 1>(driver, pid_chain);
-    // M3508<1, Position> m1(driver, POS_DEFAULT_PARAMS, ANG_DEFAULT_PARAMS);
     m1.setPosRef(10000);
     m1.setAngRef(100);
     (void)m1.enable();
@@ -62,7 +58,7 @@ int main()
     while (true)
     {
         std::string param_to_change;
-        std::cout << "Enter parameter to change (ref, kp, kd, ki) or 'exit': ";
+        std::cout << "Enter parameter to change ('ref') or 'exit': ";
         std::cin >> param_to_change;
 
         if (param_to_change == "ref")

@@ -60,7 +60,14 @@ namespace OneMotor::Motor::DJI
         template <uint8_t motor_id>
         static consteval uint16_t cal_control_offset()
         {
-            return (motor_id - 1) * 2;
+            if constexpr (motor_id <= 4)
+            {
+                return (motor_id - 1) * 2;
+            }
+            else
+            {
+                return (motor_id - 4 - 1) * 2;
+            }
         }
 
         template <uint8_t motor_id>
@@ -94,7 +101,14 @@ namespace OneMotor::Motor::DJI
         template <uint8_t motor_id>
         static consteval uint16_t cal_control_offset()
         {
-            return (motor_id - 1) * 2;
+            if constexpr (motor_id <= 4)
+            {
+                return (motor_id - 1) * 2;
+            }
+            else
+            {
+                return (motor_id - 4 - 1) * 2;
+            }
         }
 
         template <uint8_t motor_id>
@@ -110,14 +124,78 @@ namespace OneMotor::Motor::DJI
         static constexpr uint16_t encoder_resolution = 8192;
         static constexpr bool gearbox = false;
         static constexpr uint8_t max_id = 7;
+
+        template <uint8_t motor_id>
+        static consteval uint16_t cal_control_id()
+        {
+            if constexpr (motor_id <= 4)
+            {
+                return 0x1FF;
+            }
+            else
+            {
+                return 0x2FF;
+            }
+        }
+
+        template <uint8_t motor_id>
+        static consteval uint16_t cal_control_offset()
+        {
+            if constexpr (motor_id <= 4)
+            {
+                return (motor_id - 1) * 2;
+            }
+            else
+            {
+                return (motor_id - 4 - 1) * 2;
+            }
+        }
+
+        template <uint8_t motor_id>
+        static consteval uint16_t cal_feedback_id()
+        {
+            return motor_id + 0x204;
+        }
     };
 
     struct GM6020CurrentTraits : MotorTraits<GM6020CurrentTraits>
     {
-        static constexpr uint16_t max_current = 16384;
+        static constexpr uint16_t max_output = 25000;
         static constexpr uint16_t encoder_resolution = 8192;
         static constexpr bool gearbox = false;
         static constexpr uint8_t max_id = 7;
+
+        template <uint8_t motor_id>
+        static consteval uint16_t cal_control_id()
+        {
+            if constexpr (motor_id <= 4)
+            {
+                return 0x1FE;
+            }
+            else
+            {
+                return 0x2FE;
+            }
+        }
+
+        template <uint8_t motor_id>
+        static consteval uint16_t cal_control_offset()
+        {
+            if constexpr (motor_id <= 4)
+            {
+                return (motor_id - 1) * 2;
+            }
+            else
+            {
+                return (motor_id - 4 - 1) * 2;
+            }
+        }
+
+        template <uint8_t motor_id>
+        static consteval uint16_t cal_feedback_id()
+        {
+            return motor_id + 0x204;
+        }
     };
 }
 
