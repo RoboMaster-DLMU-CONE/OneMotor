@@ -36,11 +36,8 @@ namespace OneMotor::Motor::DJI
             m_driver(driver),
             m_pid_chain(pid_chain)
         {
-            if (!m_driver.is_open())
-            {
-                (void)m_driver.open()
-                              .or_else([](const auto& e) { panic(std::move(e.message)); });
-            }
+            (void)m_driver.open()
+                          .or_else([](const auto& e) { panic(std::move(e.message)); });
             MotorManager& manager = MotorManager::getInstance();
             (void)manager.registerMotor(m_driver, Traits::template feedback_id<id>()).or_else([](const auto& e)
             {
@@ -66,6 +63,37 @@ namespace OneMotor::Motor::DJI
                 panic(std::move(e.message));
             });
         };
+
+        tl::expected<void, Error> enable()
+        {
+            return m_driver.registerCallback({Traits::template feedback_id<id>()}, [this](Can::CanFrame&& frame)
+            {
+                this->m_enabled_func(std::move(frame));
+            });
+        }
+
+        tl::expected<void, Error> disable()
+        {
+            return m_driver.registerCallback({Traits::template feedback_id<id>()}, [this](Can::CanFrame&& frame)
+            {
+                this->m_disabled_func(std::move(frame));
+            });
+        }
+
+        void setAngRef(const float ref)
+        {
+            m_ang_ref.store(ref, std::memory_order_release);
+        }
+
+        void setPosRef(const float ref)
+        {
+            m_pos_ref.store(ref, std::memory_order_release);
+        }
+
+        MotorStatus getStatus()
+        {
+            return m_Buffer.readCopy();
+        }
 
     private:
         static constexpr float RPM_2_ANGLE_PER_SEC = 6.0f;
@@ -126,7 +154,10 @@ namespace OneMotor::Motor::DJI
             this->m_Buffer.swap();
             const uint8_t hi_byte = output_current >> 8;
             const uint8_t lo_byte = output_current & 0xFF;
-            MotorManager::getInstance().pushOutput(m_driver, Traits::control_id(), Traits::offset(), lo_byte, hi_byte);
+            MotorManager::getInstance().pushOutput(m_driver, Traits::template control_id<id>(),
+                                                   Traits::template control_offset<id>(),
+                                                   lo_byte,
+                                                   hi_byte);
         }
 
         Can::CanDriver& m_driver;

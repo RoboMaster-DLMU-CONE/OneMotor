@@ -43,17 +43,17 @@ int main()
                     .add<Positional, float, PIDFeatures>(ANG_DEFAULT_PARAMS)
                     .build();
     CanDriver driver("can0");
-    auto m11 = createDjiMotor<M3508Traits, 1>(driver, pid_chain);
+    auto m1 = createDjiMotor<M3508Traits, 1>(driver, pid_chain);
     // M3508<1, Position> m1(driver, POS_DEFAULT_PARAMS, ANG_DEFAULT_PARAMS);
-    // m1.setPosRef(10000);
-    // m1.setAngRef(100);
-    // (void)m1.enable();
+    m1.setPosRef(10000);
+    m1.setAngRef(100);
+    (void)m1.enable();
 
     std::thread thread([&]
     {
         while (true)
         {
-            // std::cout << m1.getStatus().total_angle << std::endl;
+            std::cout << m1.getStatus().total_angle << std::endl;
             std::this_thread::sleep_for(std::chrono::milliseconds(700));
         }
     });
@@ -81,7 +81,5 @@ int main()
             std::cout << "Invalid parameter." << std::endl;
         }
     }
-
-    (void)driver.close();
     return 0;
 }
