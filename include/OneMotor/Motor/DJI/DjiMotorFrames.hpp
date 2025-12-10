@@ -2,7 +2,12 @@
 #define ONEMOTOR_DJIMOTORFRAME_HPP
 
 #include <cstdint>
+#ifdef ONE_MOTOR_LINUX
 #include <format>
+#else
+#include <sstream>
+#include <iomanip>
+#endif
 #include <string>
 
 #include "OneMotor/Can/CanFrame.hpp"

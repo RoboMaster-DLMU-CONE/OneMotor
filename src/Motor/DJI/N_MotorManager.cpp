@@ -125,7 +125,15 @@ namespace OneMotor::Motor::DJI
                     }
                 }
 
+#ifdef CONFIG_OM_DJI_MOTOR_SKIP_N_FRAME
+#if CONFIG_OM_DJI_MOTOR_SKIP_N_FRAME != 0
+                Thread::sleep_for(std::chrono::milliseconds(CONFIG_OM_DJI_MOTOR_SKIP_N_FRAME * 5));
+#else
                 Thread::sleep_for(std::chrono::milliseconds(1));
+#endif
+#else
+                Thread::sleep_for(std::chrono::milliseconds(1));
+#endif
             }
         });
     }

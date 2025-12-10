@@ -131,15 +131,21 @@ namespace OneMotor::Motor::DJI
 
         void m_enabled_func(Can::CanFrame&& frame)
         {
+#ifdef CONFIG_OM_DJI_MOTOR_SKIP_N_FRAME
+#if CONFIG_OM_DJI_MOTOR_SKIP_N_FRAME != 0
+            if (m_skip_frame++ < CONFIG_OM_DJI_MOTOR_SKIP_N_FRAME) return;
+            m_skip_frame = 0;
+#endif
+#endif
             const auto msg = static_cast<RawStatusFrame>(frame);
             trMsgToStatus(msg, this->m_Buffer.write());
             float ang_result{};
-            if constexpr (m_pid_chain.size() == 1)
+            if constexpr (Control::PIDChain<PID_Nodes...>::Size == 1)
             {
                 ang_result = m_pid_chain.compute(m_ang_ref.load(std::memory_order_acquire),
                                                  this->m_Buffer.write().angular);
             }
-            else if constexpr (m_pid_chain.size() == 2)
+            else if constexpr (Control::PIDChain<PID_Nodes...>::Size == 2)
             {
                 ang_result = m_pid_chain
                    .compute(
@@ -166,6 +172,11 @@ namespace OneMotor::Motor::DJI
 
         std::atomic<float> m_ang_ref{};
         std::atomic<float> m_pos_ref{};
+#ifdef CONFIG_OM_DJI_MOTOR_SKIP_N_FRAME
+#if CONFIG_OM_DJI_MOTOR_SKIP_N_FRAME != 0
+        uint8_t m_skip_frame{};
+#endif
+#endif
     };
 
     template <typename Traits, uint8_t id, typename... PID_Nodes>
