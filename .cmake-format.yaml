@@ -1,0 +1,29 @@
+format:
+  line_width: 100
+  tab_size: 4
+  layout_passes:
+    - [1, 1, 1]
+  command_case: lower
+  keyword_case: upper
+
+  separate_ctrl_name_with_space: False
+  separate_fn_name_with_space: False
+
+  max_pargs_per_line: 1
+  
+  autosort: True
+
+  enable_comment_formatting: True
+  comment_prefix: " # "
+
+parse:
+  additional_commands:
+    add_library:
+      flags: [STATIC, SHARED, MODULE, EXCLUDE_FROM_ALL]
+      kwargs:
+        SOURCES: '*'
+    target_sources:
+      kwargs:
+        PUBLIC: '*'
+        PRIVATE: '*'
+        INTERFACE: '*'

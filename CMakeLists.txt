@@ -5,16 +5,18 @@ set(CMAKE_CXX_STANDARD 20)
 
 option(BUILD_OM_EXAMPLE "Build OneMotor Examples" OFF)
 option(BUILD_OM_TEST "Build OneMotor Tests" OFF)
+option(BUILD_OM_INSTALL "Build OneMotor CMake install scripts" OFF)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 
 include(OneMotorFindTlExpected)
 include(OneMotorFindAnkerl)
+include(OneMotorFindMpUnits)
 
 if (ZEPHYR_TOOLCHAIN_VARIANT)
-    project(onemotor VERSION 0.7.0)
+  project(onemotor VERSION 0.8.0)
 else ()
-    project(OneMotor VERSION 0.7.0)
+  project(OneMotor VERSION 0.8.0)
 endif ()
 
 file(GLOB_RECURSE LINUX_SOURCES CONFIGURE_DEPENDS "src/L_*.cpp")
@@ -22,19 +24,19 @@ file(GLOB_RECURSE ZEPHYR_SOURCES CONFIGURE_DEPENDS "src/Z_*.cpp")
 file(GLOB_RECURSE NORMAL_SOURCES CONFIGURE_DEPENDS "src/N_*.cpp")
 
 if (ZEPHYR_TOOLCHAIN_VARIANT)
-    include(OneMotorZephyr)
+  include(OneMotorZephyr)
 else ()
-    include(OneMotorLinux)
+  include(OneMotorLinux)
 endif ()
 
 include(OneMotorConfiguration)
 
 if (BUILD_OM_EXAMPLE)
-    include(OneMotorExamples)
+  include(OneMotorExamples)
 endif ()
 
 if (BUILD_OM_TEST)
-    include(OneMotorTests)
+  include(OneMotorTests)
 endif ()
 
 include(OneMotorGenerateDoc)
