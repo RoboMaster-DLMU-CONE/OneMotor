@@ -4,10 +4,13 @@
 #include <mp-units/framework.h>
 #include <mp-units/systems/angular.h>
 #include <mp-units/systems/si.h>
+#include <mp-units/systems/si/unit_symbols.h>
+#include <mp-units/systems/si/units.h>
 
 namespace OneMotor::Units {
 
 using mp_units::quantity;
+using mp_units::quantity_point;
 using mp_units::angular::degree;
 using mp_units::angular::radian;
 using mp_units::angular::revolution;
@@ -32,11 +35,15 @@ using Torque = quantity<newton * metre, float>;
 using Current = quantity<ampere, float>;
 using CurrentMilli = quantity<milli<ampere>, float>;
 
-using Temperature = quantity<degree_Celsius, float>;
+using Temperature =
+    quantity_point<degree_Celsius, mp_units::si::absolute_zero, float>;
 
 namespace literals {
-using namespace mp_units::si::unit_symbols;
 using namespace mp_units::angular::unit_symbols;
+using mp_units::si::unit_symbols::deg_C;
+using mp_units::si::unit_symbols::m;
+using mp_units::si::unit_symbols::N;
+using mp_units::si::unit_symbols::s;
 } // namespace literals
 
 } // namespace OneMotor::Units

@@ -4,9 +4,27 @@
 #include <OneMotor/Can/CanDriver.hpp>
 #include <OneMotor/Motor/MotorConcepts.hpp>
 #include <OneMotor/Units/Units.hpp>
+#include <OneMotor/Util/Error.hpp>
 #include <atomic>
+#include <tl/expected.hpp>
 
 namespace OneMotor::Motor {
+
+template <typename T>
+concept HasPosHook = requires(T t) {
+    { t.afterPosRef() };
+};
+
+template <typename T>
+concept HasAngHook = requires(T t) {
+    { t.afterAngRef() };
+};
+
+template <typename T>
+concept HasTorHook = requires(T t) {
+    { t.afterTorRef() };
+};
+
 template <typename Derived, MotorTraits Traits, typename Policy>
 class MotorBase {
   public:
@@ -14,6 +32,41 @@ class MotorBase {
     using PolicyType = Policy;
     using TraitsType = Traits;
     explicit MotorBase(Can::CanDriver &driver, Policy policy = Policy{}) {}
+
+    tl::expected<void, Error> enable() { return derived().enableImpl(); }
+
+    tl::expected<void, Error> disable() { return derived().disableImpl(); }
+
+    tl::expected<void, Error> setPosRef(Units::Angle ref) {
+        m_pos_ref.store(ref, std::memory_order_release);
+        if constexpr (HasPosHook<Derived>)
+            return derived().afterPosRef();
+        else
+            return {};
+    }
+
+    tl::expected<void, Error> setAngRef(Units::AngularVelocity ref) {
+        m_ang_ref.store(ref, std::memory_order_release);
+        if constexpr (HasAngHook<Derived>)
+            return derived().afterAngRef();
+        else
+            return {};
+    }
+
+    tl::expected<void, Error> setTorRef(Units::Torque ref) {
+        m_tor_ref.store(ref, std::memory_order_release);
+        if constexpr (HasTorHook<Derived>)
+            return derived().afterTorRef();
+        else
+            return {};
+    }
+
+    StatusType getStatus() { return derived().getStatusImpl(); }
+
+    Policy &getPolicy() { return m_policy; }
+    const Policy &getPolicy() const { return m_policy; }
+
+    void setPolicy(Policy policy) { m_policy = std::move(policy); }
 
   protected:
     std::atomic<Units::Angle> m_pos_ref{};
