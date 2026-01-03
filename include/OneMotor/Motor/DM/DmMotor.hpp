@@ -3,6 +3,7 @@
 
 #include "DmPolicy.hpp"
 #include "DmTraits.hpp"
+#include "OneMotor/Motor/DM/DmFrame.hpp"
 #include <OneMotor/Can/CanFrame.hpp>
 #include <OneMotor/Motor/MotorBase.hpp>
 #include <OneMotor/Util/DoubleBuffer.hpp>
@@ -24,23 +25,49 @@ inline constexpr uint8_t CLEAN_ERROR_DATA[8] = {0xFF, 0xFF, 0xFF, 0xFF,
 } // namespace detail
 
 template <typename Traits = DmTraits, typename Policy = MITPolicy<>>
-class DmMotor : MotorBase<DmMotor<Traits, Policy>, Traits, Policy> {
+class DmMotor : public MotorBase<DmMotor<Traits, Policy>, Traits, Policy> {
+  public:
     using Base = MotorBase<DmMotor<Traits, Policy>, Traits, Policy>;
     friend Base;
-    DmMotor(Can::CanDriver &driver, uint16_t canId, uint16_t masterId)
+    DmMotor(Can::CanDriver &driver, uint16_t canId, uint16_t masterId,
+            Policy policy = {})
         : Base(driver), m_masterId(masterId), m_canId(canId) {
 
         const auto result = this->m_driver.open().and_then([this] {
             return this->m_driver.registerCallback(
                 {m_masterId}, [&](Can::CanFrame &&frame) {
-                    const auto msg = static_cast<DmStatus>(frame);
-                    m_buffer.push(msg);
+                    this->onFeedback(std::move(frame));
                 });
         });
         if (!result) {
             panic("Register Callback Failed for DM Motor");
         }
     }
+
+    tl::expected<void, Error> setZeroPosition() {
+        return sendControlFrame(detail::SETZERO_FRAME_DATA);
+    }
+
+    tl::expected<void, Error> clearError() {
+        return sendControlFrame(detail::CLEAN_ERROR_DATA);
+    }
+
+  protected:
+    tl::expected<void, Error> enableImpl() {
+        return sendControlFrame(detail::ENABLE_FRAME_DATA);
+    }
+
+    tl::expected<void, Error> disableImpl() {
+        return sendControlFrame(detail::DISABLE_FRAME_DATA);
+    }
+
+    tl::expected<typename Traits::StatusType, Error> getStatusImpl() {
+        // TODO: add fetch new status logic
+        return m_buffer.readCopy();
+    }
+    tl::expected<void, Error> afterPosRef() { return update(); }
+    tl::expected<void, Error> afterAngRef() { return update(); }
+    tl::expected<void, Error> afterTorRef() { return update(); }
 
   private:
     tl::expected<void, Error> sendControlFrame(const uint8_t *data) {
@@ -51,6 +78,13 @@ class DmMotor : MotorBase<DmMotor<Traits, Policy>, Traits, Policy> {
         memcpy(&frame.data, data, 8);
         return this->m_driver.send(frame);
     };
+
+    tl::expected<void, Error> update() {
+        auto status = m_buffer.readCopy();
+        auto output = this->m_policy.compute(
+            this->getPosRef(), this->getAngRef(), this->getTorRef(), status);
+        return applyOutput(output);
+    }
 
     tl::expected<void, Error> applyOutput(const DmControlOutput &output) {
         switch (output.mode) {
@@ -119,7 +153,7 @@ class DmMotor : MotorBase<DmMotor<Traits, Policy>, Traits, Policy> {
     }
 
     void onFeedback(Can::CanFrame &&frame) {
-        m_buffer.push(Traits::StatusType(frame));
+        m_buffer.push(typename Traits::StatusType(frame));
     }
 
     uint16_t m_masterId{}, m_canId{};

@@ -3,6 +3,7 @@
 
 #include <mp-units/framework.h>
 #include <mp-units/systems/angular.h>
+#include <mp-units/systems/angular/units.h>
 #include <mp-units/systems/si.h>
 #include <mp-units/systems/si/unit_symbols.h>
 #include <mp-units/systems/si/units.h>
@@ -40,6 +41,7 @@ using Temperature =
 
 namespace literals {
 using namespace mp_units::angular::unit_symbols;
+using mp_units::angular::unit_symbols::deg;
 using mp_units::si::unit_symbols::deg_C;
 using mp_units::si::unit_symbols::m;
 using mp_units::si::unit_symbols::N;

@@ -31,7 +31,8 @@ class MotorBase {
     using StatusType = typename Traits::StatusType;
     using PolicyType = Policy;
     using TraitsType = Traits;
-    explicit MotorBase(Can::CanDriver &driver, Policy policy = Policy{}) {}
+    explicit MotorBase(Can::CanDriver &driver, Policy policy = Policy{})
+        : m_driver(driver), m_policy(std::move(policy)) {}
 
     tl::expected<void, Error> enable() { return derived().enableImpl(); }
 
@@ -61,7 +62,9 @@ class MotorBase {
             return {};
     }
 
-    StatusType getStatus() { return derived().getStatusImpl(); }
+    tl::expected<StatusType, Error> getStatus() {
+        return derived().getStatusImpl();
+    }
 
     Policy &getPolicy() { return m_policy; }
     const Policy &getPolicy() const { return m_policy; }
