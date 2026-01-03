@@ -2,43 +2,34 @@
 #define ONEMOTOR_DJIMOTOR_HPP
 #include <concepts>
 
-#include "DjiMotorFrames.hpp"
+#include "DjiFrames.hpp"
+#include "DjiTraits.hpp"
 #include "MotorManager.hpp"
-#include "Traits.hpp"
+#include "OneMotor/Motor/MotorBase.hpp"
 #include <OneMotor/Can/CanDriver.hpp>
 #include <OneMotor/Control/PIDChain.hpp>
 #include <OneMotor/Util/DoubleBuffer.hpp>
 #include <OneMotor/Util/Panic.hpp>
 
 namespace OneMotor::Motor::DJI {
-using PIDFeatures =
-    Control::FeaturePack<Control::WithDeadband, Control::WithIntegralLimit,
-                         Control::WithOutputLimit, Control::WithOutputFilter,
-                         Control::WithDerivativeFilter>;
 
-template <typename Traits, uint8_t id>
-concept ValidMotorId = requires {
-    { Traits::max_id } -> std::convertible_to<uint8_t>;
-} && (id >= 1 && id <= Traits::max_id);
-
-template <typename Traits, uint8_t id, typename... PID_Nodes>
-    requires ValidMotorId<Traits, id>
-class DjiMotor {
+template <typename Traits, typename Policy>
+class DjiMotor : public MotorBase<DjiMotor<Traits, Policy>, Traits, Policy> {
   public:
-    explicit DjiMotor(Can::CanDriver &driver,
-                      const Control::PIDChain<PID_Nodes...> &pid_chain)
-        : m_driver(driver), m_pid_chain(pid_chain) {
-        (void)m_driver.open().or_else(
+    using Base = MotorBase<DjiMotor<Traits, Policy>, Traits, Policy>;
+    friend Base;
+    explicit DjiMotor(Can::CanDriver &driver, Policy policy)
+        : Base(driver, policy) {
+        (void)this->m_driver.open().or_else(
             [](const auto &e) { panic(std::move(e.message)); });
         MotorManager &manager = MotorManager::getInstance();
-        (void)manager
-            .registerMotor(m_driver, Traits::template feedback_id<id>())
+        (void)manager.registerMotor(this->m_driver, Traits::feedback_id())
             .or_else([](const auto &e) { panic(std::move(e.message)); });
-        manager.pushOutput(m_driver, Traits::template control_id<id>(),
-                           Traits::template control_offset<id>(), 0, 0);
+        manager.pushOutput(this->m_driver, Traits::control_id(),
+                           Traits::control_offset(), 0, 0);
 
         (void)driver
-            .registerCallback({Traits::template feedback_id<id>()},
+            .registerCallback({Traits::feedback_id()},
                               [this](Can::CanFrame &&frame) {
                                   this->m_disabled_func(std::move(frame));
                               })
@@ -47,40 +38,28 @@ class DjiMotor {
 
     ~DjiMotor() {
         MotorManager &manager = MotorManager::getInstance();
-        (void)manager
-            .deregisterMotor(m_driver, Traits::template control_id<id>())
+        (void)manager.deregisterMotor(this->m_driver, Traits::control_id())
             .or_else([](const auto &e) { panic(std::move(e.message)); });
     };
 
-    tl::expected<void, Error> enable() {
-        return m_driver.registerCallback({Traits::template feedback_id<id>()},
-                                         [this](Can::CanFrame &&frame) {
-                                             this->m_enabled_func(
-                                                 std::move(frame));
-                                         });
+  protected:
+    tl::expected<void, Error> enableImpl() {
+        return this->m_driver.registerCallback(
+            {Traits::feedback_id()}, [this](Can::CanFrame &&frame) {
+                this->m_enabled_func(std::move(frame));
+            });
     }
 
-    tl::expected<void, Error> disable() {
-        return m_driver.registerCallback({Traits::template feedback_id<id>()},
-                                         [this](Can::CanFrame &&frame) {
-                                             this->m_disabled_func(
-                                                 std::move(frame));
-                                         });
+    tl::expected<void, Error> disableImpl() {
+        return this->m_driver.registerCallback(
+            {Traits::feedback_id()}, [this](Can::CanFrame &&frame) {
+                this->m_disabled_func(std::move(frame));
+            });
     }
 
-    void setAngRef(const float ref) {
-        m_ang_ref.store(ref, std::memory_order_release);
-    }
-
-    void setPosRef(const float ref) {
-        m_pos_ref.store(ref, std::memory_order_release);
-    }
-
-    MotorStatus getStatus() { return m_Buffer.readCopy(); }
+    MotorStatus getStatusImpl() { return this->m_buffer.readCopy(); }
 
   private:
-    static constexpr float RPM_2_ANGLE_PER_SEC = 6.0f;
-
     static void trMsgToStatus(const RawStatusFrame &frame,
                               MotorStatus &status) {
         auto &[last_ecd, ecd, angle_single_round, angular, real_current,
@@ -89,16 +68,16 @@ class DjiMotor {
         ecd = frame.ecd;
         real_current = frame.current;
         temperature = frame.temperature;
-        angle_single_round = Traits::ecd_to_angle(static_cast<float>(ecd));
-        angular = RPM_2_ANGLE_PER_SEC * static_cast<float>(frame.rpm);
+        angle_single_round =
+            Traits::ecd_to_angle(static_cast<float>(ecd)) * deg;
+        angular = frame.rpm;
 
         if (ecd - last_ecd > 4096) {
-            total_round--;
+            --total_round;
         } else if (ecd - last_ecd < -4096) {
-            total_round++;
+            ++total_round;
         }
-        total_angle =
-            static_cast<float>(total_round) * 360 + angle_single_round;
+        total_angle = total_round + angle_single_round;
         last_ecd = ecd;
     }
 
@@ -133,7 +112,7 @@ class DjiMotor {
             std::clamp(ang_result, static_cast<float>(-Traits::max_current),
                        static_cast<float>(Traits::max_current));
         const auto output_current = static_cast<int16_t>(ang_result);
-        this->m_Buffer.write().output_current = output_current;
+        this->m_Buffer.write().output_current = output_current * mA;
         this->m_Buffer.swap();
         const uint8_t hi_byte = output_current >> 8;
         const uint8_t lo_byte = output_current & 0xFF;
@@ -142,12 +121,6 @@ class DjiMotor {
             Traits::template control_offset<id>(), lo_byte, hi_byte);
     }
 
-    Can::CanDriver &m_driver;
-    DoubleBuffer<MotorStatus> m_Buffer;
-    Control::PIDChain<PID_Nodes...> m_pid_chain;
-
-    std::atomic<float> m_ang_ref{};
-    std::atomic<float> m_pos_ref{};
 #ifdef CONFIG_OM_DJI_MOTOR_SKIP_N_FRAME
 #if CONFIG_OM_DJI_MOTOR_SKIP_N_FRAME != 0
     uint8_t m_skip_frame{};
@@ -155,12 +128,6 @@ class DjiMotor {
 #endif
 };
 
-template <typename Traits, uint8_t id, typename... PID_Nodes>
-DjiMotor<Traits, id, PID_Nodes...>
-createDjiMotor(Can::CanDriver &driver,
-               const Control::PIDChain<PID_Nodes...> &pid_chain) {
-    return DjiMotor<Traits, id, PID_Nodes...>(driver, pid_chain);
-}
 } // namespace OneMotor::Motor::DJI
 
 #endif // ONEMOTOR_DJIMOTOR_HPP

@@ -1,6 +1,7 @@
 #ifndef ONE_MOTOR_UNITS_HPP_
 #define ONE_MOTOR_UNITS_HPP_
 
+#include <cstdint>
 #include <mp-units/framework.h>
 #include <mp-units/systems/angular.h>
 #include <mp-units/systems/angular/units.h>
@@ -29,21 +30,24 @@ using AngleDeg = quantity<degree, float>;
 
 using AngularVelocity = quantity<radian / second, float>;
 using AngulurVelocityDeg = quantity<degree / second, float>;
+
+using Round = quantity<revolution, int32_t>;
 using RPM = quantity<revolution / minute, float>;
 
 using Torque = quantity<newton * metre, float>;
 
-using Current = quantity<ampere, float>;
-using CurrentMilli = quantity<milli<ampere>, float>;
+using Current = quantity<ampere, uint16_t>;
+using CurrentMilli = quantity<milli<ampere>, uint16_t>;
 
 using Temperature =
     quantity_point<degree_Celsius, mp_units::si::absolute_zero, float>;
 
 namespace literals {
-using namespace mp_units::angular::unit_symbols;
 using mp_units::angular::unit_symbols::deg;
+using mp_units::angular::unit_symbols::rev;
 using mp_units::si::unit_symbols::deg_C;
 using mp_units::si::unit_symbols::m;
+using mp_units::si::unit_symbols::mA;
 using mp_units::si::unit_symbols::N;
 using mp_units::si::unit_symbols::s;
 } // namespace literals

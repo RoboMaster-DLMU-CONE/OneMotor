@@ -16,6 +16,7 @@ target_link_libraries(${PROJECT_NAME}
         HyCAN::HyCAN
         tl::expected
         mp-units::mp-units
+        OnePID::OnePID
         PRIVATE
         $<BUILD_INTERFACE:unordered_dense::unordered_dense>
 )

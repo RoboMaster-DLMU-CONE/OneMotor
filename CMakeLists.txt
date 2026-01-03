@@ -12,6 +12,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 include(OneMotorFindTlExpected)
 include(OneMotorFindAnkerl)
 include(OneMotorFindMpUnits)
+include(OneMotorFindOnePid)
 
 if (ZEPHYR_TOOLCHAIN_VARIANT)
   project(onemotor VERSION 0.8.0)

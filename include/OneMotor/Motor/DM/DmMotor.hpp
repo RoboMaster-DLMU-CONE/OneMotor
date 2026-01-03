@@ -25,14 +25,14 @@ inline constexpr uint8_t CLEAN_ERROR_DATA[8] = {0xFF, 0xFF, 0xFF, 0xFF,
                                                 0xFF, 0xFF, 0xFF, 0xFB};
 } // namespace detail
 
-template <typename Traits = DmTraits, typename Policy = MITPolicy<>>
+template <typename Traits = DmTraits, typename Policy = MITPolicy<Traits>>
 class DmMotor : public MotorBase<DmMotor<Traits, Policy>, Traits, Policy> {
   public:
     using Base = MotorBase<DmMotor<Traits, Policy>, Traits, Policy>;
     friend Base;
     DmMotor(Can::CanDriver &driver, uint16_t canId, uint16_t masterId,
             Policy policy = {})
-        : Base(driver), m_masterId(masterId), m_canId(canId) {
+        : Base(driver, policy), m_masterId(masterId), m_canId(canId) {
 
         const auto result = this->m_driver.open().and_then([this] {
             return this->m_driver.registerCallback(
