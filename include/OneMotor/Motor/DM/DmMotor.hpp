@@ -3,9 +3,10 @@
 
 #include "DmPolicy.hpp"
 #include "DmTraits.hpp"
-#include "OneMotor/Motor/DM/DmFrame.hpp"
 #include <OneMotor/Can/CanFrame.hpp>
+#include <OneMotor/Motor/DM/DmFrame.hpp>
 #include <OneMotor/Motor/MotorBase.hpp>
+#include <OneMotor/Thread/Othread.hpp>
 #include <OneMotor/Util/DoubleBuffer.hpp>
 #include <OneMotor/Util/Error.hpp>
 #include <OneMotor/Util/Panic.hpp>
@@ -62,7 +63,9 @@ class DmMotor : public MotorBase<DmMotor<Traits, Policy>, Traits, Policy> {
     }
 
     tl::expected<typename Traits::StatusType, Error> getStatusImpl() {
-        // TODO: add fetch new status logic
+        if (auto result = sendRefreshStatus(); !result)
+            return tl::make_unexpected(result.error());
+        Thread::sleep_for(std::chrono::milliseconds(1));
         return m_buffer.readCopy();
     }
     tl::expected<void, Error> afterPosRef() { return update(); }
@@ -149,6 +152,19 @@ class DmMotor : public MotorBase<DmMotor<Traits, Policy>, Traits, Policy> {
         const auto *vbuf = reinterpret_cast<const uint8_t *>(&out.angular);
         std::copy_n(vbuf, 4, frame.data);
 
+        return this->m_driver.send(frame);
+    }
+
+    tl::expected<void, Error> sendRefreshStatus() noexcept {
+        Can::CanFrame frame{};
+        frame.dlc = 4;
+        frame.id = 0x7FF;
+        auto &data = frame.data;
+        const auto *ibuf = reinterpret_cast<const uint8_t *>(&m_canId);
+        data[0] = *(ibuf);
+        data[1] = *(ibuf + 1);
+        data[2] = 0xCC;
+        data[3] = 0x00;
         return this->m_driver.send(frame);
     }
 
