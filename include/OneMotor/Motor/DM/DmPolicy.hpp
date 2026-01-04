@@ -2,8 +2,8 @@
 #define ONE_MOTOR_DM_DMPOLICY_HPP_
 
 #include "DmTraits.hpp"
-#include <OneMotor/Motor/MotorAcessor.hpp>
 #include <OneMotor/Units/Units.hpp>
+#include <atomic>
 
 namespace OneMotor::Motor::DM {
 struct DmControlOutput {
@@ -20,17 +20,20 @@ template <typename Traits = DmTraits> struct MITPolicy {
     float m_kp{}, m_kd{};
     MITPolicy() = default;
     MITPolicy(float kp, float kd) : m_kp(kp), m_kd(kd) {};
-    DmControlOutput compute(MotorAcessor *motor, Traits::StatusType &status) {
+    DmControlOutput compute(std::atomic<float> &pos_ref,
+                            std::atomic<float> &ang_ref,
+                            std::atomic<float> &tor_ref,
+                            Traits::StatusType &status) {
         (void)status;
-        const auto pos_ref = motor->getPosRef(); // rad
-        const auto ang_ref = motor->getAngRef(); // rad/s
-        const auto tor_ref = motor->getTorRef(); // N·m
+        const auto pos = pos_ref.load(std::memory_order_acquire); // rad
+        const auto ang = ang_ref.load(std::memory_order_acquire); // rad/s
+        const auto tor = tor_ref.load(std::memory_order_acquire); // N·m
 
         return {
             .mode = DmControlOutput::Mode::MIT,
-            .position = pos_ref,
-            .angular = ang_ref,
-            .torque = tor_ref,
+            .position = pos,
+            .angular = ang,
+            .torque = tor,
             .kp = m_kp,
             .kd = m_kd,
         };
@@ -38,27 +41,33 @@ template <typename Traits = DmTraits> struct MITPolicy {
 };
 
 template <typename Traits = DmTraits> struct PosVelPolicy {
-    DmControlOutput compute(MotorAcessor *motor, Traits::StatusType &status) {
+    DmControlOutput compute(std::atomic<float> &pos_ref,
+                            std::atomic<float> &ang_ref,
+                            std::atomic<float> &tor_ref,
+                            Traits::StatusType &status) {
         (void)status;
-        const auto pos_ref = motor->getPosRef(); // rad
-        const auto ang_ref = motor->getAngRef(); // rad/s
+        const auto pos = pos_ref.load(std::memory_order_acquire); // rad
+        const auto ang = ang_ref.load(std::memory_order_acquire); // rad/s
 
         return {
             .mode = DmControlOutput::Mode::PosVel,
-            .position = pos_ref,
-            .angular = ang_ref,
+            .position = pos,
+            .angular = ang,
         };
     }
 };
 
 template <typename Traits = DmTraits> struct VelPolicy {
-    DmControlOutput compute(MotorAcessor *motor, Traits::StatusType &status) {
+    DmControlOutput compute(std::atomic<float> &pos_ref,
+                            std::atomic<float> &ang_ref,
+                            std::atomic<float> &tor_ref,
+                            Traits::StatusType &status) {
         (void)status;
-        const auto ang_ref = motor->getAngRef(); // rad/s
+        const auto ang = ang_ref.load(std::memory_order_acquire); // rad/s
 
         return {
             .mode = DmControlOutput::Mode::Vel,
-            .angular = ang_ref,
+            .angular = ang,
         };
     }
 };

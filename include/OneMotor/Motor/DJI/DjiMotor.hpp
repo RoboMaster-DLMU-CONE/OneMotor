@@ -129,7 +129,8 @@ class DjiMotor : public MotorBase<DjiMotor<Traits, Policy>, Traits, Policy> {
         const auto msg = RawStatusPlain(frame);
         trMsgToStatus(msg, this->m_buffer.write());
         int16_t output_current =
-            this->m_policy.compute(this, this->m_buffer.write());
+            this->m_policy.compute(this->m_pos_ref, this->m_ang_ref,
+                                   this->m_tor_ref, this->m_buffer.write());
         output_current = std::clamp(output_current,
                                     static_cast<int16_t>(-Traits::max_current),
                                     static_cast<int16_t>(Traits::max_current));

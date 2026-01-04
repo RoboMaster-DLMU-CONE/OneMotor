@@ -83,7 +83,8 @@ class DmMotor : public MotorBase<DmMotor<Traits, Policy>, Traits, Policy> {
 
     tl::expected<void, Error> update() {
         auto status = this->m_buffer.readCopy();
-        auto output = this->m_policy.compute(this, status);
+        auto output = this->m_policy.compute(this->m_pos_ref, this->m_ang_ref,
+                                             this->m_tor_ref, status);
         return applyOutput(output);
     }
 

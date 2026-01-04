@@ -1,7 +1,7 @@
 #ifndef ONE_DJI_DJIPOLICY_HPP_
 #define ONE_DJI_DJIPOLICY_HPP_
-#include <OneMotor/Motor/MotorAcessor.hpp>
 #include <OneMotor/Units/Units.hpp>
+#include <atomic>
 #include <cstddef>
 #include <cstdint>
 #include <numbers>
@@ -13,12 +13,13 @@ template <typename Traits, typename Chain> struct DjiPolicy {
   public:
     DjiPolicy(const Chain &chain) : m_chain(chain) {};
 
-    int16_t compute(MotorAcessor *motor, Traits::StatusType &status) {
+    int16_t compute(std::atomic<float> &pos_ref, std::atomic<float> &ang_ref,
+                    std::atomic<float> &tor_ref, Traits::StatusType &status) {
 
         constexpr float rad_to_deg = 180.0f / std::numbers::pi_v<float>;
         float ang_result{};
         if constexpr (Chain::Size == 1) {
-            const float ang_ref_rad = motor->getAngRef();
+            const float ang_ref_rad = ang_ref.load(std::memory_order_acquire);
             float ang_ref_deg;
             if constexpr (Traits::has_gearbox) {
                 ang_ref_deg =
@@ -28,7 +29,7 @@ template <typename Traits, typename Chain> struct DjiPolicy {
             }
             ang_result = m_chain.compute(ang_ref_deg, status.angular_deg_s);
         } else if constexpr (Chain::Size == 2) {
-            const float pos_ref_rad = motor->getPosRef();
+            const float pos_ref_rad = pos_ref.load(std::memory_order_acquire);
             float pos_ref_deg;
             if constexpr (Traits::has_gearbox) {
                 pos_ref_deg =

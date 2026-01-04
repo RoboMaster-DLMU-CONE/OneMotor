@@ -1,7 +1,6 @@
 #ifndef ONE_MOTOR_MOTORBASE_HPP_
 #define ONE_MOTOR_MOTORBASE_HPP_
 
-#include "MotorAcessor.hpp"
 #include <OneMotor/Can/CanDriver.hpp>
 #include <OneMotor/Motor/MotorConcepts.hpp>
 #include <OneMotor/Units/Units.hpp>
@@ -39,7 +38,7 @@ template <typename Derived, MotorTraits Traits, typename Policy>
     requires MotorStatusType<typename Traits::StatusType> &&
              MotorStatusType<typename Traits::UserStatusType> &&
              ControlPolicy<Policy, typename Traits::StatusType>
-class MotorBase : public MotorAcessor {
+class MotorBase {
   public:
     using StatusType = typename Traits::StatusType; // 内部线程使用的裸状态
     using UserStatusType = typename Traits::UserStatusType; // 对外暴露的状态
@@ -112,13 +111,13 @@ class MotorBase : public MotorAcessor {
     Can::CanDriver &m_driver;
     Policy m_policy;
 
-    float getPosRef() const override {
+    float getPosRef() const {
         return m_pos_ref.load(std::memory_order_acquire);
     }
-    float getAngRef() const override {
+    float getAngRef() const {
         return m_ang_ref.load(std::memory_order_acquire);
     }
-    float getTorRef() const override {
+    float getTorRef() const {
         return m_tor_ref.load(std::memory_order_acquire);
     }
 
