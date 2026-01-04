@@ -5,7 +5,7 @@
 #include <one/PID/PidParams.hpp>
 #include <string>
 
-#include "OneMotor/Motor/DJI/DjiMotor.hpp"
+#include <OneMotor/Motor/DJI/DjiMotor.hpp>
 
 using one::pid::PidChain;
 using one::pid::PidConfig;

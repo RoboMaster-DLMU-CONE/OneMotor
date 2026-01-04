@@ -62,6 +62,7 @@ struct MotorStatus {
     Units::Temperature temperature;     ///< 温度 (°C)
     Units::AngleDeg total_angle;        ///< 累计总角度 (°)，带方向
     Units::Round total_round;           ///< 累计总圈数，带方向
+    Units::AngleDeg reduced_angle;      ///< 累计减速后的总角度（°)，带方向
     Units::CurrentMilli output_current; ///< PID计算后输出给电机的电流值
     /**
      * @brief 将电机状态格式化为可读字符串。
@@ -74,12 +75,14 @@ struct MotorStatus {
                            "\t- Angular Velocity: {}\n"
                            "\t- Total Angle: {}\n"
                            "\t- Total Rounds: {}\n"
+                           "\t- Reduced Angle: {}\n"
                            "\t- Real Current: {} mA\n"
                            "\t- Output Current: {}\n"
                            "\t- Temperature: {} °C",
                            ecd, last_ecd, angle_single_round, angular,
-                           total_angle, total_round, real_current,
-                           output_current, temperature.quantity_from_zero());
+                           total_angle, total_round, reduced_angle,
+                           real_current, output_current,
+                           temperature.quantity_from_zero());
     };
 };
 } // namespace OneMotor::Motor::DJI

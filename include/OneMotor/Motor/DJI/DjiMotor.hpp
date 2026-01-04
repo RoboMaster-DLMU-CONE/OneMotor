@@ -66,7 +66,8 @@ class DjiMotor : public MotorBase<DjiMotor<Traits, Policy>, Traits, Policy> {
     static void trMsgToStatus(const RawStatusFrame &frame,
                               MotorStatus &status) {
         auto &[last_ecd, ecd, angle_single_round, angular, real_current,
-               temperature, total_angle, total_round, output_current] = status;
+               temperature, total_angle, total_round, reduced_angle,
+               output_current] = status;
 
         ecd = frame.ecd;
         real_current = frame.current;
@@ -81,6 +82,11 @@ class DjiMotor : public MotorBase<DjiMotor<Traits, Policy>, Traits, Policy> {
             ++total_round;
         }
         total_angle = total_round + angle_single_round;
+        if constexpr (Traits::has_gearbox) {
+            reduced_angle = total_angle / Traits::reduction_ratio;
+        } else {
+            reduced_angle = total_angle;
+        }
         last_ecd = ecd;
     }
 
@@ -129,7 +135,8 @@ template <uint8_t id, typename Chain>
 using M2006 = DjiMotor<M2006Traits<id>, DjiPolicy<M2006Traits<id>, Chain>>;
 
 template <uint8_t id, typename Chain>
-using GM6020 = DjiMotor<GM6020VoltageTraits<id>, DjiPolicy<GM6020VoltageTraits<id>, Chain>>;
+using GM6020 = DjiMotor<GM6020VoltageTraits<id>,
+                        DjiPolicy<GM6020VoltageTraits<id>, Chain>>;
 
 } // namespace OneMotor::Motor::DJI
 

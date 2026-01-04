@@ -15,17 +15,17 @@ using OneMotor::Motor::DJI::M3508;
 using OneMotor::Motor::DJI::PIDFeatures;
 
 static constexpr PidParams<> POS_DEFAULT_PARAMS{
-    .Kp = 3,
-    .Ki = 0.1,
+    .Kp = 1,
+    .Ki = 0.05,
     .Kd = 0,
     .MaxOutput = 20000,
     .Deadband = 50,
     .IntegralLimit = 1000,
 };
 static constexpr PidParams<> ANG_DEFAULT_PARAMS{
-    .Kp = 0.8,
+    .Kp = 0.1,
     .Ki = 0.05,
-    .Kd = 0.1,
+    .Kd = 0.01,
     .MaxOutput = 8000,
     .Deadband = 10,
     .IntegralLimit = 100,
@@ -41,14 +41,13 @@ int main() {
     CanDriver driver("can0");
     M3508<1, decltype(pid_chain)> m1(driver, {pid_chain});
 
-    (void)m1.setPosRef(10000 * deg);
-    (void)m1.setAngRef(100 * deg / s);
+    (void)m1.setPosRef(1 * rev);
     (void)m1.enable();
 
     std::thread thread([&] {
         while (true) {
-            std::cout << m1.getStatus().value().total_angle << std::endl;
-            std::this_thread::sleep_for(std::chrono::milliseconds(700));
+            std::cout << m1.getStatus().value().reduced_angle << std::endl;
+            std::this_thread::sleep_for(std::chrono::milliseconds(500));
         }
     });
     thread.detach();

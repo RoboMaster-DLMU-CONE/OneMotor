@@ -10,7 +10,7 @@ template <uint8_t motor_id> struct M3508Traits {
     using StatusType = MotorStatus;
     static constexpr uint16_t max_current = 16384;
     static constexpr uint16_t encoder_resolution = 8192;
-    static constexpr bool gearbox = true;
+    static constexpr bool has_gearbox = true;
     static constexpr uint8_t reduction_ratio = 19;
     static constexpr uint8_t max_id = 8;
     static_assert(motor_id > 0 && motor_id < max_id, "Invalid motor_id");
@@ -43,7 +43,7 @@ template <uint8_t motor_id> struct M2006Traits {
     using StatusType = MotorStatus;
     static constexpr uint16_t max_current = 16384;
     static constexpr uint16_t encoder_resolution = 8192;
-    static constexpr bool gearbox = true;
+    static constexpr bool has_gearbox = true;
     static constexpr uint8_t reduction_ratio = 36;
     static constexpr uint8_t max_id = 8;
     static_assert(motor_id > 0 && motor_id < max_id, "Invalid motor_id");
@@ -76,7 +76,7 @@ template <uint8_t motor_id> struct GM6020VoltageTraits {
     using StatusType = MotorStatus;
     static constexpr uint16_t max_current = 16384;
     static constexpr uint16_t encoder_resolution = 8192;
-    static constexpr bool gearbox = false;
+    static constexpr bool has_gearbox = false;
     static constexpr uint8_t max_id = 7;
     static_assert(motor_id > 0 && motor_id < max_id, "Invalid motor_id");
 
@@ -108,7 +108,7 @@ template <uint8_t motor_id> struct GM6020CurrentTraits {
     using StatusType = MotorStatus;
     static constexpr uint16_t max_output = 25000;
     static constexpr uint16_t encoder_resolution = 8192;
-    static constexpr bool gearbox = false;
+    static constexpr bool has_gearbox = false;
     static constexpr uint8_t max_id = 7;
     static_assert(motor_id > 0 && motor_id < max_id, "Invalid motor_id");
 
