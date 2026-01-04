@@ -4,13 +4,15 @@
 #include "DjiPolicy.hpp"
 #include "DjiTraits.hpp"
 #include "MotorManager.hpp"
+#include "OneMotor/Thread/Othread.hpp"
 #include <OneMotor/Can/CanDriver.hpp>
 #include <OneMotor/Motor/MotorBase.hpp>
 #include <OneMotor/Util/DoubleBuffer.hpp>
 #include <OneMotor/Util/Panic.hpp>
 #include <algorithm>
+#include <chrono>
 #include <cstdint>
-#include <one/PID/PidController.hpp>
+#include <tl/expected.hpp>
 
 namespace OneMotor::Motor::DJI {
 using PIDFeatures =
@@ -63,6 +65,23 @@ class DjiMotor : public MotorBase<DjiMotor<Traits, Policy>, Traits, Policy> {
 
     tl::expected<typename Traits::UserStatusType, Error> getStatusImpl() {
         return Traits::UserStatusType::fromPlain(this->m_buffer.readCopy());
+    }
+
+    tl::expected<void, Error> afterPidParams(float kp, float ki, float kd) {
+        // 注意对DJI电机来说，默认基类的修改PID参数方法传入的参数只会覆盖至最外环
+        //
+        // 可以用自旋锁在回调时保护计算中的Chain
+        // 但是实际上动态调整PID参数的时候应该不多
+        // 目前的方法在修改参数时会略微延时，但能保证计算过程安全，且避免引入自旋锁带来的开销
+        return disableImpl().and_then([this, kp, ki, kd] {
+            Thread::sleep_for(std::chrono::milliseconds(10));
+            auto &node = this->m_policy.template getPidController<0>();
+            node.Kp = kp;
+            node.Ki = ki;
+            node.Kd = kd;
+            this->m_policy.resetPidChain();
+            return enableImpl();
+        });
     }
 
   private:

@@ -2,6 +2,7 @@
 #define ONE_DJI_DJIPOLICY_HPP_
 #include <OneMotor/Motor/MotorAcessor.hpp>
 #include <OneMotor/Units/Units.hpp>
+#include <cstddef>
 #include <cstdint>
 #include <numbers>
 #include <one/PID/PidController.hpp>
@@ -20,7 +21,8 @@ template <typename Traits, typename Chain> struct DjiPolicy {
             const float ang_ref_rad = motor->getAngRef();
             float ang_ref_deg;
             if constexpr (Traits::has_gearbox) {
-                ang_ref_deg = ang_ref_rad * rad_to_deg * Traits::reduction_ratio;
+                ang_ref_deg =
+                    ang_ref_rad * rad_to_deg * Traits::reduction_ratio;
             } else {
                 ang_ref_deg = ang_ref_rad * rad_to_deg;
             }
@@ -34,13 +36,18 @@ template <typename Traits, typename Chain> struct DjiPolicy {
             } else {
                 pos_ref_deg = pos_ref_rad * rad_to_deg;
             }
-            ang_result =
-                m_chain.compute(pos_ref_deg, status.total_angle_deg,
-                                status.angular_deg_s);
+            ang_result = m_chain.compute(pos_ref_deg, status.total_angle_deg,
+                                         status.angular_deg_s);
         }
 
         return static_cast<int16_t>(ang_result);
     }
+
+    template <size_t Index> auto &getPidController() {
+        return m_chain.template get<Index>();
+    }
+
+    void resetPidChain() { m_chain.reset(); }
 
   private:
     Chain m_chain;

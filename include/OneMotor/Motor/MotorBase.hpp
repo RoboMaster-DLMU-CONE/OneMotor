@@ -8,23 +8,31 @@
 #include <OneMotor/Util/DoubleBuffer.hpp>
 #include <OneMotor/Util/Error.hpp>
 #include <atomic>
+#include <concepts>
 #include <tl/expected.hpp>
 
 namespace OneMotor::Motor {
 
 template <typename T>
 concept HasPosHook = requires(T t) {
-    { t.afterPosRef() };
+    { t.afterPosRef() } -> std::same_as<tl::template expected<void, Error>>;
 };
 
 template <typename T>
 concept HasAngHook = requires(T t) {
-    { t.afterAngRef() };
+    { t.afterAngRef() } -> std::same_as<tl::template expected<void, Error>>;
 };
 
 template <typename T>
 concept HasTorHook = requires(T t) {
-    { t.afterTorRef() };
+    { t.afterTorRef() } -> std::same_as<tl::template expected<void, Error>>;
+};
+
+template <typename T>
+concept HasPidHook = requires(T t, float p, float i, float d) {
+    {
+        t.afterPidParams(p, i, d)
+    } -> std::same_as<tl::template expected<void, Error>>;
 };
 
 template <typename Derived, MotorTraits Traits, typename Policy>
@@ -33,7 +41,7 @@ template <typename Derived, MotorTraits Traits, typename Policy>
              ControlPolicy<Policy, typename Traits::StatusType>
 class MotorBase : public MotorAcessor {
   public:
-    using StatusType = typename Traits::StatusType;       // 内部线程使用的裸状态
+    using StatusType = typename Traits::StatusType; // 内部线程使用的裸状态
     using UserStatusType = typename Traits::UserStatusType; // 对外暴露的状态
     using PolicyType = Policy;
     using TraitsType = Traits;
@@ -54,10 +62,9 @@ class MotorBase : public MotorAcessor {
     }
 
     tl::expected<void, Error> setAngRef(Units::AngularVelocity ref) {
-        m_ang_ref.store(
-            ref.numerical_value_in(mp_units::angular::radian /
-                                   mp_units::si::second),
-            std::memory_order_release);
+        m_ang_ref.store(ref.numerical_value_in(mp_units::angular::radian /
+                                               mp_units::si::second),
+                        std::memory_order_release);
         if constexpr (HasAngHook<Derived>)
             return derived().afterAngRef();
         else
@@ -70,6 +77,16 @@ class MotorBase : public MotorAcessor {
             std::memory_order_release);
         if constexpr (HasTorHook<Derived>)
             return derived().afterTorRef();
+        else
+            return {};
+    }
+
+    tl::expected<void, Error> setPidParams(float kp, float ki, float kd) {
+        m_kp.store(kp, std::memory_order_release);
+        m_ki.store(ki, std::memory_order_release);
+        m_kd.store(kd, std::memory_order_release);
+        if constexpr (HasPidHook<Derived>)
+            return derived().afterPidParams(kp, ki, kd);
         else
             return {};
     }
@@ -87,6 +104,9 @@ class MotorBase : public MotorAcessor {
     std::atomic<float> m_pos_ref{}; // rad
     std::atomic<float> m_ang_ref{}; // rad/s
     std::atomic<float> m_tor_ref{}; // N·m
+    std::atomic<float> m_kp{};
+    std::atomic<float> m_ki{};
+    std::atomic<float> m_kd{};
     DoubleBuffer<typename Traits::StatusType> m_buffer{};
 
     Can::CanDriver &m_driver;

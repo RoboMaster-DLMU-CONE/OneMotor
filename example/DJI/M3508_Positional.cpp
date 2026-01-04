@@ -43,6 +43,7 @@ int main() {
 
     (void)m1.setPosRef(2 * rev);
     (void)m1.enable();
+    (void)m1.setPidParams(1, 0.05, 0);
 
     std::thread thread([&] {
         while (true) {
