@@ -44,6 +44,7 @@ using Temperature =
 
 namespace literals {
 using mp_units::angular::unit_symbols::deg;
+using mp_units::angular::unit_symbols::rad;
 using mp_units::angular::unit_symbols::rev;
 using mp_units::si::unit_symbols::deg_C;
 using mp_units::si::unit_symbols::m;

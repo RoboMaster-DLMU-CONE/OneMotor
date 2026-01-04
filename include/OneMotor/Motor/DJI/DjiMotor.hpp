@@ -1,18 +1,21 @@
 #ifndef ONEMOTOR_DJIMOTOR_HPP
 #define ONEMOTOR_DJIMOTOR_HPP
-#include <concepts>
-
 #include "DjiFrames.hpp"
+#include "DjiPolicy.hpp"
 #include "DjiTraits.hpp"
 #include "MotorManager.hpp"
-#include "OneMotor/Motor/MotorBase.hpp"
 #include <OneMotor/Can/CanDriver.hpp>
-#include <OneMotor/Control/PIDChain.hpp>
+#include <OneMotor/Motor/MotorBase.hpp>
 #include <OneMotor/Util/DoubleBuffer.hpp>
 #include <OneMotor/Util/Panic.hpp>
+#include <cstdint>
+#include <one/PID/PidController.hpp>
 
 namespace OneMotor::Motor::DJI {
-
+using PIDFeatures =
+    one::pid::FeaturePack<one::pid::WithDeadband, one::pid::WithIntegralLimit,
+                          one::pid::WithOutputLimit, one::pid::WithOutputFilter,
+                          one::pid::WithDerivativeFilter>;
 template <typename Traits, typename Policy>
 class DjiMotor : public MotorBase<DjiMotor<Traits, Policy>, Traits, Policy> {
   public:
@@ -83,8 +86,8 @@ class DjiMotor : public MotorBase<DjiMotor<Traits, Policy>, Traits, Policy> {
 
     void m_disabled_func(Can::CanFrame &&frame) {
         const auto msg = static_cast<RawStatusFrame>(frame);
-        trMsgToStatus(msg, this->m_Buffer.write());
-        this->m_Buffer.swap();
+        trMsgToStatus(msg, this->m_buffer.write());
+        this->m_buffer.swap();
     }
 
     void m_enabled_func(Can::CanFrame &&frame) {
@@ -96,29 +99,20 @@ class DjiMotor : public MotorBase<DjiMotor<Traits, Policy>, Traits, Policy> {
 #endif
 #endif
         const auto msg = static_cast<RawStatusFrame>(frame);
-        trMsgToStatus(msg, this->m_Buffer.write());
-        float ang_result{};
-        if constexpr (Control::PIDChain<PID_Nodes...>::Size == 1) {
-            ang_result =
-                m_pid_chain.compute(m_ang_ref.load(std::memory_order_acquire),
-                                    this->m_Buffer.write().angular);
-        } else if constexpr (Control::PIDChain<PID_Nodes...>::Size == 2) {
-            ang_result =
-                m_pid_chain.compute(m_pos_ref.load(std::memory_order_acquire),
-                                    this->m_Buffer.write().total_angle,
-                                    this->m_Buffer.write().angular);
-        }
-        ang_result =
-            std::clamp(ang_result, static_cast<float>(-Traits::max_current),
-                       static_cast<float>(Traits::max_current));
-        const auto output_current = static_cast<int16_t>(ang_result);
-        this->m_Buffer.write().output_current = output_current * mA;
-        this->m_Buffer.swap();
+        trMsgToStatus(msg, this->m_buffer.write());
+        int16_t output_current =
+            this->m_policy.compute(this, this->m_buffer.write());
+        output_current = std::clamp(output_current,
+                                    static_cast<int16_t>(-Traits::max_current),
+                                    static_cast<int16_t>(Traits::max_current));
+
+        this->m_buffer.write().output_current = output_current * mA;
+        this->m_buffer.swap();
         const uint8_t hi_byte = output_current >> 8;
         const uint8_t lo_byte = output_current & 0xFF;
         MotorManager::getInstance().pushOutput(
-            m_driver, Traits::template control_id<id>(),
-            Traits::template control_offset<id>(), lo_byte, hi_byte);
+            this->m_driver, Traits::control_id(), Traits::control_offset(),
+            lo_byte, hi_byte);
     }
 
 #ifdef CONFIG_OM_DJI_MOTOR_SKIP_N_FRAME
@@ -127,6 +121,15 @@ class DjiMotor : public MotorBase<DjiMotor<Traits, Policy>, Traits, Policy> {
 #endif
 #endif
 };
+
+template <uint8_t id, typename Chain>
+using M3508 = DjiMotor<M3508Traits<id>, DjiPolicy<M3508Traits<id>, Chain>>;
+
+template <uint8_t id, typename Chain>
+using M2006 = DjiMotor<M2006Traits<id>, DjiPolicy<M2006Traits<id>, Chain>>;
+
+template <uint8_t id, typename Chain>
+using GM6020 = DjiMotor<GM6020VoltageTraits<id>, DjiPolicy<GM6020VoltageTraits<id>, Chain>>;
 
 } // namespace OneMotor::Motor::DJI
 

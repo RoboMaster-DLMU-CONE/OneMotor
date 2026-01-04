@@ -1,22 +1,20 @@
 #include <OneMotor/Can/CanDriver.hpp>
-#include <OneMotor/Control/PIDChain.hpp>
-
 #include <iostream>
+#include <one/PID/PidChain.hpp>
+#include <one/PID/PidConfig.hpp>
+#include <one/PID/PidParams.hpp>
 #include <string>
 
 #include "OneMotor/Motor/DJI/DjiMotor.hpp"
 
-using OneMotor::Control::PID_Params;
-using OneMotor::Control::PIDChain;
-using OneMotor::Control::createPIDChain;
-using OneMotor::Motor::DJI::PIDFeatures;
-using OneMotor::Motor::DJI::DjiMotor;
-using OneMotor::Motor::DJI::createDjiMotor;
-using OneMotor::Control::Positional;
+using one::pid::PidChain;
+using one::pid::PidConfig;
+using one::pid::PidParams;
 using OneMotor::Can::CanDriver;
-using OneMotor::Motor::DJI::M3508Traits;
+using OneMotor::Motor::DJI::M3508;
+using OneMotor::Motor::DJI::PIDFeatures;
 
-static constexpr PID_Params<> POS_DEFAULT_PARAMS{
+static constexpr PidParams<> POS_DEFAULT_PARAMS{
     .Kp = 3,
     .Ki = 0.1,
     .Kd = 0,
@@ -24,7 +22,7 @@ static constexpr PID_Params<> POS_DEFAULT_PARAMS{
     .Deadband = 50,
     .IntegralLimit = 1000,
 };
-static constexpr PID_Params<> ANG_DEFAULT_PARAMS{
+static constexpr PidParams<> ANG_DEFAULT_PARAMS{
     .Kp = 0.8,
     .Ki = 0.05,
     .Kd = 0.1,
@@ -33,47 +31,41 @@ static constexpr PID_Params<> ANG_DEFAULT_PARAMS{
     .IntegralLimit = 100,
 };
 
-int main()
-{
-    auto pid_chain = createPIDChain()
-                    .add<Positional, float, PIDFeatures>(POS_DEFAULT_PARAMS)
-                    .add<Positional, float, PIDFeatures>(ANG_DEFAULT_PARAMS)
-                    .build();
+int main() {
+    constexpr auto conf1 =
+        PidConfig<one::pid::Positional, float, PIDFeatures>(POS_DEFAULT_PARAMS);
+    constexpr auto conf2 =
+        PidConfig<one::pid::Positional, float, PIDFeatures>(ANG_DEFAULT_PARAMS);
+    auto pid_chain = PidChain(conf1, conf2);
+
     CanDriver driver("can0");
-    auto m1 = createDjiMotor<M3508Traits, 1>(driver, pid_chain);
-    m1.setPosRef(10000);
-    m1.setAngRef(100);
+    M3508<1, decltype(pid_chain)> m1(driver, {pid_chain});
+
+    (void)m1.setPosRef(10000 * deg);
+    (void)m1.setAngRef(100 * deg / s);
     (void)m1.enable();
 
-    std::thread thread([&]
-    {
-        while (true)
-        {
-            std::cout << m1.getStatus().total_angle << std::endl;
+    std::thread thread([&] {
+        while (true) {
+            std::cout << m1.getStatus().value().total_angle << std::endl;
             std::this_thread::sleep_for(std::chrono::milliseconds(700));
         }
     });
     thread.detach();
 
-    while (true)
-    {
+    while (true) {
         std::string param_to_change;
         std::cout << "Enter parameter to change ('ref') or 'exit': ";
         std::cin >> param_to_change;
 
-        if (param_to_change == "ref")
-        {
+        if (param_to_change == "ref") {
             float ref;
             std::cout << "Enter new ref value: ";
             std::cin >> ref;
-            // m1.setPosRef(ref);
-        }
-        else if (param_to_change == "exit")
-        {
+            (void)m1.setPosRef(ref * deg);
+        } else if (param_to_change == "exit") {
             break;
-        }
-        else
-        {
+        } else {
             std::cout << "Invalid parameter." << std::endl;
         }
     }

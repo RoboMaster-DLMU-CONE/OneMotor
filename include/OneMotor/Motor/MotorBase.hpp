@@ -1,9 +1,11 @@
 #ifndef ONE_MOTOR_MOTORBASE_HPP_
 #define ONE_MOTOR_MOTORBASE_HPP_
 
+#include "MotorAcessor.hpp"
 #include <OneMotor/Can/CanDriver.hpp>
 #include <OneMotor/Motor/MotorConcepts.hpp>
 #include <OneMotor/Units/Units.hpp>
+#include <OneMotor/Util/DoubleBuffer.hpp>
 #include <OneMotor/Util/Error.hpp>
 #include <atomic>
 #include <tl/expected.hpp>
@@ -26,7 +28,9 @@ concept HasTorHook = requires(T t) {
 };
 
 template <typename Derived, MotorTraits Traits, typename Policy>
-class MotorBase {
+    requires MotorStatusType<typename Traits::StatusType> &&
+             ControlPolicy<Policy, typename Traits::StatusType>
+class MotorBase : public MotorAcessor {
   public:
     using StatusType = typename Traits::StatusType;
     using PolicyType = Policy;
@@ -75,17 +79,18 @@ class MotorBase {
     std::atomic<Units::Angle> m_pos_ref{};
     std::atomic<Units::AngularVelocity> m_ang_ref{};
     std::atomic<Units::Torque> m_tor_ref{};
+    DoubleBuffer<typename Traits::StatusType> m_buffer{};
 
     Can::CanDriver &m_driver;
     Policy m_policy;
 
-    Units::Angle getPosRef() const {
+    Units::Angle getPosRef() const override {
         return m_pos_ref.load(std::memory_order_acquire);
     }
-    Units::AngularVelocity getAngRef() const {
+    Units::AngularVelocity getAngRef() const override {
         return m_ang_ref.load(std::memory_order_acquire);
     }
-    Units::Torque getTorRef() const {
+    Units::Torque getTorRef() const override {
         return m_tor_ref.load(std::memory_order_acquire);
     }
 

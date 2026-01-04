@@ -2,6 +2,7 @@
 #define ONE_MOTOR_DM_DMPOLICY_HPP_
 
 #include "DmTraits.hpp"
+#include <OneMotor/Motor/MotorAcessor.hpp>
 #include <OneMotor/Units/Units.hpp>
 #include <mp-units/systems/si/units.h>
 
@@ -20,9 +21,11 @@ template <typename Traits = DmTraits> struct MITPolicy {
     float m_kp{}, m_kd{};
     MITPolicy() = default;
     MITPolicy(float kp, float kd) : m_kp(kp), m_kd(kd) {};
-    DmControlOutput compute(Units::Angle pos_ref,
-                            Units::AngularVelocity ang_ref,
-                            Units::Torque tor_ref, Traits::StatusType &status) {
+    DmControlOutput compute(MotorAcessor *motor, Traits::StatusType &status) {
+        auto pos_ref = motor->getPosRef();
+        auto ang_ref = motor->getAngRef();
+        auto tor_ref = motor->getTorRef();
+        
         return {
             .mode = DmControlOutput::Mode::MIT,
             .position = pos_ref.numerical_value_in(mp_units::angular::radian),
@@ -37,9 +40,10 @@ template <typename Traits = DmTraits> struct MITPolicy {
 };
 
 template <typename Traits = DmTraits> struct PosVelPolicy {
-    DmControlOutput compute(Units::Angle pos_ref,
-                            Units::AngularVelocity ang_ref,
-                            Units::Torque tor_ref, Traits::StatusType &status) {
+    DmControlOutput compute(MotorAcessor *motor, Traits::StatusType &status) {
+        auto pos_ref = motor->getPosRef();
+        auto ang_ref = motor->getAngRef();
+        
         return {
             .mode = DmControlOutput::Mode::PosVel,
             .position = pos_ref.numerical_value_in(mp_units::angular::radian),
@@ -50,9 +54,9 @@ template <typename Traits = DmTraits> struct PosVelPolicy {
 };
 
 template <typename Traits = DmTraits> struct VelPolicy {
-    DmControlOutput compute(Units::Angle pos_ref,
-                            Units::AngularVelocity ang_ref,
-                            Units::Torque tor_ref, Traits::StatusType &status) {
+    DmControlOutput compute(MotorAcessor *motor, Traits::StatusType &status) {
+        auto ang_ref = motor->getAngRef();
+        
         return {
             .mode = DmControlOutput::Mode::PosVel,
             .angular = ang_ref.numerical_value_in(mp_units::angular::radian /

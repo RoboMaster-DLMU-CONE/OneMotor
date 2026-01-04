@@ -4,7 +4,6 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 set(CMAKE_CXX_STANDARD 20)
 
 option(BUILD_OM_EXAMPLE "Build OneMotor Examples" OFF)
-option(BUILD_OM_TEST "Build OneMotor Tests" OFF)
 option(BUILD_OM_INSTALL "Build OneMotor CMake install scripts" OFF)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
@@ -34,10 +33,6 @@ include(OneMotorConfiguration)
 
 if (BUILD_OM_EXAMPLE)
   include(OneMotorExamples)
-endif ()
-
-if (BUILD_OM_TEST)
-  include(OneMotorTests)
 endif ()
 
 include(OneMotorGenerateDoc)

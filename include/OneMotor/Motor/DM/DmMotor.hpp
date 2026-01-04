@@ -7,7 +7,6 @@
 #include <OneMotor/Motor/DM/DmFrame.hpp>
 #include <OneMotor/Motor/MotorBase.hpp>
 #include <OneMotor/Thread/Othread.hpp>
-#include <OneMotor/Util/DoubleBuffer.hpp>
 #include <OneMotor/Util/Error.hpp>
 #include <OneMotor/Util/Panic.hpp>
 #include <cstdint>
@@ -66,7 +65,7 @@ class DmMotor : public MotorBase<DmMotor<Traits, Policy>, Traits, Policy> {
         if (auto result = sendRefreshStatus(); !result)
             return tl::make_unexpected(result.error());
         Thread::sleep_for(std::chrono::milliseconds(1));
-        return m_buffer.readCopy();
+        return this->m_buffer.readCopy();
     }
     tl::expected<void, Error> afterPosRef() { return update(); }
     tl::expected<void, Error> afterAngRef() { return update(); }
@@ -83,9 +82,8 @@ class DmMotor : public MotorBase<DmMotor<Traits, Policy>, Traits, Policy> {
     };
 
     tl::expected<void, Error> update() {
-        auto status = m_buffer.readCopy();
-        auto output = this->m_policy.compute(
-            this->getPosRef(), this->getAngRef(), this->getTorRef(), status);
+        auto status = this->m_buffer.readCopy();
+        auto output = this->m_policy.compute(this, status);
         return applyOutput(output);
     }
 
@@ -169,11 +167,10 @@ class DmMotor : public MotorBase<DmMotor<Traits, Policy>, Traits, Policy> {
     }
 
     void onFeedback(Can::CanFrame &&frame) {
-        m_buffer.push(typename Traits::StatusType(frame));
+        this->m_buffer.push(typename Traits::StatusType(frame));
     }
 
     uint16_t m_masterId{}, m_canId{};
-    DoubleBuffer<typename Traits::StatusType> m_buffer{};
 };
 
 } // namespace OneMotor::Motor::DM

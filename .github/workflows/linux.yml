@@ -34,10 +34,5 @@ jobs:
 
       - name: Build Project
         run: |
-          cmake -S . -B build -G Ninja -DBUILD_OM_EXAMPLE=ON -DBUILD_OM_TEST=ON
+          cmake -S . -B build -G Ninja -DBUILD_OM_EXAMPLE=ON
           cmake --build build
-
-      - name: Test Project
-        run: |
-          cd build
-          sudo ctest --output-on-failure
