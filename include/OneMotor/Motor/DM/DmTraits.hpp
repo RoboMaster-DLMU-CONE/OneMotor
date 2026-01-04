@@ -6,7 +6,8 @@
 namespace OneMotor::Motor::DM {
 
 struct DmTraits {
-    using StatusType = DmStatus;
+    using StatusType = DmStatusPlain;     // 内部计算用
+    using UserStatusType = DmStatus;      // 对外暴露用
     static constexpr auto name = "DM_Motor";
 
     static constexpr float V_MIN = -45.0f; // rad/s

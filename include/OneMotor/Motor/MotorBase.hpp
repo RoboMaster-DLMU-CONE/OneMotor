@@ -29,10 +29,12 @@ concept HasTorHook = requires(T t) {
 
 template <typename Derived, MotorTraits Traits, typename Policy>
     requires MotorStatusType<typename Traits::StatusType> &&
+             MotorStatusType<typename Traits::UserStatusType> &&
              ControlPolicy<Policy, typename Traits::StatusType>
 class MotorBase : public MotorAcessor {
   public:
-    using StatusType = typename Traits::StatusType;
+    using StatusType = typename Traits::StatusType;       // 内部线程使用的裸状态
+    using UserStatusType = typename Traits::UserStatusType; // 对外暴露的状态
     using PolicyType = Policy;
     using TraitsType = Traits;
     explicit MotorBase(Can::CanDriver &driver, Policy policy = Policy{})
@@ -43,7 +45,8 @@ class MotorBase : public MotorAcessor {
     tl::expected<void, Error> disable() { return derived().disableImpl(); }
 
     tl::expected<void, Error> setPosRef(Units::Angle ref) {
-        m_pos_ref.store(ref, std::memory_order_release);
+        m_pos_ref.store(ref.numerical_value_in(mp_units::angular::radian),
+                        std::memory_order_release);
         if constexpr (HasPosHook<Derived>)
             return derived().afterPosRef();
         else
@@ -51,7 +54,10 @@ class MotorBase : public MotorAcessor {
     }
 
     tl::expected<void, Error> setAngRef(Units::AngularVelocity ref) {
-        m_ang_ref.store(ref, std::memory_order_release);
+        m_ang_ref.store(
+            ref.numerical_value_in(mp_units::angular::radian /
+                                   mp_units::si::second),
+            std::memory_order_release);
         if constexpr (HasAngHook<Derived>)
             return derived().afterAngRef();
         else
@@ -59,14 +65,16 @@ class MotorBase : public MotorAcessor {
     }
 
     tl::expected<void, Error> setTorRef(Units::Torque ref) {
-        m_tor_ref.store(ref, std::memory_order_release);
+        m_tor_ref.store(
+            ref.numerical_value_in(mp_units::si::newton * mp_units::si::metre),
+            std::memory_order_release);
         if constexpr (HasTorHook<Derived>)
             return derived().afterTorRef();
         else
             return {};
     }
 
-    tl::expected<StatusType, Error> getStatus() {
+    tl::expected<UserStatusType, Error> getStatus() {
         return derived().getStatusImpl();
     }
 
@@ -76,21 +84,21 @@ class MotorBase : public MotorAcessor {
     void setPolicy(Policy policy) { m_policy = std::move(policy); }
 
   protected:
-    std::atomic<Units::Angle> m_pos_ref{};
-    std::atomic<Units::AngularVelocity> m_ang_ref{};
-    std::atomic<Units::Torque> m_tor_ref{};
+    std::atomic<float> m_pos_ref{}; // rad
+    std::atomic<float> m_ang_ref{}; // rad/s
+    std::atomic<float> m_tor_ref{}; // N·m
     DoubleBuffer<typename Traits::StatusType> m_buffer{};
 
     Can::CanDriver &m_driver;
     Policy m_policy;
 
-    Units::Angle getPosRef() const override {
+    float getPosRef() const override {
         return m_pos_ref.load(std::memory_order_acquire);
     }
-    Units::AngularVelocity getAngRef() const override {
+    float getAngRef() const override {
         return m_ang_ref.load(std::memory_order_acquire);
     }
-    Units::Torque getTorRef() const override {
+    float getTorRef() const override {
         return m_tor_ref.load(std::memory_order_acquire);
     }
 

@@ -7,9 +7,10 @@ namespace OneMotor::Motor {
 class MotorAcessor {
   public:
     virtual ~MotorAcessor() = default;
-    virtual Units::Angle getPosRef() const = 0;
-    virtual Units::AngularVelocity getAngRef() const = 0;
-    virtual Units::Torque getTorRef() const = 0;
+    // 数值均使用基础单位：rad / (rad/s) / N·m
+    virtual float getPosRef() const = 0;
+    virtual float getAngRef() const = 0;
+    virtual float getTorRef() const = 0;
 };
 
 } // namespace OneMotor::Motor

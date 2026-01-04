@@ -41,7 +41,7 @@ int main() {
     CanDriver driver("can0");
     M3508<1, decltype(pid_chain)> m1(driver, {pid_chain});
 
-    (void)m1.setPosRef(1 * rev);
+    (void)m1.setPosRef(2 * rev);
     (void)m1.enable();
 
     std::thread thread([&] {

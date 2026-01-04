@@ -38,6 +38,7 @@ using Torque = quantity<newton * metre, float>;
 
 using Current = quantity<ampere, uint16_t>;
 using CurrentMilli = quantity<milli<ampere>, uint16_t>;
+using CurrentMilliF = quantity<milli<ampere>, float>;
 
 using Temperature =
     quantity_point<degree_Celsius, mp_units::si::absolute_zero, float>;

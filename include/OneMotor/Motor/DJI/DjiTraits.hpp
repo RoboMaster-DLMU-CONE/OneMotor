@@ -1,13 +1,14 @@
 #ifndef ONEMOTOR_TRAITS_HPP
 #define ONEMOTOR_TRAITS_HPP
-#include "DjiFrames.hpp"
+#include "DjiFrame.hpp"
 #include <cstdint>
 
 namespace OneMotor::Motor::DJI {
 
 template <uint8_t motor_id> struct M3508Traits {
     static constexpr auto name = "M3508";
-    using StatusType = MotorStatus;
+    using StatusType = MotorStatusPlain;
+    using UserStatusType = MotorStatus;
     static constexpr uint16_t max_current = 16384;
     static constexpr uint16_t encoder_resolution = 8192;
     static constexpr bool has_gearbox = true;
@@ -40,7 +41,8 @@ template <uint8_t motor_id> struct M3508Traits {
 
 template <uint8_t motor_id> struct M2006Traits {
     static constexpr auto name = "M2006";
-    using StatusType = MotorStatus;
+    using StatusType = MotorStatusPlain;
+    using UserStatusType = MotorStatus;
     static constexpr uint16_t max_current = 16384;
     static constexpr uint16_t encoder_resolution = 8192;
     static constexpr bool has_gearbox = true;
@@ -73,7 +75,8 @@ template <uint8_t motor_id> struct M2006Traits {
 
 template <uint8_t motor_id> struct GM6020VoltageTraits {
     static constexpr auto name = "GM6020";
-    using StatusType = MotorStatus;
+    using StatusType = MotorStatusPlain;
+    using UserStatusType = MotorStatus;
     static constexpr uint16_t max_current = 16384;
     static constexpr uint16_t encoder_resolution = 8192;
     static constexpr bool has_gearbox = false;
@@ -105,7 +108,8 @@ template <uint8_t motor_id> struct GM6020VoltageTraits {
 
 template <uint8_t motor_id> struct GM6020CurrentTraits {
     static constexpr auto name = "GM6020";
-    using StatusType = MotorStatus;
+    using StatusType = MotorStatusPlain;
+    using UserStatusType = MotorStatus;
     static constexpr uint16_t max_output = 25000;
     static constexpr uint16_t encoder_resolution = 8192;
     static constexpr bool has_gearbox = false;

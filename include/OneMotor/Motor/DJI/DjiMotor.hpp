@@ -1,6 +1,6 @@
 #ifndef ONEMOTOR_DJIMOTOR_HPP
 #define ONEMOTOR_DJIMOTOR_HPP
-#include "DjiFrames.hpp"
+#include "DjiFrame.hpp"
 #include "DjiPolicy.hpp"
 #include "DjiTraits.hpp"
 #include "MotorManager.hpp"
@@ -8,6 +8,7 @@
 #include <OneMotor/Motor/MotorBase.hpp>
 #include <OneMotor/Util/DoubleBuffer.hpp>
 #include <OneMotor/Util/Panic.hpp>
+#include <algorithm>
 #include <cstdint>
 #include <one/PID/PidController.hpp>
 
@@ -60,38 +61,40 @@ class DjiMotor : public MotorBase<DjiMotor<Traits, Policy>, Traits, Policy> {
             });
     }
 
-    MotorStatus getStatusImpl() { return this->m_buffer.readCopy(); }
+    tl::expected<typename Traits::UserStatusType, Error> getStatusImpl() {
+        return Traits::UserStatusType::fromPlain(this->m_buffer.readCopy());
+    }
 
   private:
-    static void trMsgToStatus(const RawStatusFrame &frame,
-                              MotorStatus &status) {
-        auto &[last_ecd, ecd, angle_single_round, angular, real_current,
-               temperature, total_angle, total_round, reduced_angle,
-               output_current] = status;
+    static void trMsgToStatus(const RawStatusPlain &frame,
+                              MotorStatusPlain &status) {
+        status.ecd = frame.ecd;
+        status.real_current_mA = static_cast<float>(frame.current_mA);
+        status.temperature_C = static_cast<float>(frame.temperature_C);
+        status.angle_single_round_deg =
+            Traits::ecd_to_angle(static_cast<float>(status.ecd));
+        status.angular_deg_s =
+            static_cast<float>(frame.rpm) * 6.0f; // rpm -> deg/s
 
-        ecd = frame.ecd;
-        real_current = frame.current;
-        temperature = frame.temperature;
-        angle_single_round =
-            Traits::ecd_to_angle(static_cast<float>(ecd)) * deg;
-        angular = frame.rpm;
-
-        if (ecd - last_ecd > 4096) {
-            --total_round;
-        } else if (ecd - last_ecd < -4096) {
-            ++total_round;
+        if (status.ecd - status.last_ecd > 4096) {
+            --status.total_round;
+        } else if (status.ecd - status.last_ecd < -4096) {
+            ++status.total_round;
         }
-        total_angle = total_round + angle_single_round;
+        status.total_angle_deg =
+            static_cast<float>(status.total_round) * 360.0f +
+            status.angle_single_round_deg;
         if constexpr (Traits::has_gearbox) {
-            reduced_angle = total_angle / Traits::reduction_ratio;
+            status.reduced_angle_deg =
+                status.total_angle_deg / Traits::reduction_ratio;
         } else {
-            reduced_angle = total_angle;
+            status.reduced_angle_deg = status.total_angle_deg;
         }
-        last_ecd = ecd;
+        status.last_ecd = status.ecd;
     }
 
     void m_disabled_func(Can::CanFrame &&frame) {
-        const auto msg = static_cast<RawStatusFrame>(frame);
+        const auto msg = RawStatusPlain(frame);
         trMsgToStatus(msg, this->m_buffer.write());
         this->m_buffer.swap();
     }
@@ -104,7 +107,7 @@ class DjiMotor : public MotorBase<DjiMotor<Traits, Policy>, Traits, Policy> {
         m_skip_frame = 0;
 #endif
 #endif
-        const auto msg = static_cast<RawStatusFrame>(frame);
+        const auto msg = RawStatusPlain(frame);
         trMsgToStatus(msg, this->m_buffer.write());
         int16_t output_current =
             this->m_policy.compute(this, this->m_buffer.write());
@@ -112,7 +115,7 @@ class DjiMotor : public MotorBase<DjiMotor<Traits, Policy>, Traits, Policy> {
                                     static_cast<int16_t>(-Traits::max_current),
                                     static_cast<int16_t>(Traits::max_current));
 
-        this->m_buffer.write().output_current = output_current * mA;
+        this->m_buffer.write().output_current_mA = output_current;
         this->m_buffer.swap();
         const uint8_t hi_byte = output_current >> 8;
         const uint8_t lo_byte = output_current & 0xFF;

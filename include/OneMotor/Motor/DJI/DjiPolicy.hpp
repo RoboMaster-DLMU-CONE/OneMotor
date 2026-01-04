@@ -3,6 +3,7 @@
 #include <OneMotor/Motor/MotorAcessor.hpp>
 #include <OneMotor/Units/Units.hpp>
 #include <cstdint>
+#include <numbers>
 #include <one/PID/PidController.hpp>
 using namespace OneMotor::Units::literals;
 namespace OneMotor::Motor::DJI {
@@ -13,30 +14,29 @@ template <typename Traits, typename Chain> struct DjiPolicy {
 
     int16_t compute(MotorAcessor *motor, Traits::StatusType &status) {
 
-        float ang_result;
+        constexpr float rad_to_deg = 180.0f / std::numbers::pi_v<float>;
+        float ang_result{};
         if constexpr (Chain::Size == 1) {
-            auto ang_ref_quantity = motor->getAngRef();
-            float ang_ref;
+            const float ang_ref_rad = motor->getAngRef();
+            float ang_ref_deg;
             if constexpr (Traits::has_gearbox) {
-                ang_ref = ang_ref_quantity.numerical_value_in(deg / s) *
-                          Traits::reduction_ratio;
+                ang_ref_deg = ang_ref_rad * rad_to_deg * Traits::reduction_ratio;
             } else {
-                ang_ref = ang_ref_quantity.numerical_value_in(deg / s);
+                ang_ref_deg = ang_ref_rad * rad_to_deg;
             }
-            m_chain.compute(ang_ref,
-                            status.angular.numerical_value_in(deg / s));
+            ang_result = m_chain.compute(ang_ref_deg, status.angular_deg_s);
         } else if constexpr (Chain::Size == 2) {
-            auto pos_ref_quantity = motor->getPosRef();
-            float pos_ref;
+            const float pos_ref_rad = motor->getPosRef();
+            float pos_ref_deg;
             if constexpr (Traits::has_gearbox) {
-                pos_ref = pos_ref_quantity.numerical_value_in(deg) *
-                          Traits::reduction_ratio;
+                pos_ref_deg =
+                    pos_ref_rad * rad_to_deg * Traits::reduction_ratio;
             } else {
-                pos_ref = pos_ref_quantity.numerical_value_in(deg);
+                pos_ref_deg = pos_ref_rad * rad_to_deg;
             }
-            ang_result = m_chain.compute(
-                pos_ref, status.total_angle.numerical_value_in(deg),
-                status.angular.numerical_value_in(deg / s));
+            ang_result =
+                m_chain.compute(pos_ref_deg, status.total_angle_deg,
+                                status.angular_deg_s);
         }
 
         return static_cast<int16_t>(ang_result);

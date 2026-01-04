@@ -61,11 +61,11 @@ class DmMotor : public MotorBase<DmMotor<Traits, Policy>, Traits, Policy> {
         return sendControlFrame(detail::DISABLE_FRAME_DATA);
     }
 
-    tl::expected<typename Traits::StatusType, Error> getStatusImpl() {
+    tl::expected<typename Traits::UserStatusType, Error> getStatusImpl() {
         if (auto result = sendRefreshStatus(); !result)
             return tl::make_unexpected(result.error());
         Thread::sleep_for(std::chrono::milliseconds(1));
-        return this->m_buffer.readCopy();
+        return Traits::UserStatusType::fromPlain(this->m_buffer.readCopy());
     }
     tl::expected<void, Error> afterPosRef() { return update(); }
     tl::expected<void, Error> afterAngRef() { return update(); }
