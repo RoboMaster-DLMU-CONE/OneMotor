@@ -35,9 +35,8 @@ class DmMotor : public MotorBase<DmMotor<Traits, Policy>, Traits, Policy> {
 
         const auto result = this->m_driver.open().and_then([this] {
             return this->m_driver.registerCallback(
-                {m_masterId}, [&](Can::CanFrame &&frame) {
-                    this->onFeedback(std::move(frame));
-                });
+                {m_masterId},
+                [&](Can::CanFrame frame) { this->onFeedback(frame); });
         });
         if (!result) {
             panic("Register Callback Failed for DM Motor");
@@ -167,7 +166,7 @@ class DmMotor : public MotorBase<DmMotor<Traits, Policy>, Traits, Policy> {
         return this->m_driver.send(frame);
     }
 
-    void onFeedback(Can::CanFrame &&frame) {
+    void onFeedback(Can::CanFrame frame) {
         this->m_buffer.push(typename Traits::StatusType(frame));
     }
 

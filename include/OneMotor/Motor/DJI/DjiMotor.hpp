@@ -35,10 +35,9 @@ class DjiMotor : public MotorBase<DjiMotor<Traits, Policy>, Traits, Policy> {
                            Traits::control_offset(), 0, 0);
 
         (void)driver
-            .registerCallback({Traits::feedback_id()},
-                              [this](Can::CanFrame &&frame) {
-                                  this->m_disabled_func(std::move(frame));
-                              })
+            .registerCallback(
+                {Traits::feedback_id()},
+                [this](Can::CanFrame frame) { this->m_disabled_func(frame); })
             .or_else([](const auto &e) { panic(std::move(e.message)); });
     };
 
@@ -51,16 +50,14 @@ class DjiMotor : public MotorBase<DjiMotor<Traits, Policy>, Traits, Policy> {
   protected:
     tl::expected<void, Error> enableImpl() {
         return this->m_driver.registerCallback(
-            {Traits::feedback_id()}, [this](Can::CanFrame &&frame) {
-                this->m_enabled_func(std::move(frame));
-            });
+            {Traits::feedback_id()},
+            [this](Can::CanFrame frame) { this->m_enabled_func(frame); });
     }
 
     tl::expected<void, Error> disableImpl() {
         return this->m_driver.registerCallback(
-            {Traits::feedback_id()}, [this](Can::CanFrame &&frame) {
-                this->m_disabled_func(std::move(frame));
-            });
+            {Traits::feedback_id()},
+            [this](Can::CanFrame frame) { this->m_disabled_func(frame); });
     }
 
     tl::expected<typename Traits::UserStatusType, Error> getStatusImpl() {
@@ -112,13 +109,13 @@ class DjiMotor : public MotorBase<DjiMotor<Traits, Policy>, Traits, Policy> {
         status.last_ecd = status.ecd;
     }
 
-    void m_disabled_func(Can::CanFrame &&frame) {
+    void m_disabled_func(Can::CanFrame frame) {
         const auto msg = RawStatusPlain(frame);
         trMsgToStatus(msg, this->m_buffer.write());
         this->m_buffer.swap();
     }
 
-    void m_enabled_func(Can::CanFrame &&frame) {
+    void m_enabled_func(Can::CanFrame frame) {
 #ifdef CONFIG_OM_DJI_MOTOR_SKIP_N_FRAME
 #if CONFIG_OM_DJI_MOTOR_SKIP_N_FRAME != 0
         if (m_skip_frame++ < CONFIG_OM_DJI_MOTOR_SKIP_N_FRAME)
