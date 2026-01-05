@@ -68,6 +68,7 @@ struct MotorStatus {
                 .reduced_angular = plain.reduced_angular_deg_s * deg / s};
     }
 
+#ifdef ONE_MOTOR_LINUX
     [[nodiscard]] std::string format() const {
         return std::format("M3508 Status:\n"
                            "\t- Angular Velocity: {}\n"
@@ -79,6 +80,7 @@ struct MotorStatus {
                            angular, total_angle, reduced_angle, reduced_angular,
                            real_current, temperature.quantity_from_zero());
     };
+#endif
 };
 } // namespace OneMotor::Motor::DJI
 

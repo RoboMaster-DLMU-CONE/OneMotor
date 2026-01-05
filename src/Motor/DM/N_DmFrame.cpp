@@ -30,6 +30,7 @@ DmStatus DmStatus::fromPlain(const DmStatusPlain &plain) {
     };
 }
 
+#ifdef ONE_MOTOR_LINUX
 std::string DmStatus::format() const {
     return std::format("ID: {:X}, Position: {}, Velocity: {}, Torque: {}, "
                        "temperature: {},{} deg, ",
@@ -37,4 +38,5 @@ std::string DmStatus::format() const {
                        temperature_MOS.quantity_from_zero(),
                        temperature_Rotor.quantity_from_zero());
 }
+#endif
 } // namespace OneMotor::Motor::DM

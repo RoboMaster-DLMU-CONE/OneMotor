@@ -1,5 +1,7 @@
 include(FetchContent)
+if(NOT ZEPHYR_TOOLCHAIN_VARIANT)
 find_package(tl-expected QUIET)
+endif ()
 if (NOT tl-expected_FOUND AND NOT TARGET expected)
     cmake_policy(PUSH)
     cmake_policy(SET CMP0135 NEW)

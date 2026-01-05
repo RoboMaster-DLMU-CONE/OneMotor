@@ -95,8 +95,18 @@ class CanDriver {
         });
     }
 #else
+    tl::expected<void, Error>
+    registerCallbackImpl(const std::set<size_t> &can_ids,
+                         const std::function<void(CanFrame)> &func) const;
+    template <typename Func>
     tl::expected<void, Error> registerCallback(const std::set<size_t> &can_ids,
-                                               auto &&func);
+                                               Func &&func)
+        requires(std::invocable<Func, CanFrame>)
+    {
+        return registerCallbackImpl(
+            can_ids, [func = std::forward<decltype(func)>(func)](
+                         CanFrame can_frame) { func(can_frame); });
+    }
 #endif
 
   private:

@@ -1,5 +1,6 @@
+if(NOT ZEPHYR_TOOLCHAIN_VARIANT)
 find_package(unordered_dense CONFIG QUIET)
-
+endif ()
 if (NOT unordered_dense_FOUND)
     FetchContent_Declare(
             unordered_dense

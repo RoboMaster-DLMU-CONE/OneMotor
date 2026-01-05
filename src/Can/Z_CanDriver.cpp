@@ -13,9 +13,8 @@ OM_CCM_ATTR std::unordered_map<const device *, Callbacks> g_callbacks;
 OM_CCM_ATTR std::unordered_map<const device *, Filters> g_filters;
 
 void rx_callback_entry(const device *dev, can_frame *frame, void *user_data) {
-    if (const auto callback =
-            static_cast<CanDriver::CallbackFunc *>(user_data)) {
-        (*callback)(std::move(*reinterpret_cast<CanFrame *>(frame)));
+    if (const auto callback = static_cast<CallbackFunc *>(user_data)) {
+        (*callback)(std::bit_cast<CanFrame>(*frame));
     }
 }
 
@@ -53,11 +52,9 @@ tl::expected<void, Error> CanDriver::send(const CanFrame &frame) {
     return {};
 }
 
-tl::expected<void, Error>
-CanDriver::registerCallback(const std::set<size_t> &can_ids, auto &&func) {
-    static_assert(std::is_invocable<decltype(func), CanFrame>(func),
-                  "Invalid func type");
-
+tl::expected<void, Error> CanDriver::registerCallbackImpl(
+    const std::set<size_t> &can_ids,
+    const std::function<void(CanFrame)> &func) const {
     for (const auto &id : can_ids) {
         if (id > 2048)
             return unexpected(Error{CanDriverInternalError,
