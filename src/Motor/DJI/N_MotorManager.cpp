@@ -8,21 +8,24 @@
 #include <OneMotor/Util/Panic.hpp>
 #include <ankerl/unordered_dense.h>
 
-#include "OneMotor/Util/DoubleBuffer.hpp"
+#include <OneMotor/Util/DoubleBuffer.hpp>
+#include <OneMotor/Util/DtcmAllocator.hpp>
 
 using tl::unexpected;
 using enum OneMotor::ErrorCode;
 
 namespace OneMotor::Motor::DJI {
+template <typename T> using AHash = ankerl::unordered_dense::hash<T>;
+template <typename K, typename V>
+using FastMap = ankerl::unordered_dense::map<K, V, AHash<K>, std::equal_to<K>,
+                                             DtcmAllocator<std::pair<K, V>>>;
+
 using OutputArray = std::array<uint8_t, 8>;
-using ControlBuffers =
-    ankerl::unordered_dense::map<uint16_t, DoubleBuffer<OutputArray>>;
+using ControlBuffers = FastMap<uint16_t, DoubleBuffer<OutputArray>>;
 /// @brief 记录每个CAN驱动下注册了哪些电机ID
-OM_CCM_ATTR std::unordered_map<Can::CanDriver *, std::set<uint16_t>>
-    g_driver_motor_ids;
+OM_CCM_ATTR FastMap<Can::CanDriver *, std::set<uint16_t>> g_driver_motor_ids;
 /// @brief 存储每个CAN驱动要发送的电机电流数据
-OM_CCM_ATTR ankerl::unordered_dense::map<Can::CanDriver *, ControlBuffers>
-    g_driver_motor_outputs;
+OM_CCM_ATTR FastMap<Can::CanDriver *, ControlBuffers> g_driver_motor_outputs;
 
 MotorManager::~MotorManager() {
     stop_.store(true, std::memory_order_release);

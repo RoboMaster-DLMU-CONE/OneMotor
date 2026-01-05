@@ -30,4 +30,10 @@ module = ONE_MOTOR
 module-str = OneMotor
 source "subsys/logging/Kconfig.template.log_config"
 
+config OM_DTCM_HEAP_SIZZE
+    int "DTCM 内存堆大小"
+    default 16384
+    help
+      定义OneMotor在Zephyr DTCM内存区域上分配的堆大小。这部分内存会被用来存储循环中的热点数据，提升速度。仅在启用了DTCM内存节点的情况下有效，否则会回退到使用默认内存。
+
 endif # ONE_MOTOR
