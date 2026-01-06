@@ -1,0 +1,4 @@
+name = "one-motor-docs"
+compatibility_date = "2025-07-31"
+[assets]
+directory = "./out/html/"

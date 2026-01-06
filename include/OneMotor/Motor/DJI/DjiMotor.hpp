@@ -1,5 +1,10 @@
 #ifndef ONEMOTOR_DJIMOTOR_HPP
 #define ONEMOTOR_DJIMOTOR_HPP
+/**
+ * @file DjiMotor.hpp
+ * @brief 大疆电机控制实现
+ */
+
 #include "DjiFrame.hpp"
 #include "DjiPolicy.hpp"
 #include "DjiTraits.hpp"
@@ -151,6 +156,14 @@ class DjiMotor : public MotorBase<DjiMotor<Traits, Policy>, Traits, Policy> {
 template <uint8_t id, typename Chain>
 using M3508 = DjiMotor<M3508Traits<id>, DjiPolicy<M3508Traits<id>, Chain>>;
 
+/**
+ * @brief 创建M3508电机实例的辅助函数
+ * @tparam id 电机ID
+ * @tparam Chain PID控制器链类型
+ * @param driver CAN驱动引用
+ * @param chain PID控制器链实例
+ * @return M3508电机实例
+ */
 template <uint8_t id, typename Chain>
 DjiMotor<M3508Traits<id>, DjiPolicy<M3508Traits<id>, Chain>>
 makeM3508(Can::CanDriver &driver, const Chain &chain) {
@@ -161,6 +174,14 @@ makeM3508(Can::CanDriver &driver, const Chain &chain) {
 template <uint8_t id, typename Chain>
 using M2006 = DjiMotor<M2006Traits<id>, DjiPolicy<M2006Traits<id>, Chain>>;
 
+/**
+ * @brief 创建M2006电机实例的辅助函数
+ * @tparam id 电机ID
+ * @tparam Chain PID控制器链类型
+ * @param driver CAN驱动引用
+ * @param chain PID控制器链实例
+ * @return M2006电机实例
+ */
 template <uint8_t id, typename Chain>
 DjiMotor<M2006Traits<id>, DjiPolicy<M2006Traits<id>, Chain>>
 makeM2006(Can::CanDriver &driver, const Chain &chain) {
@@ -171,6 +192,15 @@ makeM2006(Can::CanDriver &driver, const Chain &chain) {
 template <uint8_t id, typename Chain>
 using GM6020_Voltage = DjiMotor<GM6020VoltageTraits<id>,
                                 DjiPolicy<GM6020VoltageTraits<id>, Chain>>;
+
+/**
+ * @brief 创建GM6020电压模式电机实例的辅助函数
+ * @tparam id 电机ID
+ * @tparam Chain PID控制器链类型
+ * @param driver CAN驱动引用
+ * @param chain PID控制器链实例
+ * @return GM6020电压模式电机实例
+ */
 template <uint8_t id, typename Chain>
 DjiMotor<GM6020VoltageTraits<id>, DjiPolicy<GM6020VoltageTraits<id>, Chain>>
 makeGM6020_Voltage(Can::CanDriver &driver, const Chain &chain) {
@@ -183,6 +213,14 @@ template <uint8_t id, typename Chain>
 using GM6020_Current = DjiMotor<GM6020CurrentTraits<id>,
                                 DjiPolicy<GM6020CurrentTraits<id>, Chain>>;
 
+/**
+ * @brief 创建GM6020电流模式电机实例的辅助函数
+ * @tparam id 电机ID
+ * @tparam Chain PID控制器链类型
+ * @param driver CAN驱动引用
+ * @param chain PID控制器链实例
+ * @return GM6020电流模式电机实例
+ */
 template <uint8_t id, typename Chain>
 DjiMotor<GM6020CurrentTraits<id>, DjiPolicy<GM6020CurrentTraits<id>, Chain>>
 makeGM6020_Current(Can::CanDriver &driver, const Chain &chain) {

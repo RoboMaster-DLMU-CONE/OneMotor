@@ -1,8 +1,6 @@
 /**
  * @file Panic.hpp
  * @brief 提供一个用于处理严重错误的全局函数。
- * @author MoonFeather
- * @date 2025-06-26
  */
 #ifndef PANIC_HPP
 #define PANIC_HPP

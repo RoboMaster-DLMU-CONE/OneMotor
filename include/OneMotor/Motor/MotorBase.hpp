@@ -1,5 +1,9 @@
 #ifndef ONE_MOTOR_MOTORBASE_HPP_
 #define ONE_MOTOR_MOTORBASE_HPP_
+/**
+ * @file MotorBase.hpp
+ * @brief 电机基类定义
+ */
 
 #include <OneMotor/Can/CanDriver.hpp>
 #include <OneMotor/Motor/MotorConcepts.hpp>
@@ -39,23 +43,49 @@ concept HasPidHook = requires(T t, float p, float i, float d) {
     } -> std::same_as<tl::template expected<void, Error>>;
 };
 
+/**
+ * @class MotorBase
+ * @brief 电机基类，提供通用的电机控制接口
+ * @tparam Derived 派生类类型
+ * @tparam Traits 电机特性类型
+ * @tparam Policy 控制策略类型
+ */
 template <typename Derived, MotorTraits Traits, typename Policy>
     requires MotorStatusType<typename Traits::StatusType> &&
              MotorStatusType<typename Traits::UserStatusType> &&
              ControlPolicy<Policy, typename Traits::StatusType>
 class MotorBase {
   public:
-    using StatusType = typename Traits::StatusType; // 内部线程使用的裸状态
-    using UserStatusType = typename Traits::UserStatusType; // 对外暴露的状态
+    using StatusType = typename Traits::StatusType; ///< 内部线程使用的裸状态
+    using UserStatusType = typename Traits::UserStatusType; ///< 对外暴露的状态
     using PolicyType = Policy;
     using TraitsType = Traits;
+
+    /**
+     * @brief 构造函数
+     * @param driver CAN驱动引用
+     * @param policy 控制策略实例
+     */
     explicit MotorBase(Can::CanDriver &driver, Policy policy = Policy{})
         : m_driver(driver), m_policy(std::move(policy)) {}
 
+    /**
+     * @brief 使能电机
+     * @return 操作结果
+     */
     tl::expected<void, Error> enable() { return derived().enableImpl(); }
 
+    /**
+     * @brief 禁用电机
+     * @return 操作结果
+     */
     tl::expected<void, Error> disable() { return derived().disableImpl(); }
 
+    /**
+     * @brief 设置位置参考值
+     * @param ref 位置参考值
+     * @return 操作结果
+     */
     tl::expected<void, Error> setPosRef(const Units::Angle &ref) {
         m_pos_ref.store(ref.numerical_value_in(mp_units::angular::radian),
                         std::memory_order_release);
@@ -65,6 +95,11 @@ class MotorBase {
             return {};
     }
 
+    /**
+     * @brief 设置角速度参考值
+     * @param ref 角速度参考值
+     * @return 操作结果
+     */
     tl::expected<void, Error> setAngRef(const Units::AngularVelocity &ref) {
         m_ang_ref.store(ref.numerical_value_in(mp_units::angular::radian /
                                                mp_units::si::second),
@@ -75,6 +110,11 @@ class MotorBase {
             return {};
     }
 
+    /**
+     * @brief 设置扭矩参考值
+     * @param ref 扭矩参考值
+     * @return 操作结果
+     */
     tl::expected<void, Error> setTorRef(const Units::Torque &ref) {
         m_tor_ref.store(
             ref.numerical_value_in(mp_units::si::newton * mp_units::si::metre),
@@ -85,6 +125,13 @@ class MotorBase {
             return {};
     }
 
+    /**
+     * @brief 同时设置位置、角速度和扭矩参考值
+     * @param pos_ref 位置参考值
+     * @param ang_ref 角速度参考值
+     * @param tor_ref 扭矩参考值
+     * @return 操作结果
+     */
     tl::expected<void, Error> setRefs(const Units::Angle &pos_ref,
                                       const Units::AngularVelocity &ang_ref,
                                       const Units::Torque &tor_ref) {
@@ -103,6 +150,13 @@ class MotorBase {
             return {};
     };
 
+    /**
+     * @brief 设置PID参数
+     * @param kp 比例参数
+     * @param ki 积分参数
+     * @param kd 微分参数
+     * @return 操作结果
+     */
     tl::expected<void, Error> setPidParams(float kp, float ki, float kd) {
         m_kp.store(kp, std::memory_order_release);
         m_ki.store(ki, std::memory_order_release);
@@ -113,33 +167,64 @@ class MotorBase {
             return {};
     }
 
+    /**
+     * @brief 获取电机状态
+     * @return 电机状态
+     */
     tl::expected<UserStatusType, Error> getStatus() {
         return derived().getStatusImpl();
     }
 
+    /**
+     * @brief 获取控制策略引用
+     * @return 控制策略引用
+     */
     Policy &getPolicy() { return m_policy; }
+
+    /**
+     * @brief 获取控制策略常量引用
+     * @return 控制策略常量引用
+     */
     const Policy &getPolicy() const { return m_policy; }
 
+    /**
+     * @brief 设置控制策略
+     * @param policy 新的控制策略
+     */
     void setPolicy(Policy policy) { m_policy = std::move(policy); }
 
   protected:
-    std::atomic<float> m_pos_ref{}; // rad
-    std::atomic<float> m_ang_ref{}; // rad/s
-    std::atomic<float> m_tor_ref{}; // N·m
-    std::atomic<float> m_kp{};
-    std::atomic<float> m_ki{};
-    std::atomic<float> m_kd{};
-    DoubleBuffer<typename Traits::StatusType> m_buffer{};
+    std::atomic<float> m_pos_ref{}; ///< 位置参考值 (rad)
+    std::atomic<float> m_ang_ref{}; ///< 角速度参考值 (rad/s)
+    std::atomic<float> m_tor_ref{}; ///< 扭矩参考值 (N·m)
+    std::atomic<float> m_kp{}; ///< 比例参数
+    std::atomic<float> m_ki{}; ///< 积分参数
+    std::atomic<float> m_kd{}; ///< 微分参数
+    DoubleBuffer<typename Traits::StatusType> m_buffer{}; ///< 状态双缓冲
 
-    Can::CanDriver &m_driver;
-    Policy m_policy;
+    Can::CanDriver &m_driver; ///< CAN驱动引用
+    Policy m_policy; ///< 控制策略
 
+    /**
+     * @brief 获取位置参考值
+     * @return 位置参考值
+     */
     float getPosRef() const {
         return m_pos_ref.load(std::memory_order_acquire);
     }
+
+    /**
+     * @brief 获取角速度参考值
+     * @return 角速度参考值
+     */
     float getAngRef() const {
         return m_ang_ref.load(std::memory_order_acquire);
     }
+
+    /**
+     * @brief 获取扭矩参考值
+     * @return 扭矩参考值
+     */
     float getTorRef() const {
         return m_tor_ref.load(std::memory_order_acquire);
     }

@@ -8,10 +8,7 @@
 
 /**
  * @file DoubleBuffer.hpp
- * @author MoonFeather
  * @brief 定义 DoubleBuffer 类，用于在多线程模型下保证电机状态信息的安全更新
- * @date 2025-10-14
- *
  */
 
 

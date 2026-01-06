@@ -1,8 +1,6 @@
 /**
  * @file Othread.hpp
  * @brief 提供一个封装了不同平台线程操作的线程类。
- * @author MoonFeather
- * @date 2025-06-26
  */
 #ifndef OTHREAD_HPP
 #define OTHREAD_HPP

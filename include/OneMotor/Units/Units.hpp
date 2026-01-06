@@ -1,5 +1,9 @@
 #ifndef ONE_MOTOR_UNITS_HPP_
 #define ONE_MOTOR_UNITS_HPP_
+/**
+ * @file Units.hpp
+ * @brief 物理量单位定义
+ */
 
 #include <cstdint>
 #include <mp-units/framework.h>
@@ -25,21 +29,32 @@ using mp_units::si::minute;
 using mp_units::si::newton;
 using mp_units::si::second;
 
+/// 角度类型，以弧度为单位
 using Angle = quantity<radian, float>;
+/// 角度类型，以度为单位
 using AngleDeg = quantity<degree, float>;
 
+/// 角速度类型，以弧度/秒为单位
 using AngularVelocity = quantity<radian / second, float>;
+/// 角速度类型，以度/秒为单位
 using AngulurVelocityDeg = quantity<degree / second, float>;
 
+/// 转数类型
 using Round = quantity<revolution, int32_t>;
+/// 转速类型，以转/分钟为单位
 using RPM = quantity<revolution / minute, float>;
 
+/// 扭矩类型
 using Torque = quantity<newton * metre, float>;
 
+/// 电流类型
 using Current = quantity<ampere, uint16_t>;
+/// 毫安电流类型
 using CurrentMilli = quantity<milli<ampere>, uint16_t>;
+/// 毫安电流类型（浮点）
 using CurrentMilliF = quantity<milli<ampere>, float>;
 
+/// 温度类型
 using Temperature =
     quantity_point<degree_Celsius, mp_units::si::absolute_zero, float>;
 

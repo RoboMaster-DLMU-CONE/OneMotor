@@ -2,7 +2,6 @@ cmake-build*
 build
 .idea
 twister*
-doc/html
 out
 compile_commands.json
 .cache
