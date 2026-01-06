@@ -71,6 +71,8 @@ class DmMotor : public MotorBase<DmMotor<Traits, Policy>, Traits, Policy> {
     tl::expected<void, Error> afterAngRef() { return update(); }
     tl::expected<void, Error> afterTorRef() { return update(); }
 
+    tl::expected<void, Error> afterRefs() { return update(); }
+
     tl::expected<void, Error> afterPidParams(float kp, float ki, float kd) {
         if constexpr (std::is_same<Policy, MITPolicy<Traits>>()) {
             this->m_policy.m_kp = kp;
@@ -161,6 +163,10 @@ class DmMotor : public MotorBase<DmMotor<Traits, Policy>, Traits, Policy> {
 };
 template <typename Policy = MITPolicy<J4310Traits>>
 using J4310 = DmMotor<J4310Traits, Policy>;
+
+using J4310_MIT = DmMotor<J4310Traits, MITPolicy<J4310Traits>>;
+using J4310_PosVel = DmMotor<J4310Traits, PosVelPolicy<J4310Traits>>;
+using J4310_Vel = DmMotor<J4310Traits, VelPolicy<J4310Traits>>;
 
 template <typename Policy = MITPolicy<J4340Traits>>
 using J4340 = DmMotor<J4340Traits, Policy>;

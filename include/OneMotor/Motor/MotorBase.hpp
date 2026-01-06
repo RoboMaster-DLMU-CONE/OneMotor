@@ -28,6 +28,11 @@ concept HasTorHook = requires(T t) {
 };
 
 template <typename T>
+concept HasRefsHook = requires(T t) {
+    { t.afterRefs() } -> std::same_as<tl::template expected<void, Error>>;
+};
+
+template <typename T>
 concept HasPidHook = requires(T t, float p, float i, float d) {
     {
         t.afterPidParams(p, i, d)
@@ -51,7 +56,7 @@ class MotorBase {
 
     tl::expected<void, Error> disable() { return derived().disableImpl(); }
 
-    tl::expected<void, Error> setPosRef(Units::Angle ref) {
+    tl::expected<void, Error> setPosRef(const Units::Angle &ref) {
         m_pos_ref.store(ref.numerical_value_in(mp_units::angular::radian),
                         std::memory_order_release);
         if constexpr (HasPosHook<Derived>)
@@ -60,7 +65,7 @@ class MotorBase {
             return {};
     }
 
-    tl::expected<void, Error> setAngRef(Units::AngularVelocity ref) {
+    tl::expected<void, Error> setAngRef(const Units::AngularVelocity &ref) {
         m_ang_ref.store(ref.numerical_value_in(mp_units::angular::radian /
                                                mp_units::si::second),
                         std::memory_order_release);
@@ -70,7 +75,7 @@ class MotorBase {
             return {};
     }
 
-    tl::expected<void, Error> setTorRef(Units::Torque ref) {
+    tl::expected<void, Error> setTorRef(const Units::Torque &ref) {
         m_tor_ref.store(
             ref.numerical_value_in(mp_units::si::newton * mp_units::si::metre),
             std::memory_order_release);
@@ -79,6 +84,24 @@ class MotorBase {
         else
             return {};
     }
+
+    tl::expected<void, Error> setRefs(const Units::Angle &pos_ref,
+                                      const Units::AngularVelocity &ang_ref,
+                                      const Units::Torque &tor_ref) {
+        m_pos_ref.store(pos_ref.numerical_value_in(mp_units::angular::radian),
+                        std::memory_order_release);
+        m_ang_ref.store(ang_ref.numerical_value_in(mp_units::angular::radian /
+                                                   mp_units::si::second),
+                        std::memory_order_release);
+        m_tor_ref.store(tor_ref.numerical_value_in(mp_units::si::newton *
+                                                   mp_units::si::metre),
+                        std::memory_order_release);
+
+        if constexpr (HasRefsHook<Derived>)
+            return derived().afterRefs();
+        else
+            return {};
+    };
 
     tl::expected<void, Error> setPidParams(float kp, float ki, float kd) {
         m_kp.store(kp, std::memory_order_release);
