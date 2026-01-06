@@ -13,19 +13,6 @@
 #include <string>
 
 namespace OneMotor::Motor::DM {
-/// @brief 电机参数限制
-/// @{
-constexpr float DM_V_MIN = -45.0f;  ///< rad/s
-constexpr float DM_V_MAX = 45.0f;   ///< rad/s
-constexpr float DM_P_MIN = -12.5f;  ///< rad
-constexpr float DM_P_MAX = 12.5f;   ///< rad
-constexpr float DM_T_MIN = -18.0f;  ///< N*m
-constexpr float DM_T_MAX = 18.0f;   ///< N*m
-constexpr float DM_KP_MIN = 0.0f;   ///<
-constexpr float DM_KP_MAX = 500.0f; ///<
-constexpr float DM_KD_MIN = 0.0f;   ///<
-constexpr float DM_KD_MAX = 5.0f;   ///<
-/// @}
 
 /**
  * @brief 将无符号整数转换为浮点数
@@ -35,10 +22,10 @@ constexpr float DM_KD_MAX = 5.0f;   ///<
  * @param bits 无符号整数的位数
  * @return 转换后的浮点数值
  */
-constexpr float uint_to_float(const int x_int, const float x_min,
-                              const float x_max, const int bits) {
-    const float span = x_max - x_min;
-    const float offset = x_min;
+template <float X_MIN, float X_MAX>
+constexpr float uint_to_float(const int x_int, const int bits) {
+    constexpr float span = X_MAX - X_MIN;
+    constexpr float offset = X_MIN;
     return static_cast<float>(x_int) * span /
                static_cast<float>((1 << bits) - 1) +
            offset;
@@ -52,10 +39,10 @@ constexpr float uint_to_float(const int x_int, const float x_min,
  * @param bits 无符号整数的位数
  * @return 转换后的无符号整数值
  */
-constexpr int float_to_uint(const float x, const float x_min, const float x_max,
-                            const int bits) {
-    const float span = x_max - x_min;
-    const float offset = x_min;
+template <float X_MIN, float X_MAX>
+constexpr int float_to_uint(const float x, const int bits) {
+    const float span = X_MAX - X_MIN;
+    const float offset = X_MIN;
     return static_cast<int>((x - offset) * static_cast<float>((1 << bits) - 1) /
                             span);
 }
@@ -75,21 +62,39 @@ enum class DmCode {
     Overloaded = 0xE,    ///< 电机过载
 };
 
+template <typename T> struct TypeTag {};
+
 /**
  * @brief 达妙电机状态结构体
  */
 /// @brief 回调线程内部使用的无单位状态（基础单位：rad、rad/s、N·m、摄氏度）
 struct DmStatusPlain {
     DmStatusPlain() = default;
-    explicit DmStatusPlain(const Can::CanFrame &frame);
+    template <typename Traits>
+    explicit DmStatusPlain(const Can::CanFrame &frame, TypeTag<Traits> tag) {
+        (void)tag;
+        const auto *data = reinterpret_cast<const uint8_t *>(frame.data);
+        auto tmp = static_cast<uint16_t>((data[1] << 8) | data[2]);
+        position = uint_to_float<Traits::P_MIN, Traits::P_MAX>(tmp, 16); // rad
+        tmp = static_cast<uint16_t>((data[3] << 4) | data[4] >> 4);
+        velocity =
+            uint_to_float<Traits::V_MIN, Traits::V_MAX>(tmp, 12); // rad/s
+        tmp = static_cast<uint16_t>(((data[4] & 0x0f) << 8) | data[5]);
+        torque = uint_to_float<Traits::T_MIN, Traits::T_MAX>(tmp, 12); // N·m
 
-    uint8_t ID{};             ///< 电机 ID
-    DmCode status{};          ///< 电机状态
-    float position{};         ///< rad
-    float velocity{};         ///< rad/s
-    float torque{};           ///< N·m
-    float temperature_MOS{};  ///< 摄氏度
-    float temperature_Rotor{};///< 摄氏度
+        ID = data[0] & 0x0F;
+        status = static_cast<DmCode>((frame.data[0] >> 4) & 0x0F);
+        temperature_MOS = static_cast<float>(data[6]);
+        temperature_Rotor = static_cast<float>(data[7]);
+    }
+
+    uint8_t ID{};              ///< 电机 ID
+    DmCode status{};           ///< 电机状态
+    float position{};          ///< rad
+    float velocity{};          ///< rad/s
+    float torque{};            ///< N·m
+    float temperature_MOS{};   ///< 摄氏度
+    float temperature_Rotor{}; ///< 摄氏度
 };
 
 /// @brief 对外暴露的带单位状态，仅在用户线程构造

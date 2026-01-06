@@ -11,6 +11,7 @@
 #include <OneMotor/Util/Panic.hpp>
 #include <cstdint>
 #include <tl/expected.hpp>
+#include <type_traits>
 namespace OneMotor::Motor::DM {
 
 namespace detail {
@@ -24,7 +25,7 @@ inline constexpr uint8_t CLEAN_ERROR_DATA[8] = {0xFF, 0xFF, 0xFF, 0xFF,
                                                 0xFF, 0xFF, 0xFF, 0xFB};
 } // namespace detail
 
-template <typename Traits = DmTraits, typename Policy = MITPolicy<Traits>>
+template <typename Traits, typename Policy = MITPolicy<Traits>>
 class DmMotor : public MotorBase<DmMotor<Traits, Policy>, Traits, Policy> {
   public:
     using Base = MotorBase<DmMotor<Traits, Policy>, Traits, Policy>;
@@ -70,6 +71,14 @@ class DmMotor : public MotorBase<DmMotor<Traits, Policy>, Traits, Policy> {
     tl::expected<void, Error> afterAngRef() { return update(); }
     tl::expected<void, Error> afterTorRef() { return update(); }
 
+    tl::expected<void, Error> afterPidParams(float kp, float ki, float kd) {
+        if constexpr (std::is_same<Policy, MITPolicy<Traits>>()) {
+            this->m_policy.m_kp = kp;
+            this->m_policy.m_kd = kd;
+        }
+        return {};
+    }
+
   private:
     tl::expected<void, Error> sendControlFrame(const uint8_t *data) {
         Can::CanFrame frame{};
@@ -105,25 +114,7 @@ class DmMotor : public MotorBase<DmMotor<Traits, Policy>, Traits, Policy> {
         frame.id = m_canId;
         frame.dlc = 8;
 
-        const uint16_t pos =
-            float_to_uint(out.position, Traits::P_MAX, Traits::P_MIN, 16);
-        const uint16_t vel =
-            float_to_uint(out.angular, Traits::V_MAX, Traits::V_MIN, 12);
-        const uint16_t tor =
-            float_to_uint(out.torque, Traits::T_MAX, Traits::T_MIN, 12);
-        const uint16_t kp =
-            float_to_uint(out.kp, Traits::KP_MAX, Traits::KP_MIN, 12);
-        const uint16_t kd =
-            float_to_uint(out.kd, Traits::KD_MAX, Traits::KD_MIN, 12);
-
-        frame.data[0] = pos >> 8;
-        frame.data[1] = pos & 0xFF;
-        frame.data[2] = vel >> 4;
-        frame.data[3] = ((vel & 0xF) << 4) | (kp >> 8);
-        frame.data[4] = kp & 0xFF;
-        frame.data[5] = kd >> 4;
-        frame.data[6] = ((kd & 0xF) << 4) | (tor >> 8);
-        frame.data[7] = tor & 0xFF;
+        std::memcpy(frame.data, out.data, 8);
 
         return this->m_driver.send(frame);
     }
@@ -133,11 +124,7 @@ class DmMotor : public MotorBase<DmMotor<Traits, Policy>, Traits, Policy> {
         frame.id = m_canId + 0x100;
         frame.dlc = 8;
 
-        const auto *pbuf = reinterpret_cast<const uint8_t *>(&out.position);
-        const auto *vbuf = reinterpret_cast<const uint8_t *>(&out.angular);
-
-        std::copy_n(pbuf, 4, frame.data);
-        std::copy_n(vbuf, 4, frame.data + 4);
+        std::memcpy(frame.data, out.data, 8);
 
         return this->m_driver.send(frame);
     }
@@ -147,8 +134,7 @@ class DmMotor : public MotorBase<DmMotor<Traits, Policy>, Traits, Policy> {
         frame.id = m_canId + 0x200;
         frame.dlc = 4;
 
-        const auto *vbuf = reinterpret_cast<const uint8_t *>(&out.angular);
-        std::copy_n(vbuf, 4, frame.data);
+        std::memcpy(frame.data, out.data, 4);
 
         return this->m_driver.send(frame);
     }
@@ -167,11 +153,23 @@ class DmMotor : public MotorBase<DmMotor<Traits, Policy>, Traits, Policy> {
     }
 
     void onFeedback(Can::CanFrame frame) {
-        this->m_buffer.push(typename Traits::StatusType(frame));
+        this->m_buffer.push(
+            typename Traits::StatusType(frame, TypeTag<Traits>{}));
     }
 
     uint16_t m_masterId{}, m_canId{};
 };
+template <typename Policy = MITPolicy<J4310Traits>>
+using J4310 = DmMotor<J4310Traits, Policy>;
+
+template <typename Policy = MITPolicy<J4340Traits>>
+using J4340 = DmMotor<J4340Traits, Policy>;
+
+template <typename Policy = MITPolicy<J8009Traits>>
+using J8009 = DmMotor<J8009Traits, Policy>;
+
+template <typename Policy = MITPolicy<J10010LTraits>>
+using J10010L = DmMotor<J10010LTraits, Policy>;
 
 } // namespace OneMotor::Motor::DM
 
