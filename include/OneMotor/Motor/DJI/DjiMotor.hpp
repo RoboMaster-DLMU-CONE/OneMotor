@@ -152,11 +152,44 @@ template <uint8_t id, typename Chain>
 using M3508 = DjiMotor<M3508Traits<id>, DjiPolicy<M3508Traits<id>, Chain>>;
 
 template <uint8_t id, typename Chain>
+DjiMotor<M3508Traits<id>, DjiPolicy<M3508Traits<id>, Chain>>
+makeM3508(Can::CanDriver &driver, const Chain &chain) {
+    return DjiMotor<M3508Traits<id>, DjiPolicy<M3508Traits<id>, Chain>>(
+        driver, DjiPolicy<M3508Traits<id>, Chain>{chain});
+};
+
+template <uint8_t id, typename Chain>
 using M2006 = DjiMotor<M2006Traits<id>, DjiPolicy<M2006Traits<id>, Chain>>;
 
 template <uint8_t id, typename Chain>
-using GM6020 = DjiMotor<GM6020VoltageTraits<id>,
-                        DjiPolicy<GM6020VoltageTraits<id>, Chain>>;
+DjiMotor<M2006Traits<id>, DjiPolicy<M2006Traits<id>, Chain>>
+makeM2006(Can::CanDriver &driver, const Chain &chain) {
+    return DjiMotor<M2006Traits<id>, DjiPolicy<M2006Traits<id>, Chain>>(
+        driver, DjiPolicy<M2006Traits<id>, Chain>{chain});
+};
+
+template <uint8_t id, typename Chain>
+using GM6020_Voltage = DjiMotor<GM6020VoltageTraits<id>,
+                                DjiPolicy<GM6020VoltageTraits<id>, Chain>>;
+template <uint8_t id, typename Chain>
+DjiMotor<GM6020VoltageTraits<id>, DjiPolicy<GM6020VoltageTraits<id>, Chain>>
+makeGM6020_Voltage(Can::CanDriver &driver, const Chain &chain) {
+    return DjiMotor<GM6020VoltageTraits<id>,
+                    DjiPolicy<GM6020VoltageTraits<id>, Chain>>(
+        driver, DjiPolicy<GM6020VoltageTraits<id>, Chain>{chain});
+};
+
+template <uint8_t id, typename Chain>
+using GM6020_Current = DjiMotor<GM6020CurrentTraits<id>,
+                                DjiPolicy<GM6020CurrentTraits<id>, Chain>>;
+
+template <uint8_t id, typename Chain>
+DjiMotor<GM6020CurrentTraits<id>, DjiPolicy<GM6020CurrentTraits<id>, Chain>>
+makeGM6020_Current(Can::CanDriver &driver, const Chain &chain) {
+    return DjiMotor<GM6020CurrentTraits<id>,
+                    DjiPolicy<GM6020CurrentTraits<id>, Chain>>(
+        driver, DjiPolicy<GM6020CurrentTraits<id>, Chain>{chain});
+};
 
 } // namespace OneMotor::Motor::DJI
 
