@@ -3,6 +3,7 @@
 #include <OneMotor/Util/CCM.h>
 #include <OneMotor/Util/Panic.hpp>
 #include <OneMotor/Util/DtcmAllocator.hpp>
+#include <memory>
 using tl::unexpected;
 using enum OneMotor::ErrorCode;
 
@@ -14,7 +15,8 @@ namespace OneMotor::Can
     using FastMap = ankerl::unordered_dense::map<K, V, AHash<K>, std::equal_to<K>, DtcmAllocator<std::pair<K, V>>>;
 
     using CallbackFunc = std::function<void(CanFrame)>;
-    using Callbacks = FastMap<uint16_t, CallbackFunc>;
+    using CallbackPtr = std::shared_ptr<CallbackFunc>;
+    using Callbacks = FastMap<uint16_t, CallbackPtr>;
     using Filters = FastMap<uint16_t, std::pair<can_filter, int>>;
     OM_CCM_ATTR FastMap<const device*, Callbacks> g_callbacks;
     OM_CCM_ATTR FastMap<const device*, Filters> g_filters;
@@ -85,19 +87,21 @@ namespace OneMotor::Can
             if (auto it = filters.find(id); it != filters.end())
             {
                 can_remove_rx_filter(can_dev, it->second.second);
-                filters.erase(it);
-                callbacks.erase(id);
-            }
-            callbacks[id] = func;
+             filters.erase(it);
+             callbacks.erase(id);
+         }
+            auto callback = std::make_shared<CallbackFunc>(func);
+            callbacks[id] = callback;
             const auto filter = can_filter{
                 .id = id,
                 .mask = CAN_STD_ID_MASK,
                 .flags = 0U,
             };
             int filter_id = can_add_rx_filter(can_dev, rx_callback_entry,
-                                              &callbacks[id], &filter);
+                                              callback.get(), &filter);
             if (filter_id < 0)
             {
+                callbacks.erase(id);
                 return unexpected(
                     Error{CanDriverInternalError, strerror(-filter_id)});
             }

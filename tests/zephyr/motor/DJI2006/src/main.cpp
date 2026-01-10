@@ -7,6 +7,7 @@ LOG_MODULE_REGISTER(main, CONFIG_LOG_DEFAULT_LEVEL);
 const device* can_device = DEVICE_DT_GET(DT_NODELABEL(can1));
 using OneMotor::Motor::DJI::PIDFeatures;
 using OneMotor::Motor::DJI::M2006;
+using OneMotor::Motor::DJI::M3508;
 using OneMotor::Can::CanDriver;
 
 using one::pid::PidParams;
@@ -42,10 +43,19 @@ int main()
         PidConfig<one::pid::Positional, float, PIDFeatures>(ANG_DEFAULT_PARAMS);
     auto pid_chain = PidChain(conf1, conf2);
 
-    M2006<1, decltype(pid_chain)> m1(driver, pid_chain);
-    (void)m1.setPosRef(2 * rev);
+    M3508<1, decltype(pid_chain)> m1(driver, pid_chain);
+    M3508<2, decltype(pid_chain)> m2(driver, pid_chain);
+    M3508<3, decltype(pid_chain)> m3(driver, pid_chain);
+    M3508<4, decltype(pid_chain)> m4(driver, pid_chain);
+    (void)m1.setPosRef(0 * rev);
+    (void)m2.setPosRef(0 * rev);
+    (void)m3.setPosRef(0 * rev);
+    (void)m4.setPosRef(0 * rev);
 
     (void)m1.enable();
+    (void)m2.enable();
+    (void)m3.enable();
+    (void)m4.enable();
 
     while (true)
     {
