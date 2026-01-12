@@ -11,7 +11,7 @@ using one::pid::PidChain;
 using one::pid::PidConfig;
 using one::pid::PidParams;
 using OneMotor::Can::CanDriver;
-using OneMotor::Motor::DJI::GM6020;
+using OneMotor::Motor::DJI::GM6020_Voltage;
 using OneMotor::Motor::DJI::M2006;
 using OneMotor::Motor::DJI::PIDFeatures;
 
@@ -40,7 +40,7 @@ int main() {
     auto pid_chain = PidChain(conf1, conf2);
 
     CanDriver driver("can0");
-    GM6020<1, decltype(pid_chain)> m1(driver, {pid_chain});
+    GM6020_Voltage<1, decltype(pid_chain)> m1(driver, {pid_chain});
     M2006<5, decltype(pid_chain)> m2(driver, {pid_chain});
 
     (void)m1.setPosRef(1000 * deg);

@@ -12,6 +12,7 @@ using one::pid::PidConfig;
 using one::pid::PidParams;
 using OneMotor::Can::CanDriver;
 using OneMotor::Motor::DJI::M3508;
+using OneMotor::Motor::DJI::makeM3508;
 using OneMotor::Motor::DJI::PIDFeatures;
 
 static constexpr PidParams<> POS_DEFAULT_PARAMS{
@@ -36,10 +37,13 @@ int main() {
         PidConfig<one::pid::Positional, float, PIDFeatures>(POS_DEFAULT_PARAMS);
     constexpr auto conf2 =
         PidConfig<one::pid::Positional, float, PIDFeatures>(ANG_DEFAULT_PARAMS);
-    auto pid_chain = PidChain(conf1, conf2);
+    const auto pid_chain = PidChain(conf1, conf2);
 
     CanDriver driver("can0");
-    M3508<1, decltype(pid_chain)> m1(driver, {pid_chain});
+    // 最简单的 helper function
+    auto m1 = makeM3508<1>(driver, pid_chain);
+    // 你也可以直接用别名：
+    // M3508<1, decltype(pid_chain)> m1(driver, {pid_chain});
 
     (void)m1.setPosRef(2 * rev);
     (void)m1.enable();

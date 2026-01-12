@@ -1,8 +1,6 @@
 /**
  * @file CanDriver.hpp
  * @brief 提供一个统一的CAN总线驱动接口。
- * @author MoonFeather
- * @date 2025-06-26
  */
 #ifndef CANDRIVER_HPP
 #define CANDRIVER_HPP

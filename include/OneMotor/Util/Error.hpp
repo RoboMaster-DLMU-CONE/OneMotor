@@ -3,10 +3,7 @@
 
 /**
  * @file Error.hpp
- * @author MoonFeather
  * @brief 定义 Error 结构体和 ErrorCode 枚举，用于表示操作错误并与 tl::expected 一起使用。
- * @date 2025-07-08
- *
  */
 
 #include <string>

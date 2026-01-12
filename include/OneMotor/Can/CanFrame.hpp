@@ -1,8 +1,6 @@
 /**
  * @file CanFrame.hpp
  * @brief 定义了与平台无关的CAN帧结构体。
- * @author MoonFeather
- * @date 2025-06-26
  */
 #ifndef CANFRAME_HPP
 #define CANFRAME_HPP

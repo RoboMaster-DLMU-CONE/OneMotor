@@ -2,17 +2,14 @@ name: Documentation
 
 on:
   push:
-    tags:
-      - 'v*'
-  pull_request:
   workflow_dispatch:
 
 env:
-  DOXYGEN_VERSION: 1.9.6
+  DOXYGEN_VERSION: 1.13.2
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -29,35 +26,11 @@ jobs:
 
       - name: Build
         run: |
-          cd doc
+          cd docs
           doxygen
-
-          mkdir deploy
-          mv html/* deploy/
-
-      - name: Setup pages
-        if: github.event_name != 'pull_request'
-        uses: actions/configure-pages@v4
-
-      - name: Upload pages artifact
-        if: github.event_name != 'pull_request'
-        uses: actions/upload-pages-artifact@v3
+      - name: Deploy to Cloudflare Workers
+        uses: cloudflare/wrangler-action@v3
         with:
-          path: doc/deploy
-
-      - name: Upload artifacts
-        if: github.event_name == 'pull_request'
-        uses: actions/upload-artifact@v4
-        with:
-          path: doc/deploy
-
-  deploy:
-    runs-on: ubuntu-22.04
-    needs: build
-    if: github.event_name != 'pull_request'
-    permissions:
-      pages: write
-      id-token: write
-    steps:
-      - name: Deploy to GitHub Pages
-        uses: actions/deploy-pages@v4
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy --config docs/wrangler-docs.toml

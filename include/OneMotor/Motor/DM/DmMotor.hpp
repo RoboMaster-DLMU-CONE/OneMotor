@@ -178,12 +178,21 @@ using J4310_Vel = DmMotor<J4310Traits, VelPolicy<J4310Traits>>;
 
 template <typename Policy = MITPolicy<J4340Traits>>
 using J4340 = DmMotor<J4340Traits, Policy>;
+using J4340_MIT = DmMotor<J4340Traits, MITPolicy<J4340Traits>>;
+using J4340_PosVel = DmMotor<J4340Traits, PosVelPolicy<J4340Traits>>;
+using J4340_Vel = DmMotor<J4340Traits, VelPolicy<J4340Traits>>;
 
 template <typename Policy = MITPolicy<J8009Traits>>
 using J8009 = DmMotor<J8009Traits, Policy>;
+using J8009_MIT = DmMotor<J8009Traits, MITPolicy<J8009Traits>>;
+using J8009_PosVel = DmMotor<J8009Traits, PosVelPolicy<J8009Traits>>;
+using J8009_Vel = DmMotor<J8009Traits, VelPolicy<J8009Traits>>;
 
 template <typename Policy = MITPolicy<J10010LTraits>>
 using J10010L = DmMotor<J10010LTraits, Policy>;
+using J10010L_MIT = DmMotor<J8009Traits, MITPolicy<J10010LTraits>>;
+using J10010L_PosVel = DmMotor<J8009Traits, PosVelPolicy<J10010LTraits>>;
+using J10010L_Vel = DmMotor<J8009Traits, VelPolicy<J10010LTraits>>;
 
 } // namespace OneMotor::Motor::DM
 
