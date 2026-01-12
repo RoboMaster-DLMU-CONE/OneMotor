@@ -84,7 +84,15 @@ class DmMotor : public MotorBase<DmMotor<Traits, Policy>, Traits, Policy> {
   private:
     tl::expected<void, Error> sendControlFrame(const uint8_t *data) {
         Can::CanFrame frame{};
-        frame.id = m_canId + 0x100;
+        if constexpr (std::same_as<Policy, MITPolicy<Traits>>) {
+            frame.id = m_canId;
+        }
+        else if constexpr(std::same_as<Policy, PosVelPolicy<Traits>>) {
+            frame.id = m_canId + 0x100;
+        }
+        else {
+            frame.id = m_canId + 0x200;
+        }
         frame.dlc = 8;
 
         memcpy(&frame.data, data, 8);
@@ -164,7 +172,7 @@ class DmMotor : public MotorBase<DmMotor<Traits, Policy>, Traits, Policy> {
 template <typename Policy = MITPolicy<J4310Traits>>
 using J4310 = DmMotor<J4310Traits, Policy>;
 
-using J4310_MIT = DmMotor<J4310Traits, MITPolicy<J4310Traits>>;
+using J4310_MIT = DmMotor<J4310Traits>;
 using J4310_PosVel = DmMotor<J4310Traits, PosVelPolicy<J4310Traits>>;
 using J4310_Vel = DmMotor<J4310Traits, VelPolicy<J4310Traits>>;
 
