@@ -9,6 +9,10 @@ using enum OneMotor::ErrorCode;
 
 namespace OneMotor::Can
 {
+    namespace
+    {
+        void tx_complete(const device*, int, void*) {}
+    }
     template <typename T>
     using AHash = ankerl::unordered_dense::hash<T>;
     template <typename K, typename V>
@@ -63,7 +67,7 @@ namespace OneMotor::Can
     {
         if (const auto ret =
                 can_send(can_dev, reinterpret_cast<const can_frame *>(&frame),
-                         K_MSEC(1), nullptr, nullptr);
+                         K_MSEC(1), tx_complete, nullptr);
             ret != 0)
         {
             return unexpected(Error{CanDriverInternalError, strerror(ret)});
