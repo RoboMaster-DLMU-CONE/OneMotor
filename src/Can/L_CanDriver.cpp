@@ -13,7 +13,7 @@ namespace OneMotor::Can {
     CanDriver::CanDriver(std::string interface_name)
     {
         if (auto result = init(std::move(interface_name)); !result) {
-            panic(result.error().message.data());
+            panic(result.error().message);
         }
     }
 
@@ -35,8 +35,8 @@ namespace OneMotor::Can {
         if (auto guard = ensureInitialized(); !guard) {
             return tl::make_unexpected(guard.error());
         }
-        return interface->is_up().map_error([&](const auto &e) {
-            return Error({CanDriverInternalError, e.message});
+        return interface->is_up().map_error([&](const auto &) {
+            return Error{CanDriverInternalError, "HyCAN interface is_up failed"};
         });
     }
 
@@ -44,8 +44,8 @@ namespace OneMotor::Can {
         if (auto guard = ensureInitialized(); !guard) {
             return tl::make_unexpected(guard.error());
         }
-        return interface->up().map_error([&](const auto &e) {
-            return Error({CanDriverInternalError, e.message});
+        return interface->up().map_error([&](const auto &) {
+            return Error{CanDriverInternalError, "HyCAN interface up failed"};
         });
     }
 
@@ -53,8 +53,8 @@ namespace OneMotor::Can {
         if (auto guard = ensureInitialized(); !guard) {
             return tl::make_unexpected(guard.error());
         }
-        return interface->down().map_error([&](const auto &e) {
-            return Error({CanDriverInternalError, e.message});
+        return interface->down().map_error([&](const auto &) {
+            return Error{CanDriverInternalError, "HyCAN interface down failed"};
         });
     }
 
@@ -63,8 +63,8 @@ namespace OneMotor::Can {
             return tl::make_unexpected(guard.error());
         }
         return interface->send(reinterpret_cast<const can_frame &>(frame))
-            .map_error([&](const auto &e) {
-                return Error({CanDriverInternalError, e.message});
+            .map_error([&](const auto &) {
+                return Error{CanDriverInternalError, "HyCAN send failed"};
             });
     }
 

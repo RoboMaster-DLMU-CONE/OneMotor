@@ -16,7 +16,7 @@ namespace OneMotor
      * 它会打印一条错误消息到标准错误流，然后立即终止程序。
      * @param message 要打印的错误消息。
      */
-    void panic(const std::string&& message);
+    void panic(const char *message);
 }
 
 #endif //PANIC_HPP

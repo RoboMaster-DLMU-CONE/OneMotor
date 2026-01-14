@@ -2,7 +2,6 @@
 #include "OneMotor/Motor/DJI/MotorManager.hpp"
 #include "OneMotor/Thread/Othread.hpp"
 #include <chrono>
-#include <format>
 
 #include <OneMotor/Util/CCM.h>
 #include <OneMotor/Util/Panic.hpp>
@@ -51,22 +50,16 @@ namespace OneMotor::Motor::DJI
         {
             if (set.size() >= OM_CAN_MAX_DJI_MOTOR)
             {
-                return unexpected(
-                    Error{
-                        DJIMotorManagerError,
-                        std::format("Specified CanDriver has exceeded Max DJI "
-                                    "Motor count ({}).",
-                                    OM_CAN_MAX_DJI_MOTOR)
-                    });
+            return unexpected(
+                Error{DJIMotorManagerError,
+                      "Specified CanDriver has exceeded Max DJI motor count."});
             }
             set.insert(canId);
             return {};
         }
         return unexpected(
-            Error{
-                DJIMotorManagerError,
-                std::format("Re-registration detected on CAN ID: {}.", canId)
-            });
+            Error{DJIMotorManagerError,
+                  "Re-registration detected on CAN ID."});
     }
 
     // ReSharper disable once CppParameterMayBeConstPtrOrRef

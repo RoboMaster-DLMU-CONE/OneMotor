@@ -96,7 +96,7 @@ class DjiMotor : public MotorBase<DjiMotor<Traits, Policy>, Traits, Policy> {
         }
         auto &driver_ref = driver_result->get();
         (void)manager.deregisterMotor(driver_ref, Traits::control_id())
-            .or_else([](const auto &e) { panic(e.message.data()); });
+            .or_else([](const auto &) { panic("Failed to deregister motor."); });
     }
 
   protected:

@@ -8,9 +8,9 @@ LOG_MODULE_REGISTER(OneMotor, CONFIG_LOG_DEFAULT_LEVEL);
 
 namespace OneMotor
 {
-    void panic(const std::string&& message)
+    void panic(const char *message)
     {
-        LOG_ERR("%s", message.c_str());
+        LOG_ERR("%s", message);
         k_panic();
     }
 }

@@ -6,7 +6,6 @@
  * @brief 定义 Error 结构体和 ErrorCode 枚举，用于表示操作错误并与 tl::expected 一起使用。
  */
 
-#include <string>
 #include <utility>
 
 namespace OneMotor
@@ -44,17 +43,12 @@ namespace OneMotor
      */
     struct Error
     {
-        /**
-         * @brief 构造函数
-         * @param c 错误码
-         * @param msg 错误消息
-         */
-        Error(const ErrorCode c, std::string msg): message(std::move(msg)), code(c)
-        {
-        }
+    Error(const ErrorCode c, const char *msg): message(msg), code(c)
+    {
+    }
 
-        /// 错误消息文本
-        std::string message;
+    /// 错误消息文本
+    const char *message;
         /// 错误码
         ErrorCode code;
     };

@@ -4,7 +4,7 @@
 
 namespace OneMotor
 {
-    void panic(const std::string&& message)
+    void panic(const char *message)
     {
         throw std::runtime_error(message);
     }

@@ -103,8 +103,9 @@ class CanDriver {
                                 can_frame frame) {
                        func(std::bit_cast<CanFrame>(frame));
                    })
-            .map_error([&](const auto &e) {
-                return Error({ErrorCode::CanDriverInternalError, e.message});
+            .map_error([&](const auto &) {
+                return Error{ErrorCode::CanDriverInternalError,
+                             "HyCAN register callback failed"};
             });
     }
 #else

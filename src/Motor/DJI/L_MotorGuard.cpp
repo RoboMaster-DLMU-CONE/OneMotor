@@ -19,7 +19,7 @@ void MotorGuard::guard(const std::vector<DriverPair> &driver_set) {
 
     for (const auto &driver : drivers) {
         (void)driver->open().or_else(
-            [](const auto &e) { panic(std::move(e.message)); });
+            [](const auto &) { panic("Failed to open CAN driver."); });
     }
 
     for (const auto &driver : drivers) {
