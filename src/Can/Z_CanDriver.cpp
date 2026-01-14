@@ -33,20 +33,40 @@ namespace OneMotor::Can
         }
     }
 
-    CanDriver::CanDriver(const device* device) : can_dev(device)
+    CanDriver::CanDriver(const device* device)
     {
-        if (!device_is_ready(can_dev))
-        {
-            panic("CAN Device not ready.");
+        if (auto result = init(device); !result) {
+            panic(result.error().message);
         }
-        g_callbacks[can_dev] = {};
-        g_filters[can_dev] = {};
     }
 
     CanDriver::~CanDriver() = default;
 
+    tl::expected<void, Error> CanDriver::init(const device* device)
+    {
+        if (m_initialized)
+        {
+            return unexpected(
+                Error{CanDriverAlreadyInitialized, "CanDriver already initialized"});
+        }
+        if (device == nullptr || !device_is_ready(device))
+        {
+            return unexpected(Error{CanDriverInternalError,
+                                    "CAN Device not ready"});
+        }
+        can_dev = device;
+        g_callbacks[can_dev] = {};
+        g_filters[can_dev] = {};
+        m_initialized = true;
+        return {};
+    }
+
     tl::expected<void, Error> CanDriver::open()
     {
+        if (auto guard = ensureInitialized(); !guard)
+        {
+            return unexpected(guard.error());
+        }
         if (const auto ret = can_start(can_dev); ret == -EIO)
         {
             return unexpected(Error{CanDriverInternalError, strerror(ret)});
@@ -56,6 +76,10 @@ namespace OneMotor::Can
 
     tl::expected<void, Error> CanDriver::close()
     {
+        if (auto guard = ensureInitialized(); !guard)
+        {
+            return unexpected(guard.error());
+        }
         if (const auto ret = can_stop(can_dev); ret == -EIO)
         {
             return unexpected(Error{CanDriverInternalError, strerror(ret)});
@@ -65,6 +89,10 @@ namespace OneMotor::Can
 
     tl::expected<void, Error> CanDriver::send(const CanFrame& frame)
     {
+        if (auto guard = ensureInitialized(); !guard)
+        {
+            return unexpected(guard.error());
+        }
         if (const auto ret =
                 can_send(can_dev, reinterpret_cast<const can_frame *>(&frame),
                          K_MSEC(1), tx_complete, nullptr);
@@ -79,6 +107,9 @@ namespace OneMotor::Can
         const std::set<size_t>& can_ids,
         const std::function<void(CanFrame)>& func) const
     {
+        if (auto guard = ensureInitialized(); !guard) {
+            return unexpected(guard.error());
+        }
         for (const auto& id : can_ids)
         {
             if (id > 2048)

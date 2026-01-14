@@ -17,7 +17,9 @@
 #include <algorithm>
 #include <chrono>
 #include <cstdint>
+#include <string>
 #include <tl/expected.hpp>
+#include <utility>
 
 namespace OneMotor::Motor::DJI {
 using PIDFeatures =
@@ -25,76 +27,133 @@ using PIDFeatures =
                           one::pid::WithOutputLimit, one::pid::WithOutputFilter,
                           one::pid::WithDerivativeFilter>;
 
-    template <typename Traits, typename Policy>
-    class DjiMotor : public MotorBase<DjiMotor<Traits, Policy>, Traits, Policy>
+template <typename Traits, typename Policy>
+class DjiMotor : public MotorBase<DjiMotor<Traits, Policy>, Traits, Policy> {
+  public:
+    using Base = MotorBase<DjiMotor<Traits, Policy>, Traits, Policy>;
+    friend Base;
+    DjiMotor() = default;
+
+    explicit DjiMotor(Can::CanDriver &driver, Policy policy)
     {
-    public:
-        using Base = MotorBase<DjiMotor, Traits, Policy>;
-        friend Base;
+        auto result = init(driver, std::move(policy));
+        if (!result) {
+            panic(result.error().message);
+        }
+    }
 
-        explicit DjiMotor(Can::CanDriver& driver, Policy policy)
-            : Base(driver, policy)
-        {
-            (void)this->m_driver.open().or_else(
-                [](const auto& e) { panic(std::move(e.message)); });
-            MotorManager& manager = MotorManager::getInstance();
-            (void)manager.registerMotor(this->m_driver, Traits::feedback_id())
-                         .or_else([](const auto& e) { panic(std::move(e.message)); });
-            manager.pushOutput(this->m_driver, Traits::control_id(),
-                               Traits::control_offset(), 0, 0);
-
-            (void)driver
-                 .registerCallback(
-                      {Traits::feedback_id()},
-                      [this](Can::CanFrame frame) { this->m_disabled_func(frame); })
-                 .or_else([](const auto& e) { panic(std::move(e.message)); });
-        };
-
-        ~DjiMotor()
-        {
-            MotorManager& manager = MotorManager::getInstance();
-            (void)manager.deregisterMotor(this->m_driver, Traits::control_id())
-                         .or_else([](const auto& e) { panic(std::move(e.message)); });
-        };
-
-    protected:
-        tl::expected<void, Error> enableImpl()
-        {
-            return this->m_driver.registerCallback(
-                {Traits::feedback_id()},
-                [this](Can::CanFrame frame) { this->m_enabled_func(frame); });
+    tl::expected<void, Error> init(Can::CanDriver &driver, Policy policy) {
+        if (auto base_result = Base::init(driver, std::move(policy));
+            !base_result) {
+            return base_result;
         }
 
-        tl::expected<void, Error> disableImpl()
-        {
-            return this->m_driver.registerCallback(
-                {Traits::feedback_id()},
-                [this](Can::CanFrame frame) { this->m_disabled_func(frame); });
+        auto driver_result = this->driver();
+        if (!driver_result) {
+            this->resetInitialization();
+            return tl::make_unexpected(driver_result.error());
+        }
+        auto &driver_ref = driver_result->get();
+        if (auto open_result = driver_ref.open(); !open_result) {
+            this->resetInitialization();
+            return open_result;
         }
 
-        tl::expected<typename Traits::UserStatusType, Error> getStatusImpl()
-        {
-            return Traits::UserStatusType::fromPlain(this->m_buffer.readCopy());
+        MotorManager &manager = MotorManager::getInstance();
+        if (auto register_result =
+                manager.registerMotor(driver_ref, Traits::feedback_id());
+            !register_result) {
+            this->resetInitialization();
+            return register_result;
         }
 
-        tl::expected<void, Error> afterPidParams(float kp, float ki, float kd)
-        {
-            // 注意对DJI电机来说，默认基类的修改PID参数方法传入的参数只会覆盖至最外环
-            //
-            // 可以用自旋锁在回调时保护计算中的Chain
-            // 但是实际上动态调整PID参数的时候应该不多
-            // 目前的方法在修改参数时会略微延时，但能保证计算过程安全，且避免引入自旋锁带来的开销
-            return disableImpl().and_then([this, kp, ki, kd]
-            {
-                Thread::sleep_for(std::chrono::milliseconds(10));
-                auto& node = this->m_policy.template getPidController<0>();
-                node.Kp = kp;
-                node.Ki = ki;
-                node.Kd = kd;
-                this->m_policy.resetPidChain();
-                return enableImpl();
-            });
+        manager.pushOutput(driver_ref, Traits::control_id(),
+                           Traits::control_offset(), 0, 0);
+
+        if (auto callback_result =
+                driver_ref.registerCallback(
+                    {Traits::feedback_id()},
+                    [this](Can::CanFrame frame) { this->m_disabled_func(frame); });
+            !callback_result) {
+            (void)manager.deregisterMotor(driver_ref,
+                                          Traits::control_id());
+            this->resetInitialization();
+            return callback_result;
         }
+
+        return {};
+    }
+
+    ~DjiMotor()
+    {
+        MotorManager &manager = MotorManager::getInstance();
+        if (!this->initialized()) {
+            return;
+        }
+        auto driver_result = this->driver();
+        if (!driver_result) {
+            return;
+        }
+        auto &driver_ref = driver_result->get();
+        (void)manager.deregisterMotor(driver_ref, Traits::control_id())
+            .or_else([](const auto &e) { panic(e.message.data()); });
+    }
+
+  protected:
+    tl::expected<void, Error> enableImpl() override
+    {
+        auto driver_result = this->driver();
+        if (!driver_result) {
+            return tl::make_unexpected(driver_result.error());
+        }
+        auto &driver_ref = driver_result->get();
+        return driver_ref.registerCallback(
+            {Traits::feedback_id()},
+            [this](Can::CanFrame frame) { this->m_enabled_func(frame); });
+    }
+
+    tl::expected<void, Error> disableImpl() override
+    {
+        auto driver_result = this->driver();
+        if (!driver_result) {
+            return tl::make_unexpected(driver_result.error());
+        }
+        auto &driver_ref = driver_result->get();
+        return driver_ref.registerCallback(
+            {Traits::feedback_id()},
+            [this](Can::CanFrame frame) { this->m_disabled_func(frame); });
+    }
+
+    tl::expected<typename Traits::UserStatusType, Error> getStatusImpl()
+        override
+    {
+        return Traits::UserStatusType::fromPlain(this->m_buffer.readCopy());
+    }
+
+    tl::expected<void, Error> afterPidParams(float kp, float ki, float kd)
+        override
+    {
+        // 注意对DJI电机来说，默认基类的修改PID参数方法传入的参数只会覆盖至最外环
+        //
+        // 可以用自旋锁在回调时保护计算中的Chain
+        // 但是实际上动态调整PID参数的时候应该不多
+        // 目前的方法在修改参数时会略微延时，但能保证计算过程安全，且避免引入自旋锁带来的开销
+        if (auto disable_result = disableImpl(); !disable_result) {
+            return disable_result;
+        }
+        Thread::sleep_for(std::chrono::milliseconds(10));
+        auto policy_result = this->getPolicy();
+        if (!policy_result) {
+            return tl::make_unexpected(policy_result.error());
+        }
+        auto &policy = policy_result->get();
+        auto &node = policy.template getPidController<0>();
+        node.Kp = kp;
+        node.Ki = ki;
+        node.Kd = kd;
+        policy.resetPidChain();
+        return enableImpl();
+    }
 
     private:
         static void trMsgToStatus(const RawStatusPlain& frame,
@@ -149,9 +208,14 @@ using PIDFeatures =
 #endif
             const auto msg = RawStatusPlain(frame);
             trMsgToStatus(msg, this->m_buffer.write());
+            auto policy_result = this->getPolicy();
+            if (!policy_result) {
+                return;
+            }
+            auto &policy = policy_result->get();
             int16_t output_current =
-                this->m_policy.compute(this->m_pos_ref, this->m_ang_ref,
-                                       this->m_tor_ref, this->m_buffer.write());
+                policy.compute(this->m_pos_ref, this->m_ang_ref,
+                               this->m_tor_ref, this->m_buffer.write());
             output_current = std::clamp(output_current,
                                         static_cast<int16_t>(-Traits::max_current),
                                         static_cast<int16_t>(Traits::max_current));
@@ -160,8 +224,13 @@ using PIDFeatures =
             this->m_buffer.swap();
             const uint8_t hi_byte = output_current >> 8;
             const uint8_t lo_byte = output_current & 0xFF;
+            auto driver_result = this->driver();
+            if (!driver_result) {
+                return;
+            }
+            auto &driver_ref = driver_result->get();
             MotorManager::getInstance().pushOutput(
-                this->m_driver, Traits::control_id(), Traits::control_offset(),
+                driver_ref, Traits::control_id(), Traits::control_offset(),
                 lo_byte, hi_byte);
         }
 

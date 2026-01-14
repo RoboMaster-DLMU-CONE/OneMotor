@@ -9,3 +9,11 @@ target_link_libraries(OneMotorExample_M3508_Guard PRIVATE OneMotor)
 
 add_executable(OneMotorExample_J4310 ${PROJECT_SOURCE_DIR}/example/DM/J4310.cpp)
 target_link_libraries(OneMotorExample_J4310 PRIVATE OneMotor)
+
+add_executable(OneMotorExample_M2006_Init
+               ${PROJECT_SOURCE_DIR}/example/DJI/M2006_Init.cpp)
+target_link_libraries(OneMotorExample_M2006_Init PRIVATE OneMotor)
+
+add_executable(OneMotorExample_IMotorArray
+               ${PROJECT_SOURCE_DIR}/example/IMotor/IMotorArray.cpp)
+target_link_libraries(OneMotorExample_IMotorArray PRIVATE OneMotor)

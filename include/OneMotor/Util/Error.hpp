@@ -21,8 +21,20 @@ namespace OneMotor
         /// CAN 驱动内部错误
         CanDriverInternalError,
 
+        /// CAN 驱动未初始化
+        CanDriverNotInitialized,
+
+        /// CAN 驱动已初始化
+        CanDriverAlreadyInitialized,
+
         /// DJI 电机管理器错误
         DJIMotorManagerError,
+
+        /// 电机未初始化
+        MotorNotInitialized,
+
+        /// 电机已初始化
+        MotorAlreadyInitialized,
     };
 
     /**

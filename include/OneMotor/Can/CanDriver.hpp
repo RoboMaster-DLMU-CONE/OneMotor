@@ -8,6 +8,8 @@
 #include "CanFrame.hpp"
 #include "OneMotor/Util/Error.hpp"
 #include <concepts>
+#include <functional>
+#include <memory>
 #include <set>
 #include <string>
 #include <tl/expected.hpp>
@@ -29,12 +31,16 @@ namespace OneMotor::Can {
 class CanDriver {
   public:
 #ifdef ONE_MOTOR_LINUX
+    CanDriver() = default;
+
     /**
      * @brief CanDriver 的构造函数。
      * @param interface_name CAN接口的名称 (例如 "can0")。
      */
     explicit CanDriver(std::string interface_name);
 #else
+    CanDriver() = default;
+
     /**
      * @brief CanDriver 的构造函数。
      * @param device Zephyr CAN接口设备。
@@ -46,6 +52,12 @@ class CanDriver {
      * @brief CanDriver 的析构函数。
      */
     ~CanDriver();
+
+  #ifdef ONE_MOTOR_LINUX
+    tl::expected<void, Error> init(std::string interface_name);
+  #else
+    tl::expected<void, Error> init(const device *device);
+  #endif
 
     CanDriver(const CanDriver &) = delete;
     CanDriver &operator=(const CanDriver &) = delete;
@@ -83,14 +95,17 @@ class CanDriver {
                                                Func &&func)
         requires(std::invocable<Func, CanFrame>)
     {
-        return interface.register_callback<can_frame>(can_ids, [func = std::forward<decltype(func)>(func)](can_frame frame)
-                                                      {
-                                                          func(std::bit_cast<CanFrame>(frame));
-                                                      }
-        ).map_error([&](const auto& e)
-        {
-            return Error({ErrorCode::CanDriverInternalError, e.message});
-        });
+        if (auto guard = ensureInitialized(); !guard) {
+            return tl::make_unexpected(guard.error());
+        }
+        return interface->register_callback<can_frame>(
+                   can_ids, [func = std::forward<decltype(func)>(func)](
+                                can_frame frame) {
+                       func(std::bit_cast<CanFrame>(frame));
+                   })
+            .map_error([&](const auto &e) {
+                return Error({ErrorCode::CanDriverInternalError, e.message});
+            });
     }
 #else
     tl::expected<void, Error>
@@ -101,6 +116,9 @@ class CanDriver {
                                                Func &&func)
         requires(std::invocable<Func, CanFrame>)
     {
+        if (auto guard = ensureInitialized(); !guard) {
+            return tl::make_unexpected(guard.error());
+        }
         return registerCallbackImpl(
             can_ids, [func = std::forward<decltype(func)>(func)](
                          CanFrame can_frame) { func(can_frame); });
@@ -109,13 +127,27 @@ class CanDriver {
 
   private:
 #ifdef ONE_MOTOR_LINUX
-    std::string interface_name;    ///< CAN接口名称
-    HyCAN::CANInterface interface; ///< 底层的HyCAN接口实例
+    std::string interface_name;                      ///< CAN接口名称
+    std::unique_ptr<HyCAN::CANInterface> interface;  ///< 底层的HyCAN接口实例
 #else
-    const device *can_dev;
+    const device *can_dev = nullptr;
 
 #endif
+    bool m_initialized = false;
+
+    tl::expected<void, Error> ensureInitialized() const;
 };
+inline tl::expected<void, Error> CanDriver::ensureInitialized() const {
+#ifdef ONE_MOTOR_LINUX
+    if (interface && m_initialized)
+#else
+    if (m_initialized)
+#endif
+        return {};
+    return tl::make_unexpected(
+        Error{ErrorCode::CanDriverNotInitialized, "CanDriver not initialized"});
+}
+
 } // namespace OneMotor::Can
 
 #endif // CANDRIVER_HPP
