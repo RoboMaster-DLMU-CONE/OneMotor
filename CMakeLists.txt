@@ -9,14 +9,13 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 
 include(OneMotorFindTlExpected)
-include(OneMotorFindAnkerl)
 include(OneMotorFindMpUnits)
 include(OneMotorFindOnePid)
 
 if (ZEPHYR_TOOLCHAIN_VARIANT)
-  project(onemotor VERSION 0.8.0)
+    project(onemotor VERSION 0.8.0)
 else ()
-  project(OneMotor VERSION 0.8.0)
+    project(OneMotor VERSION 0.8.0)
 endif ()
 
 file(GLOB_RECURSE LINUX_SOURCES CONFIGURE_DEPENDS "src/L_*.cpp")
@@ -26,15 +25,15 @@ file(GLOB_RECURSE NORMAL_SOURCES CONFIGURE_DEPENDS "src/N_*.cpp")
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
 
 if (ZEPHYR_TOOLCHAIN_VARIANT)
-  include(OneMotorZephyr)
+    include(OneMotorZephyr)
 else ()
-  include(OneMotorLinux)
+    include(OneMotorLinux)
 endif ()
 
 include(OneMotorConfiguration)
 
 if (BUILD_OM_EXAMPLE)
-  include(OneMotorExamples)
+    include(OneMotorExamples)
 endif ()
 
 include(OneMotorGenerateDoc)

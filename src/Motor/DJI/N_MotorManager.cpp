@@ -16,13 +16,14 @@ using enum OneMotor::ErrorCode;
 namespace OneMotor::Motor::DJI
 {
     template <typename T>
-    using AHash = ankerl::unordered_dense::hash<T>;
+    using Hash = std::hash<T>;
     template <typename K, typename V>
-    using FastMap = ankerl::unordered_dense::map<K, V, AHash<K>, std::equal_to<K>,
+    using FastMap = ankerl::unordered_dense::map<K, V, Hash<K>, std::equal_to<K>,
                                                  DtcmAllocator<std::pair<K, V>>>;
 
     using OutputArray = std::array<uint8_t, 8>;
     using ControlBuffers = FastMap<uint16_t, DoubleBuffer<OutputArray>>;
+
     /// @brief 记录每个CAN驱动下注册了哪些电机ID
     OM_CCM_ATTR FastMap<Can::CanDriver*, std::set<uint16_t>> g_driver_motor_ids;
     /// @brief 存储每个CAN驱动要发送的电机电流数据
@@ -44,22 +45,26 @@ namespace OneMotor::Motor::DJI
     }
 
     tl::expected<void, Error> MotorManager::registerMotor(Can::CanDriver& driver,
-                                                          uint16_t canId) noexcept
+                                                          const uint16_t canId) noexcept
     {
         if (auto& set = g_driver_motor_ids[&driver]; !set.contains(canId))
         {
             if (set.size() >= OM_CAN_MAX_DJI_MOTOR)
             {
-            return unexpected(
-                Error{DJIMotorManagerError,
-                      "Specified CanDriver has exceeded Max DJI motor count."});
+                return unexpected(
+                    Error{
+                        DJIMotorManagerError,
+                        "Specified CanDriver has exceeded Max DJI motor count."
+                    });
             }
             set.insert(canId);
             return {};
         }
         return unexpected(
-            Error{DJIMotorManagerError,
-                  "Re-registration detected on CAN ID."});
+            Error{
+                DJIMotorManagerError,
+                "Re-registration detected on CAN ID."
+            });
     }
 
     // ReSharper disable once CppParameterMayBeConstPtrOrRef

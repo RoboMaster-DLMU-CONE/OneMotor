@@ -5,7 +5,7 @@ if (CONFIG_ONE_MOTOR)
 
     zephyr_library_sources(${ZEPHYR_SOURCES} ${NORMAL_SOURCES})
 
-    zephyr_library_link_libraries(tl::expected mp-units::mp-units unordered_dense::unordered_dense)
+    zephyr_library_link_libraries(tl::expected mp-units::mp-units)
 
     zephyr_library_compile_options(
             -ffunction-sections

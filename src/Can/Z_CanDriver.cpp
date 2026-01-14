@@ -11,16 +11,18 @@ namespace OneMotor::Can
 {
     namespace
     {
-        void tx_complete(const device*, int, void*) {}
+        void tx_complete(const device*, int, void*)
+        {
+        }
     }
+
     template <typename T>
-    using AHash = ankerl::unordered_dense::hash<T>;
+    using Hash = std::hash<T>;
     template <typename K, typename V>
-    using FastMap = ankerl::unordered_dense::map<K, V, AHash<K>, std::equal_to<K>, DtcmAllocator<std::pair<K, V>>>;
+    using FastMap = std::unordered_map<K, V, Hash<K>, std::equal_to<K>, DtcmAllocator<std::pair<const K, V>>>;
 
     using CallbackFunc = std::function<void(CanFrame)>;
-    using CallbackPtr = std::shared_ptr<CallbackFunc>;
-    using Callbacks = FastMap<uint16_t, CallbackPtr>;
+    using Callbacks = FastMap<uint16_t, CallbackFunc>;
     using Filters = FastMap<uint16_t, std::pair<can_filter, int>>;
     OM_CCM_ATTR FastMap<const device*, Callbacks> g_callbacks;
     OM_CCM_ATTR FastMap<const device*, Filters> g_filters;
@@ -35,7 +37,8 @@ namespace OneMotor::Can
 
     CanDriver::CanDriver(const device* device)
     {
-        if (auto result = init(device); !result) {
+        if (auto result = init(device); !result)
+        {
             panic(result.error().message);
         }
     }
@@ -51,8 +54,10 @@ namespace OneMotor::Can
         }
         if (device == nullptr || !device_is_ready(device))
         {
-            return unexpected(Error{CanDriverInternalError,
-                                    "CAN Device not ready"});
+            return unexpected(Error{
+                CanDriverInternalError,
+                "CAN Device not ready"
+            });
         }
         can_dev = device;
         g_callbacks[can_dev] = {};
@@ -94,7 +99,7 @@ namespace OneMotor::Can
             return unexpected(guard.error());
         }
         if (const auto ret =
-                can_send(can_dev, reinterpret_cast<const can_frame *>(&frame),
+                can_send(can_dev, reinterpret_cast<const can_frame*>(&frame),
                          K_MSEC(1), tx_complete, nullptr);
             ret != 0)
         {
@@ -107,7 +112,8 @@ namespace OneMotor::Can
         const std::set<size_t>& can_ids,
         const std::function<void(CanFrame)>& func) const
     {
-        if (auto guard = ensureInitialized(); !guard) {
+        if (auto guard = ensureInitialized(); !guard)
+        {
             return unexpected(guard.error());
         }
         for (const auto& id : can_ids)
@@ -122,18 +128,18 @@ namespace OneMotor::Can
             if (auto it = filters.find(id); it != filters.end())
             {
                 can_remove_rx_filter(can_dev, it->second.second);
-             filters.erase(it);
-             callbacks.erase(id);
-         }
-            auto callback = std::make_shared<CallbackFunc>(func);
-            callbacks[id] = callback;
+                can_remove_rx_filter(can_dev, it->second.second);
+                filters.erase(it);
+                callbacks.erase(id);
+            }
+            callbacks[id] = func;
             const auto filter = can_filter{
                 .id = id,
                 .mask = CAN_STD_ID_MASK,
                 .flags = 0U,
             };
             int filter_id = can_add_rx_filter(can_dev, rx_callback_entry,
-                                              callback.get(), &filter);
+                                              &callbacks[id], &filter);
             if (filter_id < 0)
             {
                 callbacks.erase(id);
