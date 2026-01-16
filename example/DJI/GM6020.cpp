@@ -16,20 +16,20 @@ using OneMotor::Motor::DJI::M2006;
 using OneMotor::Motor::DJI::PIDFeatures;
 
 static constexpr PidParams<> POS_DEFAULT_PARAMS{
-    .Kp = 8.1,
-    .Ki = 0.04,
-    .Kd = 0.5,
+    .Kp = 8.1f,
+    .Ki = 0.0f,
+    .Kd = 1.0f,
     .MaxOutput = 20000,
-    .Deadband = 50,
-    .IntegralLimit = 2000,
+    .Deadband = 0,
+    .IntegralLimit = 5000,
 };
 static constexpr PidParams<> ANG_DEFAULT_PARAMS{
-    .Kp = 2.5,
-    .Ki = 0.05,
-    .Kd = 0.5,
-    .MaxOutput = 8000,
-    .Deadband = 10,
-    .IntegralLimit = 100,
+    .Kp = 6.0f,
+    .Ki = 0.5f,
+    .Kd = 0.0f,
+    .MaxOutput = 20000,
+    .Deadband = 0,
+    .IntegralLimit = 8000,
 };
 
 int main() {
@@ -40,11 +40,10 @@ int main() {
     auto pid_chain = PidChain(conf1, conf2);
 
     CanDriver driver("can0");
-    GM6020_Voltage<1, decltype(pid_chain)> m1(driver, {pid_chain});
-    M2006<5, decltype(pid_chain)> m2(driver, {pid_chain});
+    GM6020_Voltage<4, decltype(pid_chain)> m1(driver, {pid_chain});
 
-    (void)m1.setPosRef(1000 * deg);
-    (void)m1.setAngRef(100 * deg / s);
+    (void)m1.setPosRef(0 * deg);
+    (void)m1.setAngRef(2 * rad / s);
     (void)m1.enable();
 
     std::thread thread([&] {

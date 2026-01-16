@@ -5,7 +5,6 @@
 
 #include <OneMotor/Util/CCM.h>
 #include <OneMotor/Util/Panic.hpp>
-#include <ankerl/unordered_dense.h>
 
 #include <OneMotor/Util/DoubleBuffer.hpp>
 #include <OneMotor/Util/DtcmAllocator.hpp>
@@ -18,8 +17,8 @@ namespace OneMotor::Motor::DJI
     template <typename T>
     using Hash = std::hash<T>;
     template <typename K, typename V>
-    using FastMap = ankerl::unordered_dense::map<K, V, Hash<K>, std::equal_to<K>,
-                                                 DtcmAllocator<std::pair<K, V>>>;
+    using FastMap = std::unordered_map<K, V, Hash<K>, std::equal_to<K>,
+                                                 DtcmAllocator<std::pair<const K, V>>>;
 
     using OutputArray = std::array<uint8_t, 8>;
     using ControlBuffers = FastMap<uint16_t, DoubleBuffer<OutputArray>>;

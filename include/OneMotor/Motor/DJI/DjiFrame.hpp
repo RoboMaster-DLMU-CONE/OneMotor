@@ -35,8 +35,6 @@ struct RawStatusPlain {
 };
 
 struct MotorStatusPlain {
-    uint16_t last_ecd{};            ///< 上一次的编码器值
-    uint16_t ecd{};                 ///< 当前编码器值
     float angle_single_round_deg{}; ///< 单圈角度 (0-360°)
     float angular_deg_s{};          ///< 角速度 (度/秒)
     float real_current_mA{};        ///< 实际电流 (mA)
