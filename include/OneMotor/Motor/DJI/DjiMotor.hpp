@@ -22,18 +22,50 @@
 #include <utility>
 
 namespace OneMotor::Motor::DJI {
+/**
+ * @brief 定义用于DJI电机的PID特性包
+ *
+ * 包含死区、积分限幅、输出限幅、输出滤波和微分滤波等特性
+ */
 using PIDFeatures =
     one::pid::FeaturePack<one::pid::WithDeadband, one::pid::WithIntegralLimit,
                           one::pid::WithOutputLimit, one::pid::WithOutputFilter,
                           one::pid::WithDerivativeFilter>;
 
+/**
+ * @class DjiMotor
+ * @brief 大疆电机实现类
+ * @tparam Traits 电机特性类型，定义了电机的具体属性
+ * @tparam Policy 控制策略类型，定义了电机的控制算法
+ *
+ * DjiMotor类继承自MotorBase，实现了对大疆系列电机的控制，
+ * 包括M3508、M2006、GM6020等型号。
+ *
+ * 该类负责处理CAN通信、状态更新、PID控制等功能。
+ */
 template <typename Traits, typename Policy>
 class DjiMotor : public MotorBase<DjiMotor<Traits, Policy>, Traits, Policy> {
   public:
+    /**
+     * @typedef Base
+     * @brief 基类类型别名
+     */
     using Base = MotorBase<DjiMotor<Traits, Policy>, Traits, Policy>;
     friend Base;
+
+    /**
+     * @brief 默认构造函数
+     */
     DjiMotor() = default;
 
+    /**
+     * @brief 构造函数
+     * @param driver CAN驱动引用
+     * @param policy 控制策略实例
+     *
+     * 构造DjiMotor实例并初始化。
+     * 如果初始化失败，将触发panic。
+     */
     explicit DjiMotor(Can::CanDriver &driver, Policy policy) {
         auto result = init(driver, std::move(policy));
         if (!result) {
@@ -41,6 +73,15 @@ class DjiMotor : public MotorBase<DjiMotor<Traits, Policy>, Traits, Policy> {
         }
     }
 
+    /**
+     * @brief 初始化电机
+     * @param driver CAN驱动引用
+     * @param policy 控制策略实例
+     * @return 操作结果，成功返回void，失败返回Error
+     *
+     * 初始化电机，包括基类初始化、CAN驱动打开、
+     * 电机注册到管理器以及回调函数注册。
+     */
     tl::expected<void, Error> init(Can::CanDriver &driver, Policy policy) {
         if (auto base_result = Base::init(driver, std::move(policy));
             !base_result) {
@@ -81,6 +122,11 @@ class DjiMotor : public MotorBase<DjiMotor<Traits, Policy>, Traits, Policy> {
         return {};
     }
 
+    /**
+     * @brief 析构函数
+     *
+     * 在析构时注销电机，确保资源正确释放。
+     */
     ~DjiMotor() {
         MotorManager &manager = MotorManager::getInstance();
         if (!this->initialized()) {
@@ -97,6 +143,12 @@ class DjiMotor : public MotorBase<DjiMotor<Traits, Policy>, Traits, Policy> {
     }
 
   protected:
+    /**
+     * @brief 使能电机的实现方法
+     * @return 操作结果
+     *
+     * 注册使能状态下的回调函数，用于处理电机反馈数据。
+     */
     tl::expected<void, Error> enableImpl() override {
         auto driver_result = this->driver();
         if (!driver_result) {
@@ -108,6 +160,12 @@ class DjiMotor : public MotorBase<DjiMotor<Traits, Policy>, Traits, Policy> {
             [this](Can::CanFrame frame) { this->m_enabled_func(frame); });
     }
 
+    /**
+     * @brief 禁用电机的实现方法
+     * @return 操作结果
+     *
+     * 注册禁用状态下的回调函数，用于处理电机反馈数据。
+     */
     tl::expected<void, Error> disableImpl() override {
         auto driver_result = this->driver();
         if (!driver_result) {
@@ -119,11 +177,33 @@ class DjiMotor : public MotorBase<DjiMotor<Traits, Policy>, Traits, Policy> {
             [this](Can::CanFrame frame) { this->m_disabled_func(frame); });
     }
 
+    /**
+     * @brief 获取电机状态的实现方法
+     * @return 电机状态
+     *
+     * 从双缓冲中获取最新的电机状态。
+     */
     tl::expected<typename Traits::UserStatusType, Error>
     getStatusImpl() override {
         return Traits::UserStatusType::fromPlain(this->m_buffer.readCopy());
     }
 
+    /**
+     * @brief PID参数设置后的处理方法
+     * @param kp 比例参数
+     * @param ki 积分参数
+     * @param kd 微分参数
+     * @return 操作结果
+     *
+     * 更新PID控制器参数。由于DJI电机的特殊性，
+     * 此方法会临时禁用电机，更新参数后再重新使能。
+     *
+     * @note 对DJI电机来说，默认基类的修改PID参数方法传入的参数只会覆盖至最外环
+     *
+     * @note 可以用自旋锁在回调时保护计算中的Chain
+     *       但是实际上动态调整PID参数的时候应该不多
+     *       目前的方法在修改参数时会略微延时，但能保证计算过程安全，且避免引入自旋锁带来的开销
+     */
     tl::expected<void, Error> afterPidParams(float kp, float ki,
                                              float kd) override {
         // 注意对DJI电机来说，默认基类的修改PID参数方法传入的参数只会覆盖至最外环
@@ -149,6 +229,13 @@ class DjiMotor : public MotorBase<DjiMotor<Traits, Policy>, Traits, Policy> {
     }
 
   private:
+    /**
+     * @brief 更新电机状态
+     * @param frame 原始反馈帧数据
+     * @param status 要更新的状态对象
+     *
+     * 根据CAN帧数据更新电机状态，包括角度、速度、电流、温度等。
+     */
     void updateStatus(const RawStatusPlain &frame, MotorStatusPlain &status) {
         status.real_current_mA = static_cast<float>(frame.current_mA);
         status.temperature_C = static_cast<float>(frame.temperature_C);
@@ -188,12 +275,24 @@ class DjiMotor : public MotorBase<DjiMotor<Traits, Policy>, Traits, Policy> {
         }
     }
 
+    /**
+     * @brief 禁用状态下处理反馈数据的回调函数
+     * @param frame CAN帧数据
+     *
+     * 在电机禁用状态下，仅更新状态但不进行控制计算。
+     */
     void m_disabled_func(Can::CanFrame frame) {
         const auto msg = RawStatusPlain(frame);
         updateStatus(msg, this->m_buffer.write());
         this->m_buffer.swap();
     }
 
+    /**
+     * @brief 使能状态下处理反馈数据的回调函数
+     * @param frame CAN帧数据
+     *
+     * 在电机使能状态下，更新状态并根据PID控制器计算输出电流。
+     */
     void m_enabled_func(Can::CanFrame frame) {
 #ifdef CONFIG_OM_DJI_MOTOR_SKIP_N_FRAME
 #if CONFIG_OM_DJI_MOTOR_SKIP_N_FRAME != 0
@@ -232,15 +331,48 @@ class DjiMotor : public MotorBase<DjiMotor<Traits, Policy>, Traits, Policy> {
 
 #ifdef CONFIG_OM_DJI_MOTOR_SKIP_N_FRAME
 #if CONFIG_OM_DJI_MOTOR_SKIP_N_FRAME != 0
-    uint8_t m_skip_frame{};
+    uint8_t m_skip_frame{};  ///< 跳帧计数器，用于跳过指定数量的反馈帧
 #endif
 #endif
-    uint16_t m_last_ecd = 0;     /// 上一次的编码器读数
-    int32_t m_total_round = 0;   /// 累计圈数
-    float m_offset_angle = 0.0f; /// 启动时的初始偏移角度
-    bool m_initialized = false;  /// 是否已完成初始化
+
+    /**
+     * @var m_last_ecd
+     * @brief 上一次的编码器读数
+     *
+     * 用于检测编码器数值变化，判断电机旋转方向和圈数。
+     */
+    uint16_t m_last_ecd = 0;
+
+    /**
+     * @var m_total_round
+     * @brief 累计圈数
+     *
+     * 记录电机从初始化以来的总旋转圈数。
+     */
+    int32_t m_total_round = 0;
+
+    /**
+     * @var m_offset_angle
+     * @brief 启动时的初始偏移角度
+     *
+     * 记录电机启动时的角度作为零点偏移，用于计算绝对角度。
+     */
+    float m_offset_angle = 0.0f;
+
+    /**
+     * @var m_initialized
+     * @brief 是否已完成初始化
+     *
+     * 标记电机是否已完成初始化，用于确定是否需要记录零点偏移。
+     */
+    bool m_initialized = false;
 };
 
+/**
+ * @brief M3508电机类型别名
+ * @tparam id 电机ID
+ * @tparam Chain PID控制器链类型
+ */
 template <uint8_t id, typename Chain>
 using M3508 = DjiMotor<M3508Traits<id>, DjiPolicy<M3508Traits<id>, Chain>>;
 
@@ -259,6 +391,11 @@ makeM3508(Can::CanDriver &driver, const Chain &chain) {
         driver, DjiPolicy<M3508Traits<id>, Chain>{chain});
 };
 
+/**
+ * @brief M2006电机类型别名
+ * @tparam id 电机ID
+ * @tparam Chain PID控制器链类型
+ */
 template <uint8_t id, typename Chain>
 using M2006 = DjiMotor<M2006Traits<id>, DjiPolicy<M2006Traits<id>, Chain>>;
 
@@ -277,6 +414,11 @@ makeM2006(Can::CanDriver &driver, const Chain &chain) {
         driver, DjiPolicy<M2006Traits<id>, Chain>{chain});
 };
 
+/**
+ * @brief GM6020电压模式电机类型别名
+ * @tparam id 电机ID
+ * @tparam Chain PID控制器链类型
+ */
 template <uint8_t id, typename Chain>
 using GM6020_Voltage = DjiMotor<GM6020VoltageTraits<id>,
                                 DjiPolicy<GM6020VoltageTraits<id>, Chain>>;
@@ -297,6 +439,11 @@ makeGM6020_Voltage(Can::CanDriver &driver, const Chain &chain) {
         driver, DjiPolicy<GM6020VoltageTraits<id>, Chain>{chain});
 };
 
+/**
+ * @brief GM6020电流模式电机类型别名
+ * @tparam id 电机ID
+ * @tparam Chain PID控制器链类型
+ */
 template <uint8_t id, typename Chain>
 using GM6020_Current = DjiMotor<GM6020CurrentTraits<id>,
                                 DjiPolicy<GM6020CurrentTraits<id>, Chain>>;
