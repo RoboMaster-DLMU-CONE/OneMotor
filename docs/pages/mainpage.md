@@ -15,4 +15,6 @@ OneMotor是大连民族大学C·One战队研发的C++电机驱动库，致力于
 
 ## 文档
 
-- \ref integration_guide "集成指南"
+- \ref MainConcepts "核心概念" : 了解 OneMotor 的设计哲学、错误处理与单位系统。
+- \ref integration_guide "集成指南" : 如何在 Linux/Zephyr 项目中引入本库。
+- \ref motors "电机文档" : 支持的电机型号与具体控制方法。

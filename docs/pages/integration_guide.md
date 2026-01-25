@@ -64,10 +64,61 @@ sudo cmake --install build
 
 ## Windows (WSL2)
 
-TBD
+在 Windows 上，推荐使用 WSL2 (Windows Subsystem for Linux) 进行开发。
+
+### 环境配置
+
+1.  安装 WSL2: 在 PowerShell 中运行 `wsl --install`。
+2.  安装 Linux 发行版: 推荐使用 Ubuntu 22.04 LTS 或更高版本。
+3.  配置 USB/CAN 支持:
+    *   WSL2 本身不直接支持硬件直通，需要使用 [usbipd-win](https://github.com/dorssel/usbipd-win) 将 USB CAN 分析仪映射到 WSL 中。
+    *   映射后，WSL 中会出现对应的 USB 设备，配置 SocketCAN 的步骤与 Linux 相同。
+
+```powershell
+# Windows 端 (PowerShell 管理员)
+usbipd wsl list
+usbipd wsl attach --busid <BUSID>
+```
+
+```bash
+# WSL 端
+sudo ip link set can0 up type can bitrate 1000000
+```
+
+其余编译步骤与 Linux 平台完全一致。
 
 ## Zephyr
 
-> 推荐使用[one-framework](https://github.com/RoboMaster-DLMU-CONE/one-framework)来获取开箱即用的OneMotor模组
-> 
+### 作为 West 模块引入
+
+OneMotor 可以作为标准 Zephyr 模块集成到你的工程中。
+
+1.  编辑项目的 `west.yml`，在 `projects` 列表中添加 OneMotor：
+
+```yaml
+manifest:
+  remotes:
+    - name: dlmu-cone
+      url-base: https://github.com/RoboMaster-DLMU-CONE
+
+  projects:
+    - name: OneMotor
+      remote: dlmu-cone
+      revision: main
+      path: modules/lib/onemotor
+```
+
+2.  更新 west 工作区：
+
+```bash
+west update
+```
+
+3.  在项目的 `CMakeLists.txt` 中启用模块：
+
+```cmake
+# 只要 west update 成功，Zephyr 构建系统会自动发现 OneMotor 模块
+# 你只需要链接目标库
+target_link_libraries(app PRIVATE OneMotor::OneMotor)
+```
 
