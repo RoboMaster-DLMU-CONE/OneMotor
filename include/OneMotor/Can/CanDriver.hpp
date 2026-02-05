@@ -21,7 +21,8 @@
 namespace OneMotor::Can {
 /**
  * @class CanDriver
- * @brief CAN总线驱动类，封装了底层CAN接口的打开、关闭、发送和接收回调注册等操作。
+ * @brief
+ * CAN总线驱动类，封装了底层CAN接口的打开、关闭、发送和接收回调注册等操作。
  * @details
  * 此类旨在提供一个与平台无关的CAN驱动层。
  * 目前，在Linux平台下，它内部使用 `HyCAN` 库来实现。
@@ -42,10 +43,13 @@ class CanDriver {
     /**
      * @brief CanDriver 的构造函数（Linux平台）。
      * @param interface_name CAN接口的名称 (例如 "can0")。
+     * @param cpu_core_opt
      *
      * 构造一个CanDriver实例并指定CAN接口名称。
      */
-    explicit CanDriver(std::string interface_name);
+    explicit CanDriver(
+        std::string interface_name,
+        const std::optional<uint8_t> &cpu_core_opt = std::nullopt);
 #else
     /**
      * @brief 默认构造函数（Zephyr平台）
@@ -71,16 +75,19 @@ class CanDriver {
      */
     ~CanDriver();
 
-  #ifdef ONE_MOTOR_LINUX
+#ifdef ONE_MOTOR_LINUX
     /**
      * @brief 初始化CAN驱动（Linux平台）
      * @param interface_name CAN接口的名称 (例如 "can0")
+     * @param cpu_core_opt
      * @return 操作结果，成功返回void，失败返回Error
      *
      * 初始化CAN驱动，指定要使用的接口名称。
      */
-    tl::expected<void, Error> init(std::string interface_name);
-  #else
+    tl::expected<void, Error>
+    init(std::string interface_name,
+         const std::optional<uint8_t> &cpu_core_opt = std::nullopt);
+#else
     /**
      * @brief 初始化CAN驱动（Zephyr平台）
      * @param device Zephyr CAN接口设备
@@ -89,7 +96,7 @@ class CanDriver {
      * 初始化CAN驱动，绑定到指定的Zephyr CAN设备。
      */
     tl::expected<void, Error> init(const device *device);
-  #endif
+#endif
 
     /**
      * @brief 删除拷贝构造函数
@@ -191,10 +198,10 @@ class CanDriver {
 
   private:
 #ifdef ONE_MOTOR_LINUX
-    std::string interface_name;                      ///< CAN接口名称
-    std::unique_ptr<HyCAN::CANInterface> interface;  ///< 底层的HyCAN接口实例
+    std::string interface_name;                     ///< CAN接口名称
+    std::unique_ptr<HyCAN::CANInterface> interface; ///< 底层的HyCAN接口实例
 #else
-    const device *can_dev = nullptr;  ///< Zephyr CAN设备指针
+    const device *can_dev = nullptr; ///< Zephyr CAN设备指针
 
 #endif
     /**
