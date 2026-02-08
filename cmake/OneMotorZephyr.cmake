@@ -12,6 +12,8 @@ if (CONFIG_ONE_MOTOR)
             -fdata-sections
     )
 
+    zephyr_library_compile_features(cxx_std_20)
+
     zephyr_include_directories(include)
 
     target_link_libraries(app PRIVATE ${PROJECT_NAME})

@@ -1,6 +1,6 @@
 #include <OneMotor/Can/CanDriver.hpp>
-#include <OneMotor/Motor/DM/DmMotor.hpp>
 #include <OneMotor/Motor/DJI/DjiMotor.hpp>
+#include <OneMotor/Motor/DM/DmMotor.hpp>
 #include <OneMotor/Motor/IMotor.hpp>
 #include <OneMotor/Units/Units.hpp>
 #include <array>
@@ -8,13 +8,13 @@
 #include <iostream>
 #include <limits>
 #include <memory>
-#include <string>
-#include <type_traits>
-#include <variant>
 #include <one/PID/PidChain.hpp>
 #include <one/PID/PidConfig.hpp>
 #include <one/PID/PidParams.hpp>
+#include <string>
+#include <type_traits>
 #include <utility>
+#include <variant>
 
 namespace DM = OneMotor::Motor::DM;
 namespace DJI = OneMotor::Motor::DJI;
@@ -54,14 +54,14 @@ int main() {
 
     CanDriver driver("can0");
     auto dm_motor = std::make_unique<DM::J4310_MIT>(driver, 0x01, 0x11);
+    dm_motor->setPidParams(5, 0, 0.5);
     (void)dm_motor->setZeroPosition();
     (void)dm_motor->enable();
 
     auto dji_policy =
         DJI::DjiPolicy<DJI::M2006Traits<2>, decltype(pid_chain)>{pid_chain};
-    auto dji_motor =
-        std::make_unique<DJI::M2006<2, decltype(pid_chain)>>(
-            driver, dji_policy);
+    auto dji_motor = std::make_unique<DJI::M2006<2, decltype(pid_chain)>>(
+        driver, dji_policy);
     (void)dji_motor->setPosRef(1 * rev);
     (void)dji_motor->enable();
 
@@ -75,18 +75,21 @@ int main() {
         }
         if (auto status = motors[index]->getStatusVariant(); status) {
             std::cout << "Motor j" << (index + 1) << " status:\n";
-            std::visit([](const auto &payload) {
-                using StatusType = std::decay_t<decltype(payload)>;
-                if constexpr (std::is_same_v<StatusType, DM::DmStatus>) {
-                    std::cout << "  DM ID: " << int(payload.ID)
-                              << ", position: " << payload.position << '\n';
-                } else {
-                    std::cout << "  DJI angular: " << payload.angular << '\n';
-                }
-            }, *status);
+            std::visit(
+                [](const auto &payload) {
+                    using StatusType = std::decay_t<decltype(payload)>;
+                    if constexpr (std::is_same_v<StatusType, DM::DmStatus>) {
+                        std::cout << "  DM ID: " << int(payload.ID)
+                                  << ", position: " << payload.position << '\n';
+                    } else {
+                        std::cout << "  DJI angular: " << payload.angular
+                                  << '\n';
+                    }
+                },
+                *status);
         } else {
-            std::cerr << "Failed to read j" << (index + 1) << " status: "
-                      << status.error().message << '\n';
+            std::cerr << "Failed to read j" << (index + 1)
+                      << " status: " << status.error().message << '\n';
         }
     };
 
@@ -116,8 +119,7 @@ int main() {
                                 '\n');
                 continue;
             }
-            if (auto result =
-                    motors[index]->setPosRef(rotations * rev);
+            if (auto result = motors[index]->setPosRef(rotations * rev);
                 !result) {
                 std::cerr << "Failed to update " << command << ": "
                           << result.error().message << '\n';

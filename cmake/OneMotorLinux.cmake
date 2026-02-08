@@ -32,6 +32,8 @@ target_link_options(${PROJECT_NAME} INTERFACE
         -Wl,--gc-sections
 )
 
+target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
+
 if (BUILD_OM_INSTALL)
 
     include(GNUInstallDirs)

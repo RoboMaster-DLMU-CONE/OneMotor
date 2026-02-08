@@ -13,8 +13,7 @@ using OneMotor::Motor::DM::J4310_MIT;
 
 constexpr float cycle = 2 * std::numbers::pi;
 
-int main()
-{
+int main() {
     OneMotor::Can::CanDriver driver("can0");
     // Remember to Change the ID
     J4310_MIT j4310(driver, 0x01, 0x11);
