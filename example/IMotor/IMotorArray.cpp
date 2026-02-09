@@ -1,8 +1,3 @@
-#include <OneMotor/Can/CanDriver.hpp>
-#include <OneMotor/Motor/DJI/DjiMotor.hpp>
-#include <OneMotor/Motor/DM/DmMotor.hpp>
-#include <OneMotor/Motor/IMotor.hpp>
-#include <OneMotor/Units/Units.hpp>
 #include <array>
 #include <cstddef>
 #include <iostream>
@@ -11,20 +6,23 @@
 #include <one/PID/PidChain.hpp>
 #include <one/PID/PidConfig.hpp>
 #include <one/PID/PidParams.hpp>
+#include <one/motor/IMotor.hpp>
+#include <one/motor/dji/DjiMotor.hpp>
+#include <one/motor/dm/DmMotor.hpp>
+#include <one/units/Units.hpp>
 #include <string>
 #include <type_traits>
 #include <utility>
 #include <variant>
 
-namespace DM = OneMotor::Motor::DM;
-namespace DJI = OneMotor::Motor::DJI;
-
-using namespace OneMotor::Units::literals;
+using namespace one::units::literals;
+using one::can::CanDriver;
+using one::motor::IMotor;
+using one::motor::dji::M2006;
+using one::motor::dm::J4310;
 using one::pid::PidChain;
 using one::pid::PidConfig;
 using one::pid::PidParams;
-using OneMotor::Can::CanDriver;
-using OneMotor::Motor::IMotor;
 
 static constexpr PidParams<> POS_DEFAULT_PARAMS{
     .Kp = 8.1f,
@@ -44,25 +42,21 @@ static constexpr PidParams<> ANG_DEFAULT_PARAMS{
 };
 
 int main() {
-    constexpr auto pos_config =
-        PidConfig<one::pid::Positional, float, DJI::PIDFeatures>(
-            POS_DEFAULT_PARAMS);
-    constexpr auto ang_config =
-        PidConfig<one::pid::Positional, float, DJI::PIDFeatures>(
-            ANG_DEFAULT_PARAMS);
-    auto pid_chain = PidChain(pos_config, ang_config);
 
     CanDriver driver("can0");
-    auto dm_motor = std::make_unique<DM::J4310_MIT>(driver, 0x01, 0x11);
-    dm_motor->setPidParams(5, 0, 0.5);
+    auto dm_motor = std::make_unique<J4310>(
+        driver,
+        one::motor::dm::Param{0x01, 0x11, one::motor::dm::MITMode{5.0f, 0.5}});
+    // (void)dm_motor->init(driver,
+    // {0x01, 0x11, one::motor::dm::MITMode{5.0f, 0.5}});
     (void)dm_motor->setZeroPosition();
     (void)dm_motor->enable();
 
-    auto dji_policy =
-        DJI::DjiPolicy<DJI::M2006Traits<2>, decltype(pid_chain)>{pid_chain};
-    auto dji_motor = std::make_unique<DJI::M2006<2, decltype(pid_chain)>>(
-        driver, dji_policy);
-    (void)dji_motor->setPosRef(1 * rev);
+    auto dji_motor = std::make_unique<M2006>();
+    (void)dji_motor->init(driver,
+                          {2, one::motor::dji::PosAngMode{POS_DEFAULT_PARAMS,
+                                                          ANG_DEFAULT_PARAMS}});
+    dji_motor->setPosUnitRef(1 * rev);
     (void)dji_motor->enable();
 
     std::array<std::unique_ptr<IMotor>, 2> motors;
@@ -78,8 +72,9 @@ int main() {
             std::visit(
                 [](const auto &payload) {
                     using StatusType = std::decay_t<decltype(payload)>;
-                    if constexpr (std::is_same_v<StatusType, DM::DmStatus>) {
-                        std::cout << "  DM ID: " << int(payload.ID)
+                    if constexpr (std::is_same_v<StatusType,
+                                                 one::motor::dm::DmStatus>) {
+                        std::cout << "  DM ID: " << static_cast<int>(payload.ID)
                                   << ", position: " << payload.position << '\n';
                     } else {
                         std::cout << "  DJI angular: " << payload.angular
@@ -119,11 +114,8 @@ int main() {
                                 '\n');
                 continue;
             }
-            if (auto result = motors[index]->setPosRef(rotations * rev);
-                !result) {
-                std::cerr << "Failed to update " << command << ": "
-                          << result.error().message << '\n';
-            }
+            motors[index]->setPosUnitRef(rotations * rev);
+
             continue;
         }
         std::cout << "Unknown command.\n";

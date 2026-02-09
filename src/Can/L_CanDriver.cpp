@@ -1,15 +1,13 @@
-#include <bit>
-#include <type_traits>
+#include <one/motor/Error.hpp>
 #include <utility>
 
-#include <OneMotor/Can/CanDriver.hpp>
-#include <OneMotor/Can/CanFrame.hpp>
-#include <OneMotor/Util/Panic.hpp>
-#include <concepts>
+#include <one/can/CanDriver.hpp>
+#include <one/can/CanFrame.hpp>
+#include <one/utils/Panic.hpp>
 
-using enum OneMotor::ErrorCode;
-
-namespace OneMotor::Can {
+using enum one::motor::ErrorCode;
+using one::motor::Error;
+namespace one::can {
 CanDriver::CanDriver(std::string interface_name,
                      const std::optional<uint8_t> &cpu_core_opt) {
     if (auto result = init(std::move(interface_name), cpu_core_opt); !result) {
@@ -22,7 +20,7 @@ tl::expected<void, Error>
 CanDriver::init(std::string interface_name,
                 const std::optional<uint8_t> &cpu_core_opt) {
     if (m_initialized) {
-        return tl::make_unexpected(Error{ErrorCode::CanDriverAlreadyInitialized,
+        return tl::make_unexpected(Error{CanDriverAlreadyInitialized,
                                          "CanDriver already initialized"});
     }
     this->interface_name = std::move(interface_name);
@@ -69,4 +67,4 @@ tl::expected<void, Error> CanDriver::send(const CanFrame &frame) {
         });
 }
 
-} // namespace OneMotor::Can
+} // namespace one::can

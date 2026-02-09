@@ -1,19 +1,20 @@
-#include <OneMotor/Can/CanDriver.hpp>
+
 #include <iostream>
 #include <one/PID/PidChain.hpp>
 #include <one/PID/PidConfig.hpp>
 #include <one/PID/PidParams.hpp>
 #include <string>
 
-#include <OneMotor/Motor/DJI/DjiMotor.hpp>
+#include <one/motor/dji/DjiMotor.hpp>
 
+using one::can::CanDriver;
+using one::motor::dji::GM6020_Voltage;
+using one::motor::dji::M2006;
+using one::motor::dji::PIDFeatures;
+using one::motor::dji::PosAngMode;
 using one::pid::PidChain;
 using one::pid::PidConfig;
 using one::pid::PidParams;
-using OneMotor::Can::CanDriver;
-using OneMotor::Motor::DJI::GM6020_Voltage;
-using OneMotor::Motor::DJI::M2006;
-using OneMotor::Motor::DJI::PIDFeatures;
 
 static constexpr PidParams<> POS_DEFAULT_PARAMS{
     .Kp = 8.1f,
@@ -32,23 +33,21 @@ static constexpr PidParams<> ANG_DEFAULT_PARAMS{
     .IntegralLimit = 8000,
 };
 
+using namespace one::units::literals;
 int main() {
-    constexpr auto conf1 =
-        PidConfig<one::pid::Positional, float, PIDFeatures>(POS_DEFAULT_PARAMS);
-    constexpr auto conf2 =
-        PidConfig<one::pid::Positional, float, PIDFeatures>(ANG_DEFAULT_PARAMS);
-    auto pid_chain = PidChain(conf1, conf2);
 
     CanDriver driver("can0");
-    GM6020_Voltage<4, decltype(pid_chain)> m1(driver, {pid_chain});
+    GM6020_Voltage m1(
+        driver,
+        {.id = 4, .mode = PosAngMode{POS_DEFAULT_PARAMS, ANG_DEFAULT_PARAMS}});
 
-    (void)m1.setPosRef(0 * deg);
-    (void)m1.setAngRef(2 * rad / s);
+    m1.setPosUnitRef(0 * rad);
+    m1.setAngUnitRef(2 * rad / s);
     (void)m1.enable();
 
     std::thread thread([&] {
         while (true) {
-            std::cout << m1.getStatus().value().total_angle << std::endl;
+            std::cout << m1.getStatus().total_angle << std::endl;
             std::this_thread::sleep_for(std::chrono::milliseconds(700));
         }
     });
@@ -63,7 +62,7 @@ int main() {
             float ref;
             std::cout << "Enter new ref value: ";
             std::cin >> ref;
-            (void)m1.setPosRef(ref * deg);
+            m1.setPosUnitRef(ref * deg);
         } else if (param_to_change == "exit") {
             break;
         } else {

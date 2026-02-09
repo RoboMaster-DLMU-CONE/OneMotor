@@ -1,19 +1,16 @@
-#include <OneMotor/Can/CanDriver.hpp>
 #include <iostream>
 #include <one/PID/PidChain.hpp>
 #include <one/PID/PidConfig.hpp>
 #include <one/PID/PidParams.hpp>
 #include <string>
 
-#include "OneMotor/Motor/DJI/DjiMotor.hpp"
+#include <one/motor/dji/DjiMotor.hpp>
 
+using one::can::CanDriver;
+using one::motor::dji::M3508;
 using one::pid::PidChain;
 using one::pid::PidConfig;
 using one::pid::PidParams;
-using OneMotor::Can::CanDriver;
-using OneMotor::Motor::DJI::M3508;
-using OneMotor::Motor::DJI::makeM3508;
-using OneMotor::Motor::DJI::PIDFeatures;
 
 static constexpr PidParams<> POS_DEFAULT_PARAMS{
     .Kp = 1,
@@ -32,26 +29,20 @@ static constexpr PidParams<> ANG_DEFAULT_PARAMS{
     .IntegralLimit = 100,
 };
 
+using namespace one::units::literals;
 int main() {
-    constexpr auto conf1 =
-        PidConfig<one::pid::Positional, float, PIDFeatures>(POS_DEFAULT_PARAMS);
-    constexpr auto conf2 =
-        PidConfig<one::pid::Positional, float, PIDFeatures>(ANG_DEFAULT_PARAMS);
-    const auto pid_chain = PidChain(conf1, conf2);
 
     CanDriver driver("can0");
-    // 最简单的 helper function
-    auto m1 = makeM3508<1>(driver, pid_chain);
-    // 你也可以直接用别名：
-    // M3508<1, decltype(pid_chain)> m1(driver, {pid_chain});
 
-    (void)m1.setPosRef(2 * rev);
+    M3508 m1(driver, {1, one::motor::dji::PosAngMode{POS_DEFAULT_PARAMS,
+                                                     ANG_DEFAULT_PARAMS}});
+
+    m1.setPosUnitRef(2 * rev);
     (void)m1.enable();
-    (void)m1.setPidParams(1, 0.05, 0);
 
     std::thread thread([&] {
         while (true) {
-            std::cout << m1.getStatus().value().reduced_angle << std::endl;
+            std::cout << m1.getStatus().reduced_angle << std::endl;
             std::this_thread::sleep_for(std::chrono::milliseconds(500));
         }
     });
@@ -66,7 +57,7 @@ int main() {
             float ref;
             std::cout << "Enter new ref value: ";
             std::cin >> ref;
-            (void)m1.setPosRef(ref * deg);
+            m1.setPosUnitRef(ref * deg);
         } else if (param_to_change == "exit") {
             break;
         } else {

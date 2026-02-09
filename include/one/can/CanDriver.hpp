@@ -6,10 +6,10 @@
 #define CANDRIVER_HPP
 
 #include "CanFrame.hpp"
-#include "OneMotor/Util/Error.hpp"
 #include <concepts>
 #include <functional>
 #include <memory>
+#include <one/motor/Error.hpp>
 #include <set>
 #include <string>
 #include <tl/expected.hpp>
@@ -18,7 +18,7 @@
 #include <HyCAN/Interface/Interface.hpp>
 #endif
 
-namespace OneMotor::Can {
+namespace one::can {
 /**
  * @class CanDriver
  * @brief
@@ -84,7 +84,7 @@ class CanDriver {
      *
      * 初始化CAN驱动，指定要使用的接口名称。
      */
-    tl::expected<void, Error>
+    tl::expected<void, motor::Error>
     init(std::string interface_name,
          const std::optional<uint8_t> &cpu_core_opt = std::nullopt);
 #else
@@ -116,7 +116,7 @@ class CanDriver {
      * @brief 检查CAN接口是否已打开
      * @return 操作结果，成功返回bool值表示是否已打开，失败返回Error
      */
-    tl::expected<bool, Error> is_open();
+    tl::expected<bool, motor::Error> is_open();
 
     /**
      * @brief 打开CAN接口。
@@ -124,7 +124,7 @@ class CanDriver {
      *
      * 打开CAN接口，准备进行数据收发。
      */
-    tl::expected<void, Error> open();
+    tl::expected<void, motor::Error> open();
 
     /**
      * @brief 关闭CAN接口。
@@ -132,7 +132,7 @@ class CanDriver {
      *
      * 关闭CAN接口，释放相关资源。
      */
-    tl::expected<void, Error> close();
+    tl::expected<void, motor::Error> close();
 
     /**
      * @brief 发送一帧CAN数据。
@@ -141,7 +141,7 @@ class CanDriver {
      *
      * 将指定的CAN帧发送到总线上。
      */
-    tl::expected<void, Error> send(const CanFrame &frame);
+    tl::expected<void, motor::Error> send(const CanFrame &frame);
 
     /**
      * @brief 注册一个回调函数，用于处理特定CAN ID的数据帧。
@@ -154,8 +154,8 @@ class CanDriver {
      */
 #ifdef ONE_MOTOR_LINUX
     template <typename Func>
-    tl::expected<void, Error> registerCallback(const std::set<size_t> &can_ids,
-                                               Func &&func)
+    tl::expected<void, motor::Error>
+    registerCallback(const std::set<size_t> &can_ids, Func &&func)
         requires(std::invocable<Func, CanFrame>)
     {
         if (auto guard = ensureInitialized(); !guard) {
@@ -167,7 +167,7 @@ class CanDriver {
                        func(std::bit_cast<CanFrame>(frame));
                    })
             .map_error([&](const auto &) {
-                return Error{ErrorCode::CanDriverInternalError,
+                return motor::Error{motor::ErrorCode::CanDriverInternalError,
                              "HyCAN register callback failed"};
             });
     }
@@ -218,7 +218,7 @@ class CanDriver {
      *
      * 检查CAN驱动是否已正确初始化，如果没有则返回错误。
      */
-    tl::expected<void, Error> ensureInitialized() const;
+    tl::expected<void, motor::Error> ensureInitialized() const;
 };
 
 /**
@@ -227,7 +227,7 @@ class CanDriver {
  *
  * 检查CAN驱动是否已正确初始化，如果没有则返回错误。
  */
-inline tl::expected<void, Error> CanDriver::ensureInitialized() const {
+inline tl::expected<void, motor::Error> CanDriver::ensureInitialized() const {
 #ifdef ONE_MOTOR_LINUX
     if (interface && m_initialized)
 #else
@@ -235,9 +235,10 @@ inline tl::expected<void, Error> CanDriver::ensureInitialized() const {
 #endif
         return {};
     return tl::make_unexpected(
-        Error{ErrorCode::CanDriverNotInitialized, "CanDriver not initialized"});
+        motor::Error{motor::ErrorCode::CanDriverNotInitialized,
+                     "CanDriver not initialized"});
 }
 
-} // namespace OneMotor::Can
+} // namespace one::can
 
 #endif // CANDRIVER_HPP

@@ -1,11 +1,7 @@
 #include <stdexcept>
 
-#include "OneMotor/Util/Panic.hpp"
+#include <one/utils/Panic.hpp>
 
-namespace OneMotor
-{
-    void panic(const char *message)
-    {
-        throw std::runtime_error(message);
-    }
-}
+namespace one {
+void panic(const char *message) { throw std::runtime_error(message); }
+} // namespace one

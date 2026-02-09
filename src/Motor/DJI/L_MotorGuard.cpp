@@ -1,10 +1,10 @@
-#include <OneMotor/Motor/DJI/MotorGuard.hpp>
-#include <OneMotor/Util/Panic.hpp>
+#include <one/motor/dji/MotorGuard.hpp>
+#include <one/utils/Panic.hpp>
 
-namespace OneMotor::Motor::DJI {
+namespace one::motor::dji {
 void MotorGuard::guard(const std::vector<DriverPair> &driver_set) {
     for (auto &[name, data] : driver_set) {
-        auto driver = std::make_shared<Can::CanDriver>(name);
+        auto driver = std::make_shared<can::CanDriver>(name);
         drivers.push_back(driver);
         watchdog_states_[driver] = std::make_unique<WatchdogState>();
         watchdog_states_[driver]->last_fed_time_ =
@@ -24,7 +24,7 @@ void MotorGuard::guard(const std::vector<DriverPair> &driver_set) {
 
     for (const auto &driver : drivers) {
         auto result =
-            driver->registerCallback({0x200}, [this, driver](Can::CanFrame) {
+            driver->registerCallback({0x200}, [this, driver](can::CanFrame) {
                 this->feed_watchdog(driver);
             });
     }
@@ -33,7 +33,7 @@ void MotorGuard::guard(const std::vector<DriverPair> &driver_set) {
     });
 }
 
-void MotorGuard::feed_watchdog(const std::shared_ptr<Can::CanDriver> &driver) {
+void MotorGuard::feed_watchdog(const std::shared_ptr<can::CanDriver> &driver) {
     std::lock_guard lock(state_mutex_);
     if (const auto it = watchdog_states_.find(driver);
         it != watchdog_states_.end()) {
@@ -66,11 +66,11 @@ void MotorGuard::watchdog_monitor_func_(const std::stop_token &stop_token) {
 }
 
 void MotorGuard::circuit_breaker_action_(
-    const std::shared_ptr<Can::CanDriver> &driver) {
-    Can::CanFrame frame1;
+    const std::shared_ptr<can::CanDriver> &driver) {
+    can::CanFrame frame1;
     frame1.dlc = 8;
     frame1.id = 0x200;
-    Can::CanFrame frame2;
+    can::CanFrame frame2;
     frame2.dlc = 8;
     frame2.id = 0x1FF;
     std::copy_n(driver_exit_data_[driver].data(), 8, frame1.data);
@@ -85,4 +85,4 @@ MotorGuard &MotorGuard::getInstance() {
 }
 
 MotorGuard::MotorGuard() = default;
-} // namespace OneMotor::Motor::DJI
+} // namespace one::motor::dji

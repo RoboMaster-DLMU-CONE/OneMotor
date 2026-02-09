@@ -13,12 +13,12 @@
 #include <set>
 #include <unordered_map>
 
-#include "OneMotor/Can/CanDriver.hpp"
-#include "OneMotor/Thread/Othread.hpp"
-#include "OneMotor/Util/Error.hpp"
+#include "../Error.hpp"
+#include "one/can/CanDriver.hpp"
+#include "one/thread/Othread.hpp"
 #include <tl/expected.hpp>
 
-namespace OneMotor::Motor::DJI {
+namespace one::motor::dji {
 /**
  * @class MotorManager
  * @brief DJI电机管理器单例类。
@@ -56,7 +56,7 @@ class MotorManager {
      * @param canId 电机的CAN ID。
      * @return Result 操作结果。
      */
-    tl::expected<void, Error> registerMotor(Can::CanDriver &driver,
+    tl::expected<void, Error> registerMotor(can::CanDriver &driver,
                                             uint16_t canId) noexcept;
 
     /**
@@ -65,7 +65,7 @@ class MotorManager {
      * @param canId 电机的CAN ID。
      * @return 操作结果。
      */
-    tl::expected<void, Error> deregisterMotor(Can::CanDriver &driver,
+    tl::expected<void, Error> deregisterMotor(can::CanDriver &driver,
                                               uint16_t canId) noexcept;
 
     /**
@@ -77,7 +77,7 @@ class MotorManager {
      * @param lo_value 电流值的低8位。
      * @param hi_value 电流值的高8位。
      */
-    void pushOutput(Can::CanDriver &driver, uint16_t control_can_id,
+    void pushOutput(can::CanDriver &driver, uint16_t control_can_id,
                     uint8_t offset, uint8_t lo_value,
                     uint8_t hi_value) noexcept;
 
@@ -89,8 +89,8 @@ class MotorManager {
     MotorManager();
 
     std::atomic<bool> stop_{false}; ///< 用于通知发送线程停止的原子标志
-    std::unique_ptr<Thread::Othread> thread_; ///< 后台发送线程的封装
+    std::unique_ptr<thread::Othread> thread_; ///< 后台发送线程的封装
 };
-} // namespace OneMotor::Motor::DJI
+} // namespace one::motor::dji
 
 #endif // MOTORMANAGER_HPP

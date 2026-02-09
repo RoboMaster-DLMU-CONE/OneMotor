@@ -1,23 +1,20 @@
-#include <OneMotor/Can/CanDriver.hpp>
-#include <OneMotor/Motor/DJI/DjiMotor.hpp>
-#include <OneMotor/Units/Units.hpp>
 #include <chrono>
 #include <iostream>
 #include <one/PID/PidChain.hpp>
 #include <one/PID/PidConfig.hpp>
 #include <one/PID/PidParams.hpp>
+#include <one/can/CanDriver.hpp>
+#include <one/motor/dji/DjiMotor.hpp>
+#include <one/units/Units.hpp>
 #include <thread>
 #include <utility>
 
-using namespace OneMotor::Units::literals;
+using namespace one::units::literals;
+using one::can::CanDriver;
+using one::motor::dji::M2006;
 using one::pid::PidChain;
 using one::pid::PidConfig;
 using one::pid::PidParams;
-using OneMotor::Can::CanDriver;
-using OneMotor::Motor::DJI::DjiPolicy;
-using OneMotor::Motor::DJI::M2006;
-using OneMotor::Motor::DJI::M2006Traits;
-using OneMotor::Motor::DJI::PIDFeatures;
 
 static constexpr PidParams<> POS_DEFAULT_PARAMS{
     .Kp = 8.1f,
@@ -37,33 +34,27 @@ static constexpr PidParams<> ANG_DEFAULT_PARAMS{
 };
 
 int main() {
-    constexpr auto pos_config =
-        PidConfig<one::pid::Positional, float, PIDFeatures>(POS_DEFAULT_PARAMS);
-    constexpr auto ang_config =
-        PidConfig<one::pid::Positional, float, PIDFeatures>(ANG_DEFAULT_PARAMS);
-    auto pid_chain = PidChain(pos_config, ang_config);
 
     CanDriver driver("can0");
-    M2006<2, decltype(pid_chain)> motor;
-    auto policy = DjiPolicy<M2006Traits<2>, decltype(pid_chain)>{pid_chain};
+    M2006 motor;
 
-    if (auto init_result = motor.init(driver, policy); !init_result) {
+    if (auto init_result = motor.init(
+            driver, {2, one::motor::dji::PosAngMode{POS_DEFAULT_PARAMS,
+                                                    ANG_DEFAULT_PARAMS}});
+        !init_result) {
         std::cerr << "Failed to initialize M2006: "
                   << init_result.error().message << std::endl;
         return 1;
     }
 
     (void)motor.enable();
-    (void)motor.setPosRef(2 * rev);
+    motor.setPosUnitRef(2 * rev);
 
     for (int i = 0; i < 5; ++i) {
-        if (auto status = motor.getStatus(); status) {
-            std::cout << "M2006 reduced angle: " << status->reduced_angle
-                      << std::endl;
-        } else {
-            std::cerr << "Failed to read status: "
-                      << status.error().message << std::endl;
-        }
+
+        std::cout << "M2006 reduced angle: " << motor.getStatus().reduced_angle
+                  << std::endl;
+
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
     }
 

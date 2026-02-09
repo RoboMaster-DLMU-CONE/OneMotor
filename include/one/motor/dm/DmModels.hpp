@@ -1,15 +1,9 @@
 #ifndef ONE_MOTOR_DM_DMTRAITS_HPP_
 #define ONE_MOTOR_DM_DMTRAITS_HPP_
 
-#include "DmFrame.hpp"
+namespace one::motor::dm {
 
-namespace OneMotor::Motor::DM {
-
-struct J4310Traits {
-    using StatusType = DmStatusPlain;
-    using UserStatusType = DmStatus;
-    static constexpr auto name = "DM_J4310";
-
+struct J4310Model {
     static constexpr float V_MIN = -45.0f; // rad/s
     static constexpr float V_MAX = 45.0f;
     static constexpr float P_MIN = -12.5f; // rad
@@ -22,11 +16,7 @@ struct J4310Traits {
     static constexpr float KD_MAX = 5.0f;
 };
 
-struct J4340Traits {
-    using StatusType = DmStatusPlain;
-    using UserStatusType = DmStatus;
-    static constexpr auto name = "DM_J4340";
-
+struct J4340Model {
     static constexpr float V_MIN = -10.0f; // rad/s
     static constexpr float V_MAX = 10.0f;
     static constexpr float P_MIN = -12.5f; // rad
@@ -39,11 +29,7 @@ struct J4340Traits {
     static constexpr float KD_MAX = 5.0f;
 };
 
-struct J8009Traits {
-    using StatusType = DmStatusPlain;
-    using UserStatusType = DmStatus;
-    static constexpr auto name = "DM_J8009";
-
+struct J8009Model {
     static constexpr float V_MIN = -45.0f; // rad/s
     static constexpr float V_MAX = 45.0f;
     static constexpr float P_MIN = -12.5f; // rad
@@ -55,11 +41,7 @@ struct J8009Traits {
     static constexpr float KD_MIN = 0.0f;
     static constexpr float KD_MAX = 5.0f;
 };
-struct J10010LTraits {
-    using StatusType = DmStatusPlain;
-    using UserStatusType = DmStatus;
-    static constexpr auto name = "DM_J10010L";
-
+struct J10010LModel {
     static constexpr float V_MIN = -25.0f; // rad/s
     static constexpr float V_MAX = 25.0f;
     static constexpr float P_MIN = -12.5f; // rad
@@ -71,6 +53,6 @@ struct J10010LTraits {
     static constexpr float KD_MIN = 0.0f;
     static constexpr float KD_MAX = 5.0f;
 };
-} // namespace OneMotor::Motor::DM
+} // namespace one::motor::dm
 
 #endif // ONE_MOTOR_DM_DMTRAITS_HPP_

@@ -17,13 +17,13 @@
 #include <mp-units/systems/si/units.h>
 
 /**
- * @namespace OneMotor::Units
+ * @namespace one::units
  * @brief OneMotor项目的单位系统命名空间
  *
  * 包含了电机控制中常用的物理量单位定义，
  * 如角度、角速度、扭矩、电流等。
  */
-namespace OneMotor::Units {
+namespace one::units {
 
 // 导入mp-units库中的基础类型
 using mp_units::quantity;
@@ -65,12 +65,12 @@ using AngleDeg = quantity<degree, float>;
 using AngularVelocity = quantity<radian / second, float>;
 
 /**
- * @typedef AngulurVelocityDeg
+ * @typedef AngularVelocityDeg
  * @brief 角速度类型，以度/秒为单位
  *
  * 表示角速度的类型，使用度/秒作为单位，浮点数存储。
  */
-using AngulurVelocityDeg = quantity<degree / second, float>;
+using AngularVelocityDeg = quantity<degree / second, float>;
 
 /**
  * @typedef Round
@@ -138,16 +138,16 @@ using Temperature =
  * 如 90_deg 表示90度，2_rad 表示2弧度等。
  */
 namespace literals {
-using mp_units::angular::unit_symbols::deg;  ///< 度的字面量符号
-using mp_units::angular::unit_symbols::rad;  ///< 弧度的字面量符号
-using mp_units::angular::unit_symbols::rev;  ///< 转数的字面量符号
-using mp_units::si::unit_symbols::deg_C;     ///< 摄氏度的字面量符号
-using mp_units::si::unit_symbols::m;         ///< 米的字面量符号
-using mp_units::si::unit_symbols::mA;        ///< 毫安的字面量符号
-using mp_units::si::unit_symbols::N;         ///< 牛顿的字面量符号
-using mp_units::si::unit_symbols::s;         ///< 秒的字面量符号
+using mp_units::angular::unit_symbols::deg; ///< 度的字面量符号
+using mp_units::angular::unit_symbols::rad; ///< 弧度的字面量符号
+using mp_units::angular::unit_symbols::rev; ///< 转数的字面量符号
+using mp_units::si::unit_symbols::deg_C;    ///< 摄氏度的字面量符号
+using mp_units::si::unit_symbols::m;        ///< 米的字面量符号
+using mp_units::si::unit_symbols::mA;       ///< 毫安的字面量符号
+using mp_units::si::unit_symbols::N;        ///< 牛顿的字面量符号
+using mp_units::si::unit_symbols::s;        ///< 秒的字面量符号
 } // namespace literals
 
-} // namespace OneMotor::Units
+} // namespace one::units
 
 #endif // ONE_MOTOR_UNITS_HPP_

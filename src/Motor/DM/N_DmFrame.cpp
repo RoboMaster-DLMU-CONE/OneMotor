@@ -1,10 +1,10 @@
-#include <OneMotor/Motor/DM/DmFrame.hpp>
 #include <format>
+#include <one/motor/dm/DmFrame.hpp>
 
-namespace OneMotor::Motor::DM {
+namespace one::motor::dm {
 
 DmStatus DmStatus::fromPlain(const DmStatusPlain &plain) {
-    using namespace OneMotor::Units::literals;
+    using namespace units::literals;
     return {
         .ID = plain.ID,
         .status = plain.status,
@@ -25,4 +25,4 @@ std::string DmStatus::format() const {
                        temperature_Rotor.quantity_from_zero());
 }
 #endif
-} // namespace OneMotor::Motor::DM
+} // namespace one::motor::dm

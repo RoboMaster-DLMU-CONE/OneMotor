@@ -20,7 +20,7 @@
 #include <zephyr/drivers/can.h>
 #endif
 
-namespace OneMotor::Can {
+namespace one::can {
 /**
  * @brief 一个与平台无关的CAN帧结构体。
  * @details
@@ -68,6 +68,6 @@ static_assert(offsetof(CanFrame, dlc) == offsetof(can_frame, dlc),
 static_assert(offsetof(CanFrame, data) == offsetof(can_frame, data),
               "Offset mismatch for 'data' member.");
 #endif
-} // namespace OneMotor::Can
+} // namespace one::can
 
 #endif // CANFRAME_HPP

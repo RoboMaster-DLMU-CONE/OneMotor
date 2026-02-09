@@ -7,12 +7,12 @@
  */
 #ifndef ONE_MOTOR_DM_FRAME_HPP
 #define ONE_MOTOR_DM_FRAME_HPP
-#include <OneMotor/Can/CanFrame.hpp>
-#include <OneMotor/Units/Units.hpp>
 #include <cstdint>
+#include <one/can/CanFrame.hpp>
+#include <one/units/Units.hpp>
 #include <string>
 
-namespace OneMotor::Motor::DM {
+namespace one::motor::dm {
 
 /**
  * @brief 将无符号整数转换为浮点数
@@ -71,7 +71,7 @@ template <typename T> struct TypeTag {};
 struct DmStatusPlain {
     DmStatusPlain() = default;
     template <typename Traits>
-    explicit DmStatusPlain(const Can::CanFrame &frame, TypeTag<Traits> tag) {
+    explicit DmStatusPlain(const can::CanFrame &frame, TypeTag<Traits> tag) {
         (void)tag;
         const auto *data = reinterpret_cast<const uint8_t *>(frame.data);
         auto tmp = static_cast<uint16_t>((data[1] << 8) | data[2]);
@@ -101,14 +101,14 @@ struct DmStatusPlain {
 struct DmStatus {
     uint8_t ID{};                           ///< 电机 ID
     DmCode status{};                        ///< 电机状态
-    Units::Angle position{};                ///< 电机位置 (rad)
-    Units::AngularVelocity velocity{};      ///< 电机速度 (rad/s)
-    Units::Torque torque{};                 ///< 电机扭矩 (N*m)
-    Units::Temperature temperature_MOS{};   ///< MOS 温度 (摄氏度)
-    Units::Temperature temperature_Rotor{}; ///< 转子温度 (摄氏度)
+    units::Angle position{};                ///< 电机位置 (rad)
+    units::AngularVelocity velocity{};      ///< 电机速度 (rad/s)
+    units::Torque torque{};                 ///< 电机扭矩 (N*m)
+    units::Temperature temperature_MOS{};   ///< MOS 温度 (摄氏度)
+    units::Temperature temperature_Rotor{}; ///< 转子温度 (摄氏度)
 
     static DmStatus fromPlain(const DmStatusPlain &plain);
     std::string format() const;
 };
-} // namespace OneMotor::Motor::DM
+} // namespace one::motor::dm
 #endif // ONE_MOTOR_DM_FRAME_HPP

@@ -7,7 +7,7 @@
 extern k_heap g_dtcm_heap;
 #endif
 
-namespace OneMotor {
+namespace one {
 
 #ifdef __ZEPHYR__
 
@@ -56,5 +56,5 @@ template <typename T> class DtcmAllocator {
 template <typename T> using DtcmAllocator = std::allocator<T>;
 
 #endif
-} // namespace OneMotor
+} // namespace one
 #endif // ONEMOTOR_DTCMALLOCATOR_HPP
