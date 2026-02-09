@@ -64,10 +64,10 @@ template <typename T> struct TypeTag {};
  * @brief 达妙电机状态结构体
  */
 /// @brief 回调线程内部使用的无单位状态（基础单位：rad、rad/s、N·m、摄氏度）
-struct DmStatusPlain {
-    DmStatusPlain() = default;
+struct MotorStatusPlain {
+    MotorStatusPlain() = default;
     template <typename Traits>
-    explicit DmStatusPlain(const can::CanFrame &frame, TypeTag<Traits> tag) {
+    explicit MotorStatusPlain(const can::CanFrame &frame, TypeTag<Traits> tag) {
         (void)tag;
         const auto *data = reinterpret_cast<const uint8_t *>(frame.data);
         auto tmp = static_cast<uint16_t>((data[1] << 8) | data[2]);
@@ -94,7 +94,7 @@ struct DmStatusPlain {
 };
 
 /// @brief 对外暴露的带单位状态，仅在用户线程构造
-struct DmStatus {
+struct MotorStatus {
     uint8_t ID{};                           ///< 电机 ID
     DmCode status{};                        ///< 电机状态
     units::Angle position{};                ///< 电机位置 (rad)
@@ -103,7 +103,7 @@ struct DmStatus {
     units::Temperature temperature_MOS{};   ///< MOS 温度 (摄氏度)
     units::Temperature temperature_Rotor{}; ///< 转子温度 (摄氏度)
 
-    static DmStatus fromPlain(const DmStatusPlain &plain);
+    static MotorStatus fromPlain(const MotorStatusPlain &plain);
     std::string format() const;
 };
 } // namespace one::motor::dm

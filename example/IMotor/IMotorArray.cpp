@@ -73,7 +73,7 @@ int main() {
                 [](const auto &payload) {
                     using StatusType = std::decay_t<decltype(payload)>;
                     if constexpr (std::is_same_v<StatusType,
-                                                 one::motor::dm::DmStatus>) {
+                                                 one::motor::dm::MotorStatus>) {
                         std::cout << "  DM ID: " << static_cast<int>(payload.ID)
                                   << ", position: " << payload.position << '\n';
                     } else {

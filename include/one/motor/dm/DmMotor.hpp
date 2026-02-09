@@ -110,10 +110,12 @@ template <typename Model> class DmMotor : public IMotor {
         return sendControlFrame(detail::DISABLE_FRAME_DATA);
     }
 
-    DmStatus getStatus() { return DmStatus::fromPlain(m_buffer.readCopy()); }
+    MotorStatus getStatus() {
+        return MotorStatus::fromPlain(m_buffer.readCopy());
+    }
 
     tl::expected<AnyStatus, Error> getStatusVariant() final {
-        return DmStatus::fromPlain(this->m_buffer.readCopy());
+        return MotorStatus::fromPlain(this->m_buffer.readCopy());
     }
     tl::expected<AnyPlainStatus, Error> getPlainStatusVariant() final {
         return this->m_buffer.readCopy();
@@ -177,7 +179,7 @@ template <typename Model> class DmMotor : public IMotor {
     }
 
     void onFeedback(can::CanFrame frame) {
-        this->m_buffer.push(DmStatusPlain(frame, TypeTag<Model>{}));
+        this->m_buffer.push(MotorStatusPlain(frame, TypeTag<Model>{}));
     }
 
     void computeMIT() {
@@ -214,7 +216,7 @@ template <typename Model> class DmMotor : public IMotor {
 
     Param m_param;
     std::function<void()> m_compute_func{};
-    DoubleBuffer<DmStatusPlain> m_buffer{};
+    DoubleBuffer<MotorStatusPlain> m_buffer{};
     can::CanFrame m_pending_frame{};
     uint8_t m_frame_size{};
     float m_pos_ref{};

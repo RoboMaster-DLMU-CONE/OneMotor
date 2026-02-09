@@ -3,7 +3,7 @@
 
 namespace one::motor::dm {
 
-DmStatus DmStatus::fromPlain(const DmStatusPlain &plain) {
+MotorStatus MotorStatus::fromPlain(const MotorStatusPlain &plain) {
     using namespace units::literals;
     return {
         .ID = plain.ID,
@@ -17,7 +17,7 @@ DmStatus DmStatus::fromPlain(const DmStatusPlain &plain) {
 }
 
 #ifdef ONE_MOTOR_LINUX
-std::string DmStatus::format() const {
+std::string MotorStatus::format() const {
     return std::format("ID: {:X}, Position: {}, Velocity: {}, Torque: {}, "
                        "temperature: {},{} deg, ",
                        ID, position, velocity, torque,
