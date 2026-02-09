@@ -2,6 +2,6 @@
 
 #include <one/utils/Panic.hpp>
 
-namespace one {
+namespace one::motor {
 void panic(const char *message) { throw std::runtime_error(message); }
 } // namespace one

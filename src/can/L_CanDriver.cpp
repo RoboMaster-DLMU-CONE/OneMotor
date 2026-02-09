@@ -11,7 +11,7 @@ namespace one::can {
 CanDriver::CanDriver(std::string interface_name,
                      const std::optional<uint8_t> &cpu_core_opt) {
     if (auto result = init(std::move(interface_name), cpu_core_opt); !result) {
-        panic(result.error().message);
+        motor::panic(result.error().message);
     }
 }
 

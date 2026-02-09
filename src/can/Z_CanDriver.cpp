@@ -1,13 +1,13 @@
-#include <ankerl/unordered_dense.h>
-#include <OneMotor/Can/CanDriver.hpp>
-#include <OneMotor/Util/CCM.h>
-#include <OneMotor/Util/Panic.hpp>
-#include <OneMotor/Util/DtcmAllocator.hpp>
+#include <one/can/CanDriver.hpp>
+#include <one/utils/CCM.h>
+#include <one/utils/Panic.hpp>
+#include <one/utils/DtcmAllocator.hpp>
 #include <memory>
 using tl::unexpected;
-using enum OneMotor::ErrorCode;
+using enum one::motor::ErrorCode;
+using one::motor::Error;
 
-namespace OneMotor::Can
+namespace one::can
 {
     namespace
     {
@@ -19,7 +19,7 @@ namespace OneMotor::Can
     template <typename T>
     using Hash = std::hash<T>;
     template <typename K, typename V>
-    using FastMap = std::unordered_map<K, V, Hash<K>, std::equal_to<K>, DtcmAllocator<std::pair<const K, V>>>;
+    using FastMap = std::unordered_map<K, V, Hash<K>, std::equal_to<K>, motor::DtcmAllocator<std::pair<const K, V>>>;
 
     using CallbackFunc = std::function<void(CanFrame)>;
     using Callbacks = FastMap<uint16_t, CallbackFunc>;
@@ -39,7 +39,7 @@ namespace OneMotor::Can
     {
         if (auto result = init(device); !result)
         {
-            panic(result.error().message);
+            motor::panic(result.error().message);
         }
     }
 

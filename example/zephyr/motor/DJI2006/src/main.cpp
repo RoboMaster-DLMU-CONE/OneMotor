@@ -1,18 +1,14 @@
-#include <OneMotor/Motor/DJI/DjiMotor.hpp>
+#include <one/motor/dji/DjiMotor.hpp>
 #include <zephyr/logging/log.h>
 #include <zephyr/debug/cpu_load.h>
-#include <one/PID/PidChain.hpp>
-#include <one/PID/PidConfig.hpp>
+#include <one/PID/PidParams.hpp>
 LOG_MODULE_REGISTER(main, CONFIG_LOG_DEFAULT_LEVEL);
 const device* can_device = DEVICE_DT_GET(DT_NODELABEL(can1));
-using OneMotor::Motor::DJI::PIDFeatures;
-using OneMotor::Motor::DJI::M2006;
-using OneMotor::Motor::DJI::M3508;
-using OneMotor::Can::CanDriver;
+using one::motor::dji::M2006;
+using one::motor::dji::M3508;
+using one::can::CanDriver;
 
 using one::pid::PidParams;
-using one::pid::PidConfig;
-using one::pid::PidChain;
 
 static constexpr PidParams<> POS_DEFAULT_PARAMS{
     .Kp = 3,
@@ -30,6 +26,7 @@ static constexpr PidParams<> ANG_DEFAULT_PARAMS{
     .Deadband = 10,
     .IntegralLimit = 100,
 };
+using namespace one::motor::units::literals;
 
 int main()
 {
@@ -37,20 +34,14 @@ int main()
     LOG_INF("Init CanDriver...");
     CanDriver driver(can_device);
     LOG_INF("Creating motor instance...");
-    constexpr auto conf1 =
-        PidConfig<one::pid::Positional, float, PIDFeatures>(POS_DEFAULT_PARAMS);
-    constexpr auto conf2 =
-        PidConfig<one::pid::Positional, float, PIDFeatures>(ANG_DEFAULT_PARAMS);
-    auto pid_chain = PidChain(conf1, conf2);
-
-    M3508<1, decltype(pid_chain)> m1(driver, pid_chain);
-    M3508<2, decltype(pid_chain)> m2(driver, pid_chain);
-    M3508<3, decltype(pid_chain)> m3(driver, pid_chain);
-    M3508<4, decltype(pid_chain)> m4(driver, pid_chain);
-    (void)m1.setPosRef(0 * rev);
-    (void)m2.setPosRef(0 * rev);
-    (void)m3.setPosRef(0 * rev);
-    (void)m4.setPosRef(0 * rev);
+    M2006 m1(driver, {1, one::motor::dji::PosAngMode{POS_DEFAULT_PARAMS, ANG_DEFAULT_PARAMS}});
+    M2006 m2(driver, {2, one::motor::dji::PosAngMode{POS_DEFAULT_PARAMS, ANG_DEFAULT_PARAMS}});
+    M2006 m3(driver, {3, one::motor::dji::PosAngMode{POS_DEFAULT_PARAMS, ANG_DEFAULT_PARAMS}});
+    M2006 m4(driver, {4, one::motor::dji::PosAngMode{POS_DEFAULT_PARAMS, ANG_DEFAULT_PARAMS}});
+    (void)m1.setPosUnitRef(0 * rev);
+    (void)m2.setPosUnitRef(0 * rev);
+    (void)m3.setPosUnitRef(0 * rev);
+    (void)m4.setPosUnitRef(0 * rev);
 
     (void)m1.enable();
     (void)m2.enable();

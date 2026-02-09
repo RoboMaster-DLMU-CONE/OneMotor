@@ -1,7 +1,7 @@
-#include <OneMotor/Thread/Othread.hpp>
+#include <one/thread/Othread.hpp>
 #include <utility>
 
-namespace OneMotor::Thread
+namespace one::thread
 {
     static void thread_entry(void* func, void*, void*)
     {

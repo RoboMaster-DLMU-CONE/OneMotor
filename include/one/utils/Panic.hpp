@@ -7,15 +7,16 @@
 
 #include <string>
 
-namespace one {
-/**
- * @brief 触发一个严重错误（panic）。
- * @details
- * 当程序遇到无法恢复的错误时，应调用此函数。
- * 它会打印一条错误消息到标准错误流，然后立即终止程序。
- * @param message 要打印的错误消息。
- */
-void panic(const char *message);
+namespace one::motor
+{
+    /**
+     * @brief 触发一个严重错误（panic）。
+     * @details
+     * 当程序遇到无法恢复的错误时，应调用此函数。
+     * 它会打印一条错误消息到标准错误流，然后立即终止程序。
+     * @param message 要打印的错误消息。
+     */
+    void panic(const char* message);
 } // namespace one
 
 #endif // PANIC_HPP
