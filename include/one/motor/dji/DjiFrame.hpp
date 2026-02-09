@@ -1,17 +1,15 @@
 #ifndef ONEMOTOR_DJIMOTORFRAME_HPP
 #define ONEMOTOR_DJIMOTORFRAME_HPP
 
-#include "one/units/Units.hpp"
-
 #include <cstdint>
 #include <format>
 #include <string>
 
 #include <one/can/CanFrame.hpp>
-#include <one/units/Units.hpp>
+#include <one/motor/Units.hpp>
 
 namespace one::motor::dji {
-using namespace one::units::literals;
+using namespace units::literals;
 /**
  * @struct RawStatusFrame
  * @brief DJI电机原始状态反馈的CAN帧的直接映射。
@@ -57,7 +55,6 @@ struct MotorStatus {
         reduced_angular{}; ///< 累计减速后的总角度（度/秒)，带方向
 
     static MotorStatus fromPlain(const MotorStatusPlain &plain) {
-        using namespace one::units::literals;
         return {.angular = plain.angular_rad_s * rad / s,
                 .real_current = plain.real_current_mA * mA,
                 .temperature = mp_units::point<deg_C>(plain.temperature_C),

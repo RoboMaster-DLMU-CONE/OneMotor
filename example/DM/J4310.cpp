@@ -5,7 +5,7 @@
 #include <one/motor/dm/DmMotor.hpp>
 #include <thread>
 
-using namespace one::units::literals;
+using namespace one::motor::units::literals;
 using one::motor::dm::J4310;
 
 constexpr float cycle = 2 * std::numbers::pi;

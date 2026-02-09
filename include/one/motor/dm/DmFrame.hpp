@@ -9,7 +9,7 @@
 #define ONE_MOTOR_DM_FRAME_HPP
 #include <cstdint>
 #include <one/can/CanFrame.hpp>
-#include <one/units/Units.hpp>
+#include <one/motor/Units.hpp>
 #include <string>
 
 namespace one::motor::dm {
@@ -17,8 +17,6 @@ namespace one::motor::dm {
 /**
  * @brief 将无符号整数转换为浮点数
  * @param x_int 要转换的无符号整数
- * @param x_min 浮点数范围的最小值
- * @param x_max 浮点数范围的最大值
  * @param bits 无符号整数的位数
  * @return 转换后的浮点数值
  */
@@ -34,8 +32,6 @@ constexpr float uint_to_float(const int x_int, const int bits) {
 /**
  * @brief 将浮点数转换为无符号整数
  * @param x 要转换的浮点数
- * @param x_min 浮点数范围的最小值
- * @param x_max 浮点数范围的最大值
  * @param bits 无符号整数的位数
  * @return 转换后的无符号整数值
  */

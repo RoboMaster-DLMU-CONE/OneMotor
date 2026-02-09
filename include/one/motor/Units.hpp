@@ -17,13 +17,13 @@
 #include <mp-units/systems/si/units.h>
 
 /**
- * @namespace one::units
+ * @namespace one::motor::units
  * @brief OneMotor项目的单位系统命名空间
  *
  * 包含了电机控制中常用的物理量单位定义，
  * 如角度、角速度、扭矩、电流等。
  */
-namespace one::units {
+namespace one::motor::units {
 
 // 导入mp-units库中的基础类型
 using mp_units::quantity;
@@ -148,6 +148,6 @@ using mp_units::si::unit_symbols::N;        ///< 牛顿的字面量符号
 using mp_units::si::unit_symbols::s;        ///< 秒的字面量符号
 } // namespace literals
 
-} // namespace one::units
+} // namespace one::motor::units
 
 #endif // ONE_MOTOR_UNITS_HPP_

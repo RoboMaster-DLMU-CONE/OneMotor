@@ -4,12 +4,11 @@
 #include <one/PID/PidConfig.hpp>
 #include <one/PID/PidParams.hpp>
 #include <one/can/CanDriver.hpp>
+#include <one/motor/Units.hpp>
 #include <one/motor/dji/DjiMotor.hpp>
-#include <one/units/Units.hpp>
 #include <thread>
-#include <utility>
 
-using namespace one::units::literals;
+using namespace one::motor::units::literals;
 using one::can::CanDriver;
 using one::motor::dji::M2006;
 using one::pid::PidChain;

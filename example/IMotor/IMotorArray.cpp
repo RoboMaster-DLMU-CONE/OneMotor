@@ -7,15 +7,15 @@
 #include <one/PID/PidConfig.hpp>
 #include <one/PID/PidParams.hpp>
 #include <one/motor/IMotor.hpp>
+#include <one/motor/Units.hpp>
 #include <one/motor/dji/DjiMotor.hpp>
 #include <one/motor/dm/DmMotor.hpp>
-#include <one/units/Units.hpp>
 #include <string>
 #include <type_traits>
 #include <utility>
 #include <variant>
 
-using namespace one::units::literals;
+using namespace one::motor::units::literals;
 using one::can::CanDriver;
 using one::motor::IMotor;
 using one::motor::dji::M2006;

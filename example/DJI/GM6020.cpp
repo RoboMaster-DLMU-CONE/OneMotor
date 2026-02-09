@@ -33,7 +33,7 @@ static constexpr PidParams<> ANG_DEFAULT_PARAMS{
     .IntegralLimit = 8000,
 };
 
-using namespace one::units::literals;
+using namespace one::motor::units::literals;
 int main() {
 
     CanDriver driver("can0");
