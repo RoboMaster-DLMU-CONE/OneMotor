@@ -249,11 +249,12 @@ template <typename Model> class DjiMotor : public IMotor {
             m_initialized = true;
         }
         if (const int32_t diff = frame.ecd - m_last_ecd; diff > 4096) {
-            --status.total_round;
+            --m_total_round;
         } else if (diff < -4096) {
-            ++status.total_round;
+            ++m_total_round;
         }
         m_last_ecd = frame.ecd;
+        status.total_round = m_total_round;
         const float current_abs_total_angle =
             static_cast<float>(m_total_round) * 2 * std::numbers::pi_v<float> +
             status.angle_single_round_rad;
@@ -278,8 +279,8 @@ template <typename Model> class DjiMotor : public IMotor {
      */
     void m_disabled_func(can::CanFrame frame) {
         const auto msg = RawStatusPlain(frame);
-        updateStatus(msg, this->m_buffer.write());
-        this->m_buffer.swap();
+        updateStatus(msg, m_buffer.write());
+        m_buffer.swap();
     }
 
     /**
@@ -306,6 +307,7 @@ template <typename Model> class DjiMotor : public IMotor {
         const uint8_t lo_byte = output_current & 0xFF;
         MotorManager::getInstance().pushOutput(
             *this->driver(), m_control_id, m_control_offset, lo_byte, hi_byte);
+        m_buffer.swap();
     }
 
 #ifdef CONFIG_OM_DJI_MOTOR_SKIP_N_FRAME

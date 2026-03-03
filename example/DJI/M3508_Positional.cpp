@@ -13,19 +13,19 @@ using one::pid::PidConfig;
 using one::pid::PidParams;
 
 static constexpr PidParams<> POS_DEFAULT_PARAMS{
-    .Kp = 1,
-    .Ki = 0.05,
-    .Kd = 0,
+    .Kp = 40,
+    .Ki = 0.003,
+    .Kd = 0.05,
     .MaxOutput = 20000,
-    .Deadband = 50,
+    .Deadband = 0.001,
     .IntegralLimit = 1000,
 };
 static constexpr PidParams<> ANG_DEFAULT_PARAMS{
-    .Kp = 0.1,
-    .Ki = 0.05,
-    .Kd = 0.01,
+    .Kp = 5,
+    .Ki = 0.00,
+    .Kd = 0.00,
     .MaxOutput = 8000,
-    .Deadband = 10,
+    .Deadband = 0.001,
     .IntegralLimit = 100,
 };
 
