@@ -98,7 +98,7 @@ struct M2006Model {
 };
 
 struct GM6020VoltageModel {
-    static constexpr uint16_t max_current = 16384;       ///< 最大电流
+    static constexpr uint16_t max_current = 25000;       ///< 最大电流
     static constexpr uint16_t encoder_resolution = 8192; ///< 编码器分辨率
     static constexpr bool has_gearbox = false;           ///< 是否有减速箱
     static constexpr uint8_t max_id = 7;                 ///< 最大ID
@@ -144,7 +144,7 @@ struct GM6020VoltageModel {
 };
 
 struct GM6020CurrentModel {
-    static constexpr uint16_t max_output = 25000;        ///< 最大输出
+    static constexpr uint16_t max_current = 16384;       ///< 最大电流
     static constexpr uint16_t encoder_resolution = 8192; ///< 编码器分辨率
     static constexpr bool has_gearbox = false;           ///< 是否有减速箱
     static constexpr uint8_t max_id = 7;                 ///< 最大ID

@@ -8,6 +8,7 @@
 #include <one/motor/dji/DjiMotor.hpp>
 
 using one::can::CanDriver;
+using one::motor::dji::GM6020_Current;
 using one::motor::dji::GM6020_Voltage;
 using one::motor::dji::M2006;
 using one::motor::dji::PIDFeatures;
@@ -16,33 +17,16 @@ using one::pid::PidChain;
 using one::pid::PidConfig;
 using one::pid::PidParams;
 
-static constexpr PidParams<> POS_DEFAULT_PARAMS{
-    .Kp = 8.1f,
-    .Ki = 0.0f,
-    .Kd = 1.0f,
-    .MaxOutput = 20000,
-    .Deadband = 0,
-    .IntegralLimit = 5000,
-};
-static constexpr PidParams<> ANG_DEFAULT_PARAMS{
-    .Kp = 6.0f,
-    .Ki = 0.5f,
-    .Kd = 0.0f,
-    .MaxOutput = 20000,
-    .Deadband = 0,
-    .IntegralLimit = 8000,
-};
-
 using namespace one::motor::units::literals;
 int main() {
 
     CanDriver driver("can0");
-    GM6020_Voltage m1(
-        driver,
-        {.id = 4, .mode = PosAngMode{POS_DEFAULT_PARAMS, ANG_DEFAULT_PARAMS}});
+    GM6020_Voltage m1(driver,
+                      {.id = 4, .mode = one::motor::dji::MITMode{2000, 10}});
 
-    m1.setPosUnitRef(0 * rad);
-    m1.setAngUnitRef(2 * rad / s);
+    m1.setPosUnitRef(1 * rev);
+    m1.setAngUnitRef(0.5 * rad / s);
+    m1.setTorRef(15);
     (void)m1.enable();
 
     std::thread thread([&] {
