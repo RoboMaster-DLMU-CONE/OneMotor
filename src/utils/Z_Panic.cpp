@@ -1,5 +1,3 @@
-#include <ostream>
-
 #include "one/utils/Panic.hpp"
 #include <zephyr/kernel.h>
 
