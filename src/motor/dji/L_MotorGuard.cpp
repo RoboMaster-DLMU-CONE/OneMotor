@@ -3,42 +3,53 @@
 
 namespace one::motor::dji {
 void MotorGuard::guard(const std::vector<DriverPair> &driver_set) {
-    for (auto &[name, data] : driver_set) {
+    for (const auto &[name, ids, data] : driver_set) {
         auto driver = std::make_shared<can::CanDriver>(name);
-        drivers.push_back(driver);
-        watchdog_states_[driver] = std::make_unique<WatchdogState>();
-        watchdog_states_[driver]->last_fed_time_ =
-            std::chrono::steady_clock::now();
-        watchdog_states_[driver]->triggered_.store(false,
-                                                   std::memory_order_relaxed);
-        std::array<uint8_t, 16> temp{};
-        if (data.has_value())
-            temp = data.value();
-        driver_exit_data_[driver] = temp;
-    }
 
-    for (const auto &driver : drivers) {
+        // 初始化该驱动器的所有 ID 状态
+        auto &id_states = driver_id_states_[driver];
+        for (const auto &id : ids) {
+            id_states[id] = std::make_unique<WatchdogState>();
+            id_states[id]->last_fed_time_ = std::chrono::steady_clock::now();
+            id_states[id]->triggered_.store(false, std::memory_order_relaxed);
+        }
+
+        // 设置退出数据
+        std::array<uint8_t, 16> temp{};
+        if (data.has_value()) {
+            temp = data.value();
+        }
+        driver_exit_data_[driver] = temp;
+
+        // 为每个 ID 注册回调
+        for (const auto &id : ids) {
+            (void)driver->registerCallback(
+                {id}, [this, driver, id](can::CanFrame) {
+                    this->feed_watchdog(driver, id);
+                });
+        }
+
+        // 打开 CAN 驱动
         (void)driver->open().or_else(
             [](const auto &) { panic("Failed to open CAN driver."); });
     }
 
-    for (const auto &driver : drivers) {
-        auto result =
-            driver->registerCallback({0x200}, [this, driver](can::CanFrame) {
-                this->feed_watchdog(driver);
-            });
-    }
+    // 启动监控线程
     watchdog_monitor_ = std::jthread([this](const std::stop_token &stop_token) {
         this->watchdog_monitor_func_(stop_token);
     });
 }
 
-void MotorGuard::feed_watchdog(const std::shared_ptr<can::CanDriver> &driver) {
+void MotorGuard::feed_watchdog(const std::shared_ptr<can::CanDriver> &driver,
+                               uint16_t id) {
     std::lock_guard lock(state_mutex_);
-    if (const auto it = watchdog_states_.find(driver);
-        it != watchdog_states_.end()) {
-        it->second->last_fed_time_ = std::chrono::steady_clock::now();
-        it->second->triggered_.store(false, std::memory_order_release);
+    if (const auto driver_it = driver_id_states_.find(driver);
+        driver_it != driver_id_states_.end()) {
+        const auto &id_states = driver_it->second;
+        if (const auto id_it = id_states.find(id); id_it != id_states.end()) {
+            id_it->second->last_fed_time_ = std::chrono::steady_clock::now();
+            id_it->second->triggered_.store(false, std::memory_order_release);
+        }
     }
 }
 
@@ -49,17 +60,31 @@ void MotorGuard::watchdog_monitor_func_(const std::stop_token &stop_token) {
             break;
 
         auto now = std::chrono::steady_clock::now();
+        std::unordered_map<std::shared_ptr<can::CanDriver>, bool>
+            driver_trigger_map;
         {
             std::lock_guard lock(state_mutex_);
-            for (auto &[driver, state] : watchdog_states_) {
-                if (state->triggered_.load(std::memory_order_acquire))
-                    continue;
-                auto time_since_fed =
-                    now - state->last_fed_time_.load(std::memory_order_acquire);
-                if (time_since_fed > std::chrono::milliseconds(50)) {
-                    circuit_breaker_action_(driver);
-                    state->triggered_.store(true);
+            for (auto &[driver, id_states] : driver_id_states_) {
+                bool any_triggered = false;
+                for (auto &[id, state] : id_states) {
+                    if (state->triggered_.load(std::memory_order_acquire))
+                        continue;
+                    auto time_since_fed = now - state->last_fed_time_.load(
+                                                   std::memory_order_acquire);
+                    if (time_since_fed > std::chrono::milliseconds(50)) {
+                        state->triggered_.store(true,
+                                                std::memory_order_release);
+                        any_triggered = true;
+                    }
                 }
+                driver_trigger_map[driver] = any_triggered;
+            }
+        }
+
+        // 在锁外执行熔断操作
+        for (const auto &[driver, should_trigger] : driver_trigger_map) {
+            if (should_trigger) {
+                circuit_breaker_action_(driver);
             }
         }
     }
