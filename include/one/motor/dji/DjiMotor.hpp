@@ -404,16 +404,16 @@ namespace one::motor::dji
 
         bool m_enabled = false;
 
-        uint16_t computeAng()
+        int16_t computeAng()
         {
             const float ang_ref_rad = m_ang_ref.load(std::memory_order_acquire);
-            return static_cast<uint16_t>(static_cast<int16_t>(
+            return static_cast<int16_t>(
                 std::get<AngMode>(m_param.mode)
                .pid_controller.compute(
-                    ang_ref_rad, m_buffer.write().reduced_angular_rad_s)));
+                    ang_ref_rad, m_buffer.write().reduced_angular_rad_s));
         }
 
-        uint16_t computePosAng()
+        int16_t computePosAng()
         {
             // const float ang_ref_rad = m_ang_ref.load(std::memory_order_acquire);
             // if constexpr (Model::has_gearbox) {
@@ -421,23 +421,23 @@ namespace one::motor::dji
             // }
             const float pos_ref_rad = m_pos_ref.load(std::memory_order_acquire);
             auto status = m_buffer.write();
-            return static_cast<uint16_t>(static_cast<int16_t>(
+            return static_cast<int16_t>(
                 std::get<PosAngMode>(m_param.mode)
                .pid_chain.compute(
                     pos_ref_rad,
-                    {status.reduced_angle_rad, status.reduced_angular_rad_s})));
+                    {status.reduced_angle_rad, status.reduced_angular_rad_s}));
         }
 
-        uint16_t computeMIT()
+        int16_t computeMIT()
         {
             auto [kp, kd] = std::get<MITMode>(m_param.mode);
             const auto status = m_buffer.write();
             const float tff = m_tor_ref.load(std::memory_order_acquire);
             const float pdes = m_pos_ref.load(std::memory_order_acquire);
             const float qdes = m_ang_ref.load(std::memory_order_acquire);
-            return static_cast<uint16_t>(static_cast<int16_t>(
+            return static_cast<int16_t>(
                 tff + kp * (pdes - status.reduced_angle_rad) +
-                kd * (qdes - status.reduced_angular_rad_s)));
+                kd * (qdes - status.reduced_angular_rad_s));
         }
 
         void readParam(const Param& param)
@@ -465,7 +465,7 @@ namespace one::motor::dji
                 m_param.mode);
         }
 
-        std::function<uint16_t()> m_compute_func{};
+        std::function<int16_t()> m_compute_func{};
 
         Param m_param{0, MITMode{}};
 
