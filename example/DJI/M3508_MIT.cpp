@@ -5,15 +5,16 @@
 using one::can::CanDriver;
 using one::motor::dji::M3508;
 
+using one::motor::dji::M2006;
 using namespace one::motor::units::literals;
 int main() {
 
     CanDriver driver("can0");
 
-    M3508 m1(driver, {1, one::motor::dji::MITMode{80, 3}});
+    M2006 m1(driver, {1, one::motor::dji::MITMode{5, 0.5}});
 
-    m1.setPosUnitRef(2 * rev);
-    m1.setTorRef(1.5);
+    m1.setPosUnitRef(1 * rev);
+    m1.setTorRef(0.5);
     (void)m1.enable();
 
     std::thread thread([&] {

@@ -22,11 +22,11 @@ int main() {
 
     CanDriver driver("can0");
     GM6020_Voltage m1(driver,
-                      {.id = 4, .mode = one::motor::dji::MITMode{2000, 10}});
+                      {.id = 4, .mode = one::motor::dji::MITMode{1, 0.1}});
 
     m1.setPosUnitRef(1 * rev);
     m1.setAngUnitRef(0.5 * rad / s);
-    m1.setTorRef(15);
+    m1.setTorRef(2);
     (void)m1.enable();
 
     std::thread thread([&] {
