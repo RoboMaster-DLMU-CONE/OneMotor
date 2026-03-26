@@ -384,10 +384,12 @@ template <typename Model> class DjiMotor : public IMotor {
         const float tff = m_tor_ref.load(std::memory_order_acquire);
         const float pdes = m_pos_ref.load(std::memory_order_acquire);
         const float qdes = m_ang_ref.load(std::memory_order_acquire);
-        return static_cast<int16_t>(
-            (tff + kp * (pdes - status.reduced_angle_rad) +
-             kd * (qdes - status.reduced_angular_rad_s)) /
-            Model::kt * 1000);
+
+        const float torque = tff + kp * (pdes - status.reduced_angle_rad) +
+                             kd * (qdes - status.reduced_angular_rad_s);
+        const float current_mA = torque / Model::kt * 1000.0f;
+
+        return static_cast<int16_t>(current_mA);
     }
 
     void readParam(const Param &param) {
