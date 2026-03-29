@@ -305,10 +305,10 @@ template <typename Model> class DjiMotor : public IMotor {
 #endif
         const auto msg = RawStatusPlain(frame);
         updateStatus(msg, this->m_buffer.write());
-        int16_t output_current = m_compute_func();
-        output_current = std::clamp(output_current,
-                                    static_cast<int16_t>(-Model::max_current),
-                                    static_cast<int16_t>(Model::max_current));
+        float output_current_f = m_compute_func();
+        int16_t output_current = static_cast<int16_t>(std::clamp(
+            output_current_f, static_cast<float>(-Model::max_current),
+            static_cast<float>(Model::max_current)));
         const uint8_t hi_byte = output_current >> 8;
         const uint8_t lo_byte = output_current & 0xFF;
         MotorManager::getInstance().pushOutput(
@@ -356,29 +356,27 @@ template <typename Model> class DjiMotor : public IMotor {
 
     bool m_enabled = false;
 
-    int16_t computeAng() {
+    float computeAng() {
         const float ang_ref_rad = m_ang_ref.load(std::memory_order_acquire);
-        return static_cast<int16_t>(
-            std::get<AngMode>(m_param.mode)
-                .pid_controller.compute(
-                    ang_ref_rad, m_buffer.write().reduced_angular_rad_s));
+        return std::get<AngMode>(m_param.mode)
+            .pid_controller.compute(
+                ang_ref_rad, m_buffer.write().reduced_angular_rad_s);
     }
 
-    int16_t computePosAng() {
+    float computePosAng() {
         // const float ang_ref_rad = m_ang_ref.load(std::memory_order_acquire);
         // if constexpr (Model::has_gearbox) {
         //     ang_ref_rad *= Model::reduction_ratio;
         // }
         const float pos_ref_rad = m_pos_ref.load(std::memory_order_acquire);
         auto status = m_buffer.write();
-        return static_cast<int16_t>(
-            std::get<PosAngMode>(m_param.mode)
-                .pid_chain.compute(
-                    pos_ref_rad,
-                    {status.reduced_angle_rad, status.reduced_angular_rad_s}));
+        return std::get<PosAngMode>(m_param.mode)
+            .pid_chain.compute(
+                pos_ref_rad,
+                {status.reduced_angle_rad, status.reduced_angular_rad_s});
     }
 
-    int16_t computeMIT() {
+    float computeMIT() {
         auto [kp, kd] = std::get<MITMode>(m_param.mode);
         const auto status = m_buffer.write();
         const float tff = m_tor_ref.load(std::memory_order_acquire);
@@ -389,7 +387,7 @@ template <typename Model> class DjiMotor : public IMotor {
                              kd * (qdes - status.reduced_angular_rad_s);
         const float current_mA = torque / Model::kt * 1000.0f;
 
-        return static_cast<int16_t>(current_mA);
+        return current_mA;
     }
 
     void readParam(const Param &param) {
@@ -410,7 +408,7 @@ template <typename Model> class DjiMotor : public IMotor {
             m_param.mode);
     }
 
-    std::function<int16_t()> m_compute_func{};
+    std::function<float()> m_compute_func{};
 
     Param m_param{0, MITMode{}};
 
