@@ -1,9 +1,8 @@
+#include <one/utils/CCM.h>
 #include <one/utils/DtcmAllocator.hpp>
 
 k_heap g_dtcm_heap;
-#ifdef CONFIG_DT_HAS_ST_STM32_CCM_ENABLED
-static __dtcm_bss_section uint8_t g_dtcm_buffer[CONFIG_OM_DTCM_HEAP_SIZZE];
-#endif
+static OM_CCM_ATTR uint8_t g_dtcm_buffer[CONFIG_OM_DTCM_HEAP_SIZZE];
 
 
 namespace one::motor::detail
