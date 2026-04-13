@@ -39,6 +39,8 @@ template <typename Model> class DmMotor : public IMotor {
         }
     }
 
+    using IMotor::init;
+
     tl::expected<void, Error> init(can::CanDriver &driver, const Param &param) {
         if (const auto base_result = IMotor::init(driver); !base_result) {
             return base_result;
