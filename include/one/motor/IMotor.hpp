@@ -6,6 +6,8 @@
  */
 
 #include "Error.hpp"
+#include "dm/DmFrame.hpp"
+#include "lk/LkFrame.hpp"
 
 #include <one/can/CanDriver.hpp>
 #include <one/motor/Units.hpp>
@@ -23,9 +25,10 @@ namespace one::motor {
  * 用于类型擦除的电机状态，可以表示不同类型的电机状态。
  * 当前支持达妙(DM)和大疆(DJI)电机的状态类型。
  */
-using AnyStatus = std::variant<dm::MotorStatus, dji::MotorStatus>;
-using AnyPlainStatus =
-    std::variant<dm::MotorStatusPlain, dji::MotorStatusPlain>;
+using AnyStatus =
+    std::variant<dm::MotorStatus, dji::MotorStatus, lk::MotorStatus>;
+using AnyPlainStatus = std::variant<dm::MotorStatusPlain, dji::MotorStatusPlain,
+                                    lk::MotorStatusPlain>;
 
 /**
  * @class IMotor

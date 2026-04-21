@@ -4,8 +4,8 @@
  *
  *
  */
-#ifndef ONE_MOTOR_DM_FRAME_HPP
-#define ONE_MOTOR_DM_FRAME_HPP
+#ifndef ONE_MOTOR_LK_FRAME_HPP
+#define ONE_MOTOR_LK_FRAME_HPP
 #include <cstdint>
 #include <one/can/CanFrame.hpp>
 #include <one/motor/Units.hpp>
@@ -44,9 +44,12 @@ struct MotorStatusPlain {
 
 /// @brief 对外暴露的带单位状态，仅在用户线程构造
 struct MotorStatus {
-    float position{}; ///< 电机位置 (rad)
-    float angular{};  ///< 电机速度 (rad/s)
-    float current{};  ///< 电机电流 (mA)
+    static MotorStatus fromPlain(const MotorStatusPlain &plains) {
+        return {.angular = static_cast<float>(plains.angular),
+                .current = static_cast<float>(plains.iq)};
+    }
+    float angular{}; ///< 电机速度 (rad/s)
+    float current{}; ///< 电机电流 (mA)
 };
 } // namespace one::motor::lk
-#endif // ONE_MOTOR_DM_FRAME_HPP
+#endif // ONE_MOTOR_LK_FRAME_HPP

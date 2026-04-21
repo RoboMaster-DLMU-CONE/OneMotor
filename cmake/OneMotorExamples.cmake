@@ -20,3 +20,6 @@ target_link_libraries(OneMotorExample_M2006_Init PRIVATE OneMotor)
 add_executable(OneMotorExample_IMotorArray
         ${PROJECT_SOURCE_DIR}/example/IMotor/IMotorArray.cpp)
 target_link_libraries(OneMotorExample_IMotorArray PRIVATE OneMotor)
+
+add_executable(OneMotorExample_LK_Angular ${PROJECT_SOURCE_DIR}/example/LK/angular.cpp)
+target_link_libraries(OneMotorExample_LK_Angular PRIVATE OneMotor)

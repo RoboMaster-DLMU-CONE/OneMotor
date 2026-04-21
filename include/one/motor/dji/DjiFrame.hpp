@@ -73,7 +73,7 @@ struct MotorStatus {
                            "\t- Real Current: {} mA\n"
                            "\t- Temperature: {} °C",
                            angular, total_angle, reduced_angle, reduced_angular,
-                           real_current, temperature.quantity_from_zero());
+                           real_current, temperature.quantity_from_unit_zero());
     };
 #endif
 };
