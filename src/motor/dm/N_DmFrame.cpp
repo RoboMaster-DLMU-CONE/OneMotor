@@ -21,8 +21,8 @@ std::string MotorStatus::format() const {
     return std::format("ID: {:X}, Position: {}, Velocity: {}, Torque: {}, "
                        "temperature: {},{} deg, ",
                        ID, position, velocity, torque,
-                       temperature_MOS.quantity_from_zero(),
-                       temperature_Rotor.quantity_from_zero());
+                       temperature_MOS.quantity_from_unit_zero(),
+                       temperature_Rotor.quantity_from_unit_zero());
 }
 #endif
 } // namespace one::motor::dm
